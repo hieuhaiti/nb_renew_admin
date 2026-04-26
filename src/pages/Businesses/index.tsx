@@ -1,0 +1,377 @@
+import type { JSX } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useApiQuery, useApiMutation, businessService } from '@/service'
+import type {
+  ApiResponse,
+  Business,
+  BusinessListData,
+  BusinessStatus,
+  BusinessApprovalBody,
+  Pagination,
+} from '@/types/api'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { StatusDotBadge } from '@/components/common/StatusDotBadge'
+import ToolTableCustom from '@/components/features/ToolTableCustom'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Check, X, Trash2, Ban } from 'lucide-react'
+import PageLayout from '@/layout/pageLayout'
+import { formatDate } from '@/lib/date'
+import { parseLink } from '@/lib/utils'
+
+const STATUS_LABEL: Record<BusinessStatus, string> = {
+  pending: 'Chờ duyệt',
+  approved: 'Đã duyệt',
+  rejected: 'Từ chối',
+  suspended: 'Tạm khóa',
+}
+const STATUS_CLASS: Record<BusinessStatus, string> = {
+  pending: 'bg-warning/10 text-warning border-warning/20',
+  approved: 'bg-success/10 text-success border-success/20',
+  rejected: 'bg-destructive/10 text-destructive border-destructive/20',
+  suspended: 'bg-muted/40 text-muted-foreground border-border',
+}
+const STATUS_DOT: Record<BusinessStatus, string> = {
+  pending: 'bg-warning',
+  approved: 'bg-success',
+  rejected: 'bg-destructive',
+  suspended: 'bg-muted-foreground',
+}
+
+export default function BusinessPage(): JSX.Element {
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
+  const [searchValue, setSearchValue] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [bizToReject, setBizToReject] = useState<Business | null>(null)
+  const [rejectionNote, setRejectionNote] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [bizToDelete, setBizToDelete] = useState<Business | null>(null)
+
+  const queryParams = {
+    page: currentPage,
+    limit,
+    sortBy: 'created_at',
+    sortOrder: 'DESC' as const,
+    ...(statusFilter !== 'all' && { status: statusFilter as BusinessStatus }),
+    ...(searchValue && { search: searchValue }),
+  }
+
+  const dbQuery = useApiQuery(
+    ['businesses', queryParams],
+    () => businessService.getAll(queryParams),
+    {},
+    false,
+    false
+  )
+
+  const data = (dbQuery.data as ApiResponse<BusinessListData>)?.data
+  const items = data?.businesses ?? []
+  const pagination = (data?.pagination ?? {}) as Partial<Pagination>
+  const lastTotalPagesRef = useRef<number | null>(null)
+  if (pagination?.totalPages) lastTotalPagesRef.current = pagination.totalPages
+  const totalPages = pagination?.totalPages ?? lastTotalPagesRef.current ?? 1
+  const total = pagination?.total ?? 0
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages)
+  }, [currentPage, totalPages])
+
+  const approvalMutation = useApiMutation(
+    (payload: { id: string; data: BusinessApprovalBody }) =>
+      businessService.setApproval(payload.id, payload.data),
+    { onSuccess: () => dbQuery.refetch() },
+    true
+  )
+
+  const deleteMutation = useApiMutation(
+    (id: string) => businessService.delete(id),
+    {
+      onSuccess: () => {
+        dbQuery.refetch()
+        setDeleteDialogOpen(false)
+        setBizToDelete(null)
+      },
+    },
+    true
+  )
+
+  function handleApprove(id: string) {
+    approvalMutation.mutate({ id, data: { status: 'approved' } })
+  }
+
+  function handleSuspend(id: string) {
+    approvalMutation.mutate({ id, data: { status: 'suspended' } })
+  }
+
+  function openReject(biz: Business) {
+    setBizToReject(biz)
+    setRejectionNote('')
+    setRejectDialogOpen(true)
+  }
+
+  function handleRejectConfirm() {
+    if (!bizToReject) return
+    approvalMutation.mutate({
+      id: bizToReject.id,
+      data: { status: 'rejected', rejection_note: rejectionNote || undefined },
+    })
+    setRejectDialogOpen(false)
+    setBizToReject(null)
+  }
+
+  return (
+    <PageLayout title="Doanh nghiệp" description="Quản lý doanh nghiệp du lịch">
+      <ToolTableCustom
+        searchValue={searchValue}
+        setSearchValue={(v) => {
+          setSearchValue(v)
+          setCurrentPage(1)
+        }}
+        filter={
+          <div className="flex items-center gap-2">
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v)
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="pending">Chờ duyệt</SelectItem>
+                <SelectItem value="approved">Đã duyệt</SelectItem>
+                <SelectItem value="rejected">Từ chối</SelectItem>
+                <SelectItem value="suspended">Tạm khóa</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={`${limit}`}
+              onValueChange={(v) => {
+                setLimit(parseInt(v, 10))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        }
+        total={total}
+        pagination={{
+          currentPage,
+          totalPages,
+          onPageChange: (page: number) => setCurrentPage(page),
+        }}
+      >
+        <Table className="relative">
+          <TableHeader className="sticky top-0 z-20">
+            <TableRow>
+              <TableHead className="w-12">Logo</TableHead>
+              <TableHead>Tên doanh nghiệp</TableHead>
+              <TableHead className="w-28">Loại hình</TableHead>
+              <TableHead className="w-36">Chủ sở hữu</TableHead>
+              <TableHead className="w-28">Trạng thái</TableHead>
+              <TableHead className="w-32">Ngày tạo</TableHead>
+              <TableHead className="w-32 text-right">Hành động</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-muted-foreground text-center">
+                  Không có dữ liệu
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((biz: Business) => (
+                <TableRow key={biz.id}>
+                  <TableCell>
+                    {biz.logo_url ? (
+                      <img
+                        src={parseLink(biz.logo_url)}
+                        alt={biz.business_name}
+                        className="h-10 w-10 rounded border object-contain"
+                      />
+                    ) : (
+                      <div className="bg-muted h-10 w-10 rounded border" />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-medium">{biz.business_name}</p>
+                    {biz.address_vi && (
+                      <p className="text-muted-foreground text-xs">{biz.address_vi}</p>
+                    )}
+                    {biz.phone && (
+                      <p className="text-muted-foreground text-xs">{biz.phone}</p>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {biz.business_type || '-'}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {biz.owner ? (
+                      <div>
+                        <p className="font-medium">{biz.owner.full_name}</p>
+                        <p className="text-muted-foreground text-xs">{biz.owner.email}</p>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusDotBadge
+                      label={STATUS_LABEL[biz.status]}
+                      badgeClass={STATUS_CLASS[biz.status]}
+                      dotClass={STATUS_DOT[biz.status]}
+                    />
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {biz.created_at ? formatDate(biz.created_at) : '-'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      {biz.status === 'pending' && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleApprove(biz.id)}
+                            title="Duyệt"
+                            disabled={approvalMutation.isPending}
+                          >
+                            <Check className="text-success size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openReject(biz)}
+                            title="Từ chối"
+                            disabled={approvalMutation.isPending}
+                          >
+                            <X className="text-destructive size-4" />
+                          </Button>
+                        </>
+                      )}
+                      {biz.status === 'approved' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSuspend(biz.id)}
+                          title="Tạm khóa"
+                          disabled={approvalMutation.isPending}
+                        >
+                          <Ban className="text-warning size-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setBizToDelete(biz)
+                          setDeleteDialogOpen(true)
+                        }}
+                        title="Xóa"
+                      >
+                        <Trash2 className="text-destructive size-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </ToolTableCustom>
+
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogTitle>Từ chối doanh nghiệp</DialogTitle>
+          <DialogDescription>Nhập lý do từ chối (không bắt buộc)</DialogDescription>
+          <div className="mt-2 space-y-2">
+            <Label htmlFor="biz_rejection_note">Lý do từ chối</Label>
+            <Input
+              id="biz_rejection_note"
+              value={rejectionNote}
+              onChange={(e) => setRejectionNote(e.target.value)}
+              placeholder="Thông tin không hợp lệ..."
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Hủy</Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={approvalMutation.isPending}
+            >
+              {approvalMutation.isPending ? 'Đang xử lý...' : 'Từ chối'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa doanh nghiệp &quot;{bizToDelete?.business_name}&quot;? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => bizToDelete && deleteMutation.mutate(bizToDelete.id)}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageLayout>
+  )
+}
