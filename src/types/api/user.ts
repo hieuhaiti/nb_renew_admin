@@ -2,24 +2,32 @@ export interface User {
   id: string
   email: string
   full_name?: string | null
+  username?: string | null
+  email_registered?: string | null
   phone?: string | null
   avatar_url?: string | null
-  role_id: number
+  address_detail?: string | null
+  role_id?: number
   role?: UserRole
+  role_name?: string | null
+  role_code?: string | null
   is_active: boolean
   is_verified?: boolean
   is_deleted?: boolean
   deleted_at?: string | null
   last_login?: string | null
   locked_until?: string | null
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface UserRole {
   id: number
   name: string
   description?: string
+  permissions?: Record<string, string[]> & {
+    map_layer_apis?: string[]
+  }
 }
 
 export interface UserListData {

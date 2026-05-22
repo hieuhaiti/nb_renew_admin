@@ -1,9 +1,10 @@
 export interface Notification {
-  id: number
+  id: string
   user_id?: string | null
   type: string
   title?: string | null
   title_vi?: string | null
+  message?: string | null
   body?: string | null
   body_vi?: string | null
   payload?: Record<string, any> | null

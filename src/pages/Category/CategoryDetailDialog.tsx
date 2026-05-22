@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { spotCategoryService, useApiQuery } from '@/service'
 import type { ApiResponse, SpotCategory } from '@/types/api'
 import { formatDateTime } from '@/lib/date'
+import { parseLink } from '@/lib/utils'
 
 interface CategoryDetailDialogProps {
   open: boolean
@@ -55,7 +56,24 @@ export default function CategoryDetailDialog({
             </div>
             <div className="grid grid-cols-3 gap-2">
               <span className="font-semibold">Danh mục cha:</span>
-              <span className="col-span-2 text-muted-foreground">{category.parent_id ?? '-'}</span>
+              <span className="col-span-2 text-muted-foreground">{category.parent_name_vi ?? '-'}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <span className="font-semibold">Icon:</span>
+              <span className="col-span-2">
+                {category.icon_url ? (
+                  <img
+                    src={parseLink(category.icon_url)}
+                    alt="icon"
+                    className="h-10 w-10 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                ) : (
+                  '-'
+                )}
+              </span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <span className="font-semibold">Màu:</span>

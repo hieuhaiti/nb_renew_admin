@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { categoryService, useApiQuery } from '@/service'
-import type { ApiResponse, CategoryListData } from '@/types/api'
+import { mapAdminCategoryService, useApiQuery } from '@/service'
+import type { ApiResponse, MapAdminCategoryListData } from '@/types/api'
 import { Loader2, Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { cn } from '@/lib/utils'
@@ -53,13 +53,13 @@ export default function CategorySelectField({
   const debouncedSearch = useDebounce(categorySearch, 500)
 
   const categoryQuery = useApiQuery(
-    ['categories', { page: 1, limit: 100, search: debouncedSearch, activeOnly }],
+    ['categories', { page: 1, limit: 50, search: debouncedSearch, activeOnly }],
     () =>
-      categoryService.getAll({
+      mapAdminCategoryService.getAll({
         page: 1,
-        limit: 100,
-        sortBy: 'id',
-        sortOrder: 'ASC',
+        limit: 50,
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
         ...(debouncedSearch.trim() && { search: debouncedSearch.trim() }),
         ...(activeOnly && { is_active: true }),
       }),
@@ -69,7 +69,7 @@ export default function CategorySelectField({
   )
 
   const categories = (
-    (categoryQuery.data as ApiResponse<CategoryListData>)?.data?.categories ?? []
+    (categoryQuery.data as ApiResponse<MapAdminCategoryListData>)?.data?.categories ?? []
   ).filter((category: Category) => (activeOnly ? category.is_active : true))
 
   const isLoading = categoryQuery.isLoading || categoryQuery.isFetching
@@ -97,7 +97,7 @@ export default function CategorySelectField({
         <SelectContent
           position="popper"
           sideOffset={6}
-          className="max-h-80 w-full min-w-[var(--radix-select-trigger-width)] overflow-hidden"
+          className="max-h-80 w-full min-w-(--radix-select-trigger-width) overflow-hidden"
         >
           <div className="bg-popover sticky top-0 z-10 border-b px-2 py-2.5">
             <div className="relative flex items-center">
@@ -115,7 +115,7 @@ export default function CategorySelectField({
             </div>
           </div>
 
-          <div className="max-h-[220px] overflow-y-auto p-1">
+          <div className="max-h-55 overflow-y-auto p-1">
             {isLoading && categories.length === 0 && !includeAllOption ? (
               <div className="text-muted-foreground flex items-center justify-center py-6 text-sm">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

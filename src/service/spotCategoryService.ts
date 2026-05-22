@@ -23,12 +23,12 @@ export default {
     apiClient.get<ApiResponse<SpotCategory>>(`${serviceSpotCategoryPath}/${id}`),
 
   /** POST /spot-categories */
-  create: (data: SpotCategoryFormBody) =>
-    apiClient.post<ApiResponse<SpotCategory>>(serviceSpotCategoryPath, data),
+  create: (data: SpotCategoryFormBody | FormData) =>
+    apiClient.post<ApiResponse<SpotCategory>>(serviceSpotCategoryPath, data, data instanceof FormData),
 
   /** PUT /spot-categories/:id */
-  update: (id: number, data: Partial<SpotCategoryFormBody>) =>
-    apiClient.put<ApiResponse<SpotCategory>>(`${serviceSpotCategoryPath}/${id}`, data),
+  update: (id: number, data: Partial<SpotCategoryFormBody> | FormData) =>
+    apiClient.put<ApiResponse<SpotCategory>>(`${serviceSpotCategoryPath}/${id}`, data, data instanceof FormData),
 
   /** PATCH /spot-categories/:id/toggle */
   toggle: (id: number) =>

@@ -4,12 +4,14 @@ export interface SpotCategory {
   name_vi: string
   name_en: string | null
   parent_id: number | null
+  parent_name_vi: string | null
   icon_url: string | null
   color_hex: string | null
   sort_order: number
   is_active: boolean
-  created_at: string
-  updated_at: string
+  spot_count?: number
+  created_at?: string
+  updated_at?: string
 }
 
 export interface SpotCategoryTree extends SpotCategory {
@@ -17,7 +19,7 @@ export interface SpotCategoryTree extends SpotCategory {
 }
 
 export interface SpotCategoryListData {
-  categories: SpotCategory[]
+  items: SpotCategory[]
   pagination: import('./index').Pagination
 }
 

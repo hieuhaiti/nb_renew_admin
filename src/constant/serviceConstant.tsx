@@ -60,3 +60,36 @@ export const serviceAuditLogPath = '/audit-logs'
 
 // Search
 export const serviceSearchPath = '/search'
+
+// Geography (provinces, wards)
+export const serviceGeographyPath = '/geography'
+
+// Itineraries
+export const serviceItineraryPath = '/itineraries'
+
+// Third-party integrations
+export const serviceIntegrationPath = '/integrations'
+
+// Chatbot / AI assistant
+export const serviceChatbotPath = '/chatbot'
+
+// AR sessions
+export const serviceArSessionPath = '/ar-sessions'
+
+// GPS tracking
+export const serviceGpsPath = '/gps'
+
+// Offline maps
+export const serviceOfflineMapPath = '/offline'
+
+// Map measurement
+export const serviceMapMeasurePath = '/map/measure'
+
+// Map data (API-key authenticated)
+export const serviceMapDataPath = '/map-data'
+
+// Satellite imagery
+export const serviceSatellitePath = '/satellite'
+
+// Statistics & reports
+export const serviceStatisticsPath = '/statistics'

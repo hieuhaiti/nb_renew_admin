@@ -57,6 +57,7 @@ import FeedbackDetailDialog from './FeedbackDetailDialog'
 import FeedbackUpdateDialog from './FeedbackUpdateDialog'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import { formatDate } from '@/lib/date'
+import { STALE_HOT } from '@/constant/queryConstant'
 
 export default function FeedbackPage(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1)
@@ -80,13 +81,13 @@ export default function FeedbackPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['feedbacks', queryParams],
     () => citizenFeedbackService.getAll(queryParams),
-    {},
+    { staleTime: STALE_HOT },
     false,
     false
   )
 
   const data = (dbQuery.data as ApiResponse<CitizenFeedbackListData>)?.data
-  const feedbacks = data?.feedbacks ?? []
+  const feedbacks = data?.items ?? []
   const pagination = (data?.pagination ?? {}) as Partial<Pagination>
 
   const lastTotalPagesRef = useRef<number | null>(null)
@@ -106,7 +107,7 @@ export default function FeedbackPage(): JSX.Element {
   const [itemToDelete, setItemToDelete] = useState<CitizenFeedback | null>(null)
 
   const statusMutation = useApiMutation(
-    (args: { id: number; data: UpdateFeedbackStatusBody }) =>
+    (args: { id: string; data: UpdateFeedbackStatusBody }) =>
       citizenFeedbackService.updateStatus(args.id, args.data),
     {
       onSuccess: () => {
@@ -119,7 +120,7 @@ export default function FeedbackPage(): JSX.Element {
   )
 
   const moderationMutation = useApiMutation(
-    (args: { id: number; data: UpdateModerationBody }) =>
+    (args: { id: string; data: UpdateModerationBody }) =>
       citizenFeedbackService.updateModeration(args.id, args.data),
     {
       onSuccess: () => {
@@ -132,7 +133,7 @@ export default function FeedbackPage(): JSX.Element {
   )
 
   const deleteMutation = useApiMutation(
-    (id: number) => citizenFeedbackService.delete(id),
+    (id: string) => citizenFeedbackService.delete(id),
     {
       onSuccess: () => {
         dbQuery.refetch()
@@ -163,6 +164,9 @@ export default function FeedbackPage(): JSX.Element {
       <ToolTableCustom
         searchValue={searchValue}
         setSearchValue={setSearchValue}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex flex-wrap items-center gap-2">
             {/* Filter status */}
@@ -202,7 +206,7 @@ export default function FeedbackPage(): JSX.Element {
                 <SelectItem value="low">Thấp</SelectItem>
                 <SelectItem value="normal">Bình thường</SelectItem>
                 <SelectItem value="high">Cao</SelectItem>
-                <SelectItem value="urgent">Khẩn cấp</SelectItem>
+                <SelectItem value="critical">Khẩn cấp</SelectItem>
               </SelectContent>
             </Select>
 
@@ -254,7 +258,7 @@ export default function FeedbackPage(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-12">ID</TableHead>
+              <TableHead className="w-80">ID</TableHead>
               <TableHead>Tiêu đề</TableHead>
               <TableHead className="w-24">Ưu tiên</TableHead>
               <TableHead className="w-28">Trạng thái</TableHead>
@@ -319,7 +323,7 @@ export default function FeedbackPage(): JSX.Element {
                     />
                   </TableCell>
                   <TableCell>
-                    <UserCell userId={item.user_id} inlineUser={item.user} />
+                    <UserCell inlineUser={item.user_name} />
                   </TableCell>
                   <TableCell className="text-sm">
                     {item.created_at ? formatDate(item.created_at) : '-'}

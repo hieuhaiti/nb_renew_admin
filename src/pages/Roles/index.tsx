@@ -1,11 +1,8 @@
 import type { JSX } from 'react'
 import { useState } from 'react'
 import { useApiQuery, useApiMutation, roleService } from '@/service'
-import type { ApiResponse, Role } from '@/types/api'
+import type { Role } from '@/types/api'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -26,30 +23,65 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Pen, Plus, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
-import { useForm, type SubmitHandler } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { formatDate } from '@/lib/date'
+import { STALE_REF } from '@/constant/queryConstant'
+import RoleFormDialog from './RoleFormDialog'
 
-const roleSchema = z.object({
-  name: z.string().min(2, 'Tên vai trò tối thiểu 2 ký tự').max(100),
-  description: z.string().max(500).optional().or(z.literal('')),
-})
-type RoleFormValues = z.infer<typeof roleSchema>
+function normalizeRoleItem(item: unknown): Role | null {
+  if (!item || typeof item !== 'object') return null
+
+  const record = item as Record<string, unknown>
+  const nameVi = typeof record.name_vi === 'string' ? record.name_vi : ''
+  const nameEn = typeof record.name_en === 'string' ? record.name_en : ''
+  const name =
+    typeof record.name === 'string' && record.name.trim()
+      ? record.name
+      : nameVi || nameEn || (typeof record.code === 'string' ? record.code : '')
+
+  const id = typeof record.id === 'number' ? record.id : Number(record.id)
+  if (!Number.isFinite(id)) return null
+
+  return {
+    ...(record as Role),
+    id,
+    name,
+    description:
+      typeof record.description === 'string'
+        ? record.description
+        : record.description == null
+          ? null
+          : String(record.description),
+  }
+}
+
+function normalizeRoles(data: unknown): Role[] {
+  const toList = (items: unknown[]): Role[] =>
+    items.map(normalizeRoleItem).filter((r): r is Role => r !== null)
+
+  if (Array.isArray(data)) return toList(data)
+  if (!data || typeof data !== 'object') return []
+
+  const record = data as Record<string, unknown>
+  for (const key of ['data', 'roles', 'items']) {
+    const val = record[key]
+    if (Array.isArray(val)) return toList(val)
+    if (val && typeof val === 'object') {
+      const nested = val as Record<string, unknown>
+      for (const nkey of ['data', 'roles', 'items']) {
+        if (Array.isArray(nested[nkey])) return toList(nested[nkey] as unknown[])
+      }
+    }
+  }
+  return []
+}
 
 export default function RolePage(): JSX.Element {
   const [searchValue, setSearchValue] = useState('')
 
-  const dbQuery = useApiQuery(['roles'], () => roleService.getAll(), {}, false, false)
-  const roles = (dbQuery.data as ApiResponse<Role[]>)?.data ?? []
+  const dbQuery = useApiQuery(['roles'], () => roleService.getAll(), { staleTime: STALE_REF }, false, false)
+  const roles = normalizeRoles(dbQuery.data)
   const filtered = searchValue
     ? roles.filter(
         (r: Role) =>
@@ -58,19 +90,15 @@ export default function RolePage(): JSX.Element {
       )
     : roles
 
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [formDialogOpen, setFormDialogOpen] = useState(false)
-  const [editRole, setEditRole] = useState<Role | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null)
 
   const createMutation = useApiMutation(
     (data: { name: string; description?: string }) => roleService.create(data),
     {
-      onSuccess: () => {
-        dbQuery.refetch()
-        setFormDialogOpen(false)
-        setEditRole(null)
-      },
+      onSuccess: () => { dbQuery.refetch(); setFormDialogOpen(false); setSelectedRole(null) },
     },
     true
   )
@@ -79,11 +107,7 @@ export default function RolePage(): JSX.Element {
     (payload: { id: number; data: { name: string; description?: string } }) =>
       roleService.update(payload.id, payload.data),
     {
-      onSuccess: () => {
-        dbQuery.refetch()
-        setFormDialogOpen(false)
-        setEditRole(null)
-      },
+      onSuccess: () => { dbQuery.refetch(); setFormDialogOpen(false); setSelectedRole(null) },
     },
     true
   )
@@ -91,48 +115,21 @@ export default function RolePage(): JSX.Element {
   const deleteMutation = useApiMutation(
     (id: number) => roleService.delete(id),
     {
-      onSuccess: () => {
-        dbQuery.refetch()
-        setDeleteDialogOpen(false)
-        setRoleToDelete(null)
-      },
+      onSuccess: () => { dbQuery.refetch(); setDeleteDialogOpen(false); setRoleToDelete(null) },
     },
     true
   )
-
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<RoleFormValues>({
-    resolver: zodResolver(roleSchema) as any,
-    defaultValues: { name: '', description: '' },
-  })
-
-  function openAdd() {
-    setEditRole(null)
-    reset({ name: '', description: '' })
-    setFormDialogOpen(true)
-  }
-
-  function openEdit(role: Role) {
-    setEditRole(role)
-    reset({ name: role.name, description: role.description || '' })
-    setFormDialogOpen(true)
-  }
-
-  const handleFormSubmit: SubmitHandler<RoleFormValues> = (data) => {
-    const payload = { name: data.name, ...(data.description?.trim() && { description: data.description }) }
-    if (editRole) {
-      updateMutation.mutate({ id: editRole.id, data: payload })
-    } else {
-      createMutation.mutate(payload)
-    }
-  }
 
   return (
     <PageLayout title="Vai trò & phân quyền" description="Quản lý vai trò người dùng">
       <ToolTableCustom
         searchValue={searchValue}
         setSearchValue={setSearchValue}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
-          <Button variant="default" onClick={openAdd}>
+          <Button variant="default" onClick={() => { setSelectedRole(null); setFormDialogOpen(true) }}>
             <Plus className="mr-1 size-4" />
             Thêm vai trò
           </Button>
@@ -166,11 +163,9 @@ export default function RolePage(): JSX.Element {
                     <span className="line-clamp-1">{role.description || '-'}</span>
                   </TableCell>
                   <TableCell>
-                    {role.is_system ? (
-                      <Badge variant="outline">Hệ thống</Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">-</span>
-                    )}
+                    {role.is_system
+                      ? <Badge variant="outline">Hệ thống</Badge>
+                      : <span className="text-muted-foreground text-sm">-</span>}
                   </TableCell>
                   <TableCell className="text-sm">
                     {role.created_at ? formatDate(role.created_at) : '-'}
@@ -180,7 +175,7 @@ export default function RolePage(): JSX.Element {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => openEdit(role)}
+                        onClick={() => { setSelectedRole(role); setFormDialogOpen(true) }}
                         title="Chỉnh sửa"
                         disabled={role.is_system}
                       >
@@ -189,10 +184,7 @@ export default function RolePage(): JSX.Element {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          setRoleToDelete(role)
-                          setDeleteDialogOpen(true)
-                        }}
+                        onClick={() => { setRoleToDelete(role); setDeleteDialogOpen(true) }}
                         title="Xóa"
                         disabled={role.is_system}
                       >
@@ -207,33 +199,19 @@ export default function RolePage(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
-      <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogTitle>{editRole ? 'Chỉnh sửa vai trò' : 'Thêm vai trò mới'}</DialogTitle>
-          <DialogDescription>
-            {editRole ? 'Cập nhật thông tin vai trò' : 'Tạo vai trò người dùng mới'}
-          </DialogDescription>
-          <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-2 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="role-name">
-                Tên vai trò <span className="text-destructive">*</span>
-              </Label>
-              <Input id="role-name" {...register('name')} placeholder="VD: Editor, Moderator..." />
-              {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role-desc">Mô tả</Label>
-              <Textarea id="role-desc" {...register('description')} placeholder="Mô tả quyền hạn của vai trò" rows={3} />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setFormDialogOpen(false)} disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}>Hủy</Button>
-              <Button type="submit" disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}>
-                {isSubmitting || createMutation.isPending || updateMutation.isPending ? 'Đang xử lý...' : editRole ? 'Cập nhật' : 'Tạo mới'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <RoleFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        role={selectedRole}
+        onSubmit={(payload) => {
+          if (selectedRole) {
+            updateMutation.mutate({ id: selectedRole.id, data: payload })
+          } else {
+            createMutation.mutate(payload)
+          }
+        }}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

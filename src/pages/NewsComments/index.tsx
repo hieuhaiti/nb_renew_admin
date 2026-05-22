@@ -37,6 +37,7 @@ import { UserCell } from '@/components/common/UserCell'
 import NewsCommentDetailDialog from './NewsCommentDetailDialog'
 import NewsCommentReplyDialog from './NewsCommentReplyDialog'
 import { formatDate } from '@/lib/date'
+import { STALE_HOT } from '@/constant/queryConstant'
 
 const APPROVED_LABEL: Record<string, string> = {
   true: 'Đã duyệt',
@@ -70,7 +71,7 @@ export default function NewsComments(): JSX.Element {
   const dbQuery = useApiQuery(
     ['news-comments', activeNewsId, queryParams],
     () => newsCommentService.getByNewsId(activeNewsId, queryParams),
-    { enabled: !!activeNewsId },
+    { enabled: !!activeNewsId, staleTime: STALE_HOT },
     false,
     false
   )
@@ -154,6 +155,9 @@ export default function NewsComments(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={activeNewsId ? () => dbQuery.refetch() : undefined}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
             <Select

@@ -1,5 +1,5 @@
-export type FeedbackStatus = 'pending' | 'in_progress' | 'resolved' | 'rejected' | 'closed'
-export type FeedbackPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type FeedbackStatus = 'pending' | 'in_progress' | 'resolved' | 'closed' | 'rejected'
+export type FeedbackPriority = 'low' | 'normal' | 'high' | 'critical'
 export type ModerationStatus = 'pending' | 'approved' | 'rejected'
 
 export interface FeedbackAttachment {
@@ -13,35 +13,47 @@ export interface FeedbackAttachment {
 }
 
 export interface CitizenFeedback {
-  id: number
+  id: string
   user_id?: string | null
   title: string
   content: string
   latitude?: number | null
   longitude?: number | null
   location_text?: string | null
+  location_coordinates?: string | null
   priority: FeedbackPriority
   status: FeedbackStatus
   moderation_status: ModerationStatus
   is_location_verified: boolean
   location_verified_at?: string | null
-  admin_response?: string
-  resolution_note?: string
-  forest_loss_area_estimate_m2?: number
+  admin_response?: string | null
+  resolution_note?: string | null
+  forest_loss_area_estimate_m2?: number | null
   images?: string[]
+  user_name?: string | null
+  user_avatar?: string | null
   created_at: string
   updated_at: string
+  responded_at?: string | null
+  responder?: {
+    id: string
+    full_name?: string | null
+    username?: string | null
+    email?: string | null
+  } | null
   user?: {
     id: string
     full_name: string | null
-    email?: string
-    avatar_url?: string
-  }
+    username?: string | null
+    email?: string | null
+    email_registered?: string | null
+    avatar_url?: string | null
+  } | null
   attachments?: FeedbackAttachment[]
 }
 
 export interface CitizenFeedbackListData {
-  feedbacks: CitizenFeedback[]
+  items: CitizenFeedback[]
   pagination: import('./index').Pagination
 }
 

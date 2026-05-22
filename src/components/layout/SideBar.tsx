@@ -6,6 +6,12 @@ import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { navConfig } from '@/constant/common'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/stores/common/useAuthStore'
+
+function canAccess(authen: number[] | undefined, roleId: number | undefined): boolean {
+  if (!authen || authen.length === 0) return true
+  return !!roleId && authen.includes(roleId)
+}
 
 export function SideBar() {
   const navigate = useNavigate()
@@ -15,6 +21,8 @@ export function SideBar() {
     setExpanded: (isExpanded: boolean) => void
     toggleSidebar: () => void
   }
+  const user = useAuthStore((s) => s.user)
+  const roleId = user?.role_id
   // Track which nav item's submenu is open (accordion: only one at a time)
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
 
@@ -30,8 +38,13 @@ export function SideBar() {
   useEffect(() => {
     if (!isExpanded) {
       setOpenSubMenu(null)
+      return
     }
-  }, [isExpanded])
+    const matchedParent = navConfig.find((item) =>
+      item.subItems?.some((sub) => location.pathname === sub.path)
+    )
+    if (matchedParent) setOpenSubMenu(matchedParent.path)
+  }, [location.pathname, isExpanded])
 
   return (
     <div className="bg-card flex h-full flex-col">
@@ -40,16 +53,16 @@ export function SideBar() {
         {isExpanded && (
           <div className="flex items-center gap-2">
             <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-              <span className="text-primary-foreground text-sm font-bold">DL</span>
+              <span className="text-primary-foreground text-sm font-bold">NB</span>
             </div>
-            <span className="text-foreground font-semibold">Đắk Lắk Admin</span>
+            <span className="text-foreground font-semibold">Ninh Bình Admin</span>
           </div>
         )}
 
         {!isExpanded && (
           <div className="flex w-full justify-center">
             <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-              <span className="text-primary-foreground text-sm font-bold">DL</span>
+              <span className="text-primary-foreground text-sm font-bold">NB</span>
             </div>
           </div>
         )}
@@ -58,9 +71,27 @@ export function SideBar() {
       {/* Menu Items */}
       <nav className="flex-1 overflow-y-auto p-2">
         <div className="space-y-1">
-          {navConfig.map((item) => {
-            const isActive = location.pathname === item.path || location.pathname === item.subpath
-            const hasSubItems = item.subItems && item.subItems.length > 0
+          {navConfig
+            .filter((item) => {
+              if (!canAccess(item.authen, roleId)) return false
+              // Ẩn parent nếu có subItems nhưng tất cả đều bị filter
+              if (item.subItems && item.subItems.length > 0) {
+                return item.subItems.some((s) => canAccess(s.authen, roleId))
+              }
+              return true
+            })
+            .map((item) => {
+            const visibleSubItems = item.subItems?.filter((s) => canAccess(s.authen, roleId))
+            const hasSubItems = !!visibleSubItems && visibleSubItems.length > 0
+            const isSubItemActive =
+              hasSubItems && visibleSubItems!.some((sub) => location.pathname === sub.path)
+            const isDirectlyActive =
+              !isSubItemActive && (
+                location.pathname === item.path ||
+                location.pathname === item.subpath ||
+                location.pathname.startsWith(item.path + '/')
+              )
+            const isActive = isDirectlyActive || isSubItemActive
             const isSubOpen = openSubMenu === item.path
 
             return (
@@ -68,12 +99,14 @@ export function SideBar() {
                 <TooltipTrigger asChild>
                   <div className="w-full">
                     <Button
-                      variant={isActive ? 'secondary' : 'ghost'}
+                      variant={isActive ? 'default' : 'ghost'}
                       className={cn(
                         'text-foreground hover:text-foreground-hover h-auto w-full justify-start gap-3 px-3 py-2',
                         isExpanded ? 'justify-start' : 'justify-center px-2',
-                        isActive &&
-                          'bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground'
+                        isDirectlyActive &&
+                          'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground',
+                        isSubItemActive && !isDirectlyActive &&
+                          'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary'
                       )}
                       onClick={(e) => {
                         if (hasSubItems) {
@@ -88,7 +121,11 @@ export function SideBar() {
                       {item.icon}
                       {isExpanded && (
                         <span
-                          className={` ${isActive ? 'text-secondary-foreground' : ''} flex w-full items-center justify-between truncate text-sm font-medium`}
+                          className={cn(
+                            'flex w-full items-center justify-between truncate text-sm font-medium',
+                            isDirectlyActive && 'text-primary-foreground',
+                            isSubItemActive && !isDirectlyActive && 'text-primary',
+                          )}
                         >
                           {item.name}
                           {hasSubItems && (
@@ -106,15 +143,14 @@ export function SideBar() {
 
                     {hasSubItems && isSubOpen && isExpanded && (
                       <div className="mt-1 space-y-1 pl-6">
-                        {item.subItems?.map((sub) => (
+                        {visibleSubItems?.map((sub) => (
                           <Button
                             key={sub.path}
-                            variant={location.pathname === sub.path ? 'secondary' : 'ghost'}
+                            variant={location.pathname === sub.path ? 'default' : 'ghost'}
                             className={cn(
                               'h-auto w-full justify-start gap-3 px-3 py-2',
                               isExpanded ? 'justify-start' : 'justify-center px-2',
-                              location.pathname === sub.path &&
-                                'bg-secondary text-secondary-foreground'
+                              location.pathname === sub.path && 'bg-primary text-primary-foreground'
                             )}
                             onClick={(e) => {
                               e.stopPropagation()

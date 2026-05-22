@@ -6,6 +6,7 @@ import { parseLink } from '@/lib/utils'
 import { MapPin, Paperclip, User } from 'lucide-react'
 import { UserText } from '@/components/common/UserText'
 import { formatDateTime } from '@/lib/date'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import {
   PRIORITY_LABEL,
   PRIORITY_CLASS,
@@ -18,7 +19,7 @@ import {
 interface FeedbackDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  feedbackId: number | null
+  feedbackId: string | null
 }
 
 export default function FeedbackDetailDialog({
@@ -26,6 +27,7 @@ export default function FeedbackDetailDialog({
   onOpenChange,
   feedbackId,
 }: FeedbackDetailDialogProps) {
+  const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['feedback', feedbackId],
     () => citizenFeedbackService.getById(feedbackId!),
@@ -96,7 +98,8 @@ export default function FeedbackDetailDialog({
                     <img
                       src={parseLink(feedback.user.avatar_url)}
                       alt=""
-                      className="size-8 rounded-full border object-cover"
+                      className="size-8 cursor-zoom-in rounded-full border object-cover"
+                      onClick={() => openLightbox(parseLink(feedback.user.avatar_url!))}
                     />
                   ) : (
                     <div className="bg-muted flex size-8 items-center justify-center rounded-full">
@@ -172,7 +175,8 @@ export default function FeedbackDetailDialog({
                         <img
                           src={parseLink(att.file_url || att.file_path)}
                           alt={att.file_name}
-                          className="h-24 w-full rounded border object-cover transition group-hover:opacity-80"
+                          className="h-24 w-full cursor-zoom-in rounded border object-cover transition group-hover:opacity-80"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); openLightbox(parseLink(att.file_url || att.file_path)) }}
                         />
                       ) : (
                         <div className="bg-muted flex h-24 items-center justify-center rounded border">

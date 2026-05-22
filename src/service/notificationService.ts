@@ -26,13 +26,13 @@ export default {
     apiClient.patch<ApiResponse<{ updated_count: number }>>(`${serviceNotificationPath}/read-all`),
 
   /** PATCH /notifications/:id/read */
-  markAsRead: (id: number) =>
+  markAsRead: (id: string) =>
     apiClient.patch<ApiResponse<{ notification: Notification }>>(
       `${serviceNotificationPath}/${id}/read`
     ),
 
   /** DELETE /notifications/:id */
-  delete: (id: number) => apiClient.del<ApiResponse<{}>>(`${serviceNotificationPath}/${id}`),
+  delete: (id: string) => apiClient.del<ApiResponse<{}>>(`${serviceNotificationPath}/${id}`),
 
   /** DELETE /notifications */
   deleteAll: () =>

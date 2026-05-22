@@ -4,7 +4,7 @@ export interface Rating {
   id: string
   spot_id: string | null
   business_id: string | null
-  user_id: string | null
+  user_id: number | null
   stars: number
   title: string | null
   content: string | null
@@ -19,7 +19,14 @@ export interface Rating {
   replied_by: string | null
   created_at: string
   updated_at: string
-  user?: { id: string; full_name: string; avatar_url: string | null }
+  user?: {
+    id: string | number
+    full_name: string | null
+    username?: string | null
+    email?: string | null
+    email_registered?: string | null
+    avatar_url?: string | null
+  }
 }
 
 export interface RatingListData {

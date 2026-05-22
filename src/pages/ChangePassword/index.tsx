@@ -12,9 +12,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@
 
 const passwordSchema = z
   .object({
-    currentPassword: z
-      .string()
-      .min(1, 'Mật khẩu hiện tại không được để trống'),
+    currentPassword: z.string().min(1, 'Mật khẩu hiện tại không được để trống'),
     newPassword: z
       .string()
       .min(8, 'Mật khẩu mới phải có ít nhất 8 ký tự')
@@ -23,9 +21,7 @@ const passwordSchema = z
         PASSWORD_REGEX,
         'Mật khẩu mới phải chứa ít nhất: 1 chữ thường, 1 chữ hoa, 1 số và 1 ký tự đặc biệt'
       ),
-    confirmPassword: z
-      .string()
-      .min(1, 'Xác nhận mật khẩu mới không được để trống'),
+    confirmPassword: z.string().min(1, 'Xác nhận mật khẩu mới không được để trống'),
   })
   .refine((data) => data.newPassword !== data.currentPassword, {
     message: 'Mật khẩu mới phải khác mật khẩu hiện tại',
@@ -70,7 +66,7 @@ export default function ChangePasswordPage() {
   return (
     <PageLayout title="Đổi mật khẩu" description="Cập nhật mật khẩu đăng nhập của bạn">
       <Card className="p-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-xl">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
             <Input

@@ -10,8 +10,8 @@
   --primary-dark: #1e3a8a; /* blue-900 */
 
   /* ===== Secondary Extended ===== */
-  --secondary-hover: #e2e8f0; /* slate-200 */
-  --secondary-active: #cbd5e1; /* slate-300 */
+  --secondary-hover: #059669; /* green-600 */
+  --secondary-active: #047857; /* green-700 */
 
   /* ===== Accent Extended (Cyan) ===== */
   --accent-hover: #0891b2; /* cyan-600 */
@@ -111,5 +111,5 @@
   --overlay-blur: 8px;
 
   /* ===== Loading ===== */
-  --loading-spinner: var(--primary);
+  --loading-spinner: hsl(var(--primary));
 }

@@ -3,7 +3,7 @@ import type { ApiResponse, CitizenFeedback, User } from '@/types/api'
 
 interface UserTextProps {
   /** User ID to fetch */
-  userId?: number | null
+  userId?: string | number | null
   /** Inline user object or display string as fallback */
   inlineUser?: CitizenFeedback['user'] | string | null
   /** Fallback text when all sources are null/undefined */

@@ -21,7 +21,7 @@ export function useApiQuery<T = any>(
     queryKey: Array.isArray(key) ? key : [key],
     queryFn,
     retry: false,
-    staleTime: 1000 * 60,
+    staleTime: 60_000,        // default 1 min — override per-call: 0 (hot), 5*60_000 (ref data)
     refetchOnWindowFocus: false,
     ...(options as any),
   })

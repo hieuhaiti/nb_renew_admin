@@ -16,7 +16,7 @@ import { useAuthStore } from '@/stores/common/useAuthStore'
 export function UserMenu() {
   const user = useAuthStore((s) => s.user)
   const storeLogout = useAuthStore((s) => s.logout)
-  const displayName = user?.full_name?.trim() || user?.username || user?.email || user?.phone || ''
+  const displayName = user?.full_name?.trim() || user?.email || user?.phone || ''
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
 

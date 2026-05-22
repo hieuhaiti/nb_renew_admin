@@ -1,16 +1,18 @@
 export interface Culinary {
   id: string
-  name_vi: string
-  name_en: string | null
+  name: string
   category: string | null
-  description_vi: string | null
-  recipe_vi: string | null
+  description: string | null
+  recipe: string | null
   cover_image_url: string | null
   media_urls: string[]
   is_speciality: boolean
+  rating_avg: string | null
+  rating_count: number
   province_code: string | null
+  province_name: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
 export interface CulinaryListData {
@@ -29,11 +31,10 @@ export interface CulinaryListParams {
 }
 
 export interface CulinaryFormBody {
-  name_vi: string
-  name_en?: string
+  name: string
   category?: string
-  description_vi?: string
-  recipe_vi?: string
+  description?: string
+  recipe?: string
   cover_image_url?: string
   media_urls?: string[]
   is_speciality?: boolean

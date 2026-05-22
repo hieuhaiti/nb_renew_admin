@@ -33,6 +33,7 @@ import {
 import { Lock, Pen, Plus, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { toast } from 'react-toastify'
+import { STALE_HOT } from '@/constant/queryConstant'
 import UserDetailDialog from './UserDetailDialog'
 import UserFormDialog from './UserFormDialog'
 
@@ -52,7 +53,7 @@ export default function User(): JSX.Element {
   const dbQuery = useApiQuery(
     ['users', queryParams],
     () => userService.getAll(queryParams),
-    {},
+    { staleTime: STALE_HOT },
     false,
     false
   )
@@ -81,7 +82,7 @@ export default function User(): JSX.Element {
   const currentUserQuery = useApiQuery(
     ['currentUser'],
     () => authService.getProfile(),
-    {},
+    { staleTime: STALE_HOT },
     false,
     false
   )
@@ -164,6 +165,9 @@ export default function User(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
             <Select
@@ -205,11 +209,11 @@ export default function User(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-48">ID</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Họ và tên</TableHead>
               <TableHead className="w-32">Điện thoại</TableHead>
-              <TableHead className="w-24">Vai trò</TableHead>
+              <TableHead>Vai trò</TableHead>
               <TableHead className="w-28 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -236,7 +240,7 @@ export default function User(): JSX.Element {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.full_name || '-'}</TableCell>
                   <TableCell>{u.phone || '-'}</TableCell>
-                  <TableCell>{u.role?.name || '-'}</TableCell>
+                  <TableCell>{u.role_name || u.role?.name || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button

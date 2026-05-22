@@ -20,6 +20,7 @@ import {
 import { toast } from 'react-toastify'
 import { authService, useApiMutation } from '@/service'
 import { useAuthStore } from '@/stores/common/useAuthStore'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 
 const profileSchema = z.object({
   full_name: z
@@ -43,6 +44,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>
 
 export default function ProfilePage() {
+  const openLightbox = useLightboxStore((s) => s.open)
   const user = useAuthStore((s) => s.user)
   const fetchProfile = useAuthStore((s) => s.fetchProfile)
   const [avatarFiles, setAvatarFiles] = useState<File[]>([])
@@ -150,7 +152,8 @@ export default function ProfilePage() {
                 <img
                   src={user.avatar_url}
                   alt="Avatar hiện tại"
-                  className="h-16 w-16 rounded-full border object-cover"
+                  className="h-16 w-16 cursor-zoom-in rounded-full border object-cover"
+                  onClick={() => openLightbox(user.avatar_url!)}
                 />
                 <p className="text-muted-foreground mt-1 text-xs">Ảnh hiện tại</p>
               </div>

@@ -16,15 +16,15 @@ export interface Spot {
   longitude: number | null
   altitude_m: number | null
   opening_hours: Record<string, string> | null
-  ticket_price_adult: number | null
-  ticket_price_child: number | null
+  ticket_price_adult: number | string | null
+  ticket_price_child: number | string | null
   ticket_currency: string | null
   phone: string | null
   email: string | null
   website: string | null
   max_capacity: number | null
   alert_threshold_pct: number | null
-  rating_avg: number | null
+  rating_avg: number | string | null
   rating_count: number
   has_vr_360: boolean
   has_ar_support: boolean
@@ -32,9 +32,26 @@ export interface Spot {
   qr_code_url: string | null
   status: SpotStatus
   is_featured: boolean
-  primary_image_url: string | null
-  created_at: string
-  updated_at: string
+  primary_image?: string | null
+  primary_image_url?: string | null
+  created_at?: string
+  updated_at?: string
+
+  // Localized / joined fields returned by list & detail APIs (not present in create/update body)
+  name?: string | null
+  description?: string | null
+  address?: string | null
+  geojson?: { type: string; coordinates: number[] } | null
+  category_name?: string | null
+  category_parent_id?: number | null
+  category_icon?: string | null
+  category_parent_name?: string | null
+  province_name?: string | null
+  commune_name?: string | null
+  created_by?: string | null
+  current_visitor_count?: number | null
+  current_capacity_pct?: number | null
+  capacity_recorded_at?: string | null
 }
 
 export interface SpotListData {
@@ -54,6 +71,8 @@ export interface SpotListParams {
   rating_min?: number
   sortBy?: string
   sortOrder?: 'ASC' | 'DESC'
+  lang?: string
+  capacity?: boolean
 }
 
 export interface SpotFormBody {

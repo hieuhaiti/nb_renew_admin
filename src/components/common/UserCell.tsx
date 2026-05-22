@@ -7,7 +7,7 @@ export function displayUser(u: User): string {
 }
 
 interface UserCellProps {
-  userId?: number | null
+  userId?: string | number | null
   inlineUser?: CitizenFeedback['user'] | string | null
 }
 

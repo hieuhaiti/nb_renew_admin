@@ -19,10 +19,17 @@ export interface Vlog {
   view_count: number
   like_count: number
   comment_count: number
-  user_id: string | null
+  user_id: number | null
   created_at: string
   updated_at: string
-  user?: { id: string; full_name: string; avatar_url: string | null }
+  user?: {
+    id: string | number
+    full_name: string | null
+    username?: string | null
+    email?: string | null
+    email_registered?: string | null
+    avatar_url?: string | null
+  }
 }
 
 export interface VlogListData {

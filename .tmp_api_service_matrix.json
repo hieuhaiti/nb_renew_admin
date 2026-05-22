@@ -1,0 +1,2774 @@
+﻿[
+    {
+        "api_group":  "1. Sức khoẻ hệ thống (Health)",
+        "request_name":  "Health check",
+        "method":  "GET",
+        "endpoint":  "/health",
+        "service_function":  "check",
+        "file":  "src/service/healthService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đăng ký",
+        "method":  "POST",
+        "endpoint":  "/auth/register",
+        "service_function":  "register",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đăng nhập",
+        "method":  "POST",
+        "endpoint":  "/auth/login",
+        "service_function":  "login",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Làm mới token",
+        "method":  "POST",
+        "endpoint":  "/auth/refresh",
+        "service_function":  "refreshToken",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đăng xuất",
+        "method":  "POST",
+        "endpoint":  "/auth/logout",
+        "service_function":  "logout",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Lấy thông tin cá nhân",
+        "method":  "GET",
+        "endpoint":  "/auth/me",
+        "service_function":  "getProfile",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Cập nhật thông tin cá nhân",
+        "method":  "PUT",
+        "endpoint":  "/auth/me",
+        "service_function":  "updateProfile",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đổi mật khẩu",
+        "method":  "POST",
+        "endpoint":  "/auth/change-password",
+        "service_function":  "changePassword",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Quên mật khẩu",
+        "method":  "POST",
+        "endpoint":  "/auth/forgot-password",
+        "service_function":  "forgotPassword",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đặt lại mật khẩu",
+        "method":  "POST",
+        "endpoint":  "/auth/reset-password",
+        "service_function":  "resetPassword",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Gửi email xác thực",
+        "method":  "POST",
+        "endpoint":  "/auth/verify-email/send",
+        "service_function":  "sendVerificationEmail",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Xác thực email qua token",
+        "method":  "GET",
+        "endpoint":  "/auth/verify-email/:token",
+        "service_function":  "verifyEmail",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đăng nhập Google - Bắt đầu",
+        "method":  "GET",
+        "endpoint":  "/auth/google",
+        "service_function":  "googleLogin",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Đăng nhập Google - Callback",
+        "method":  "GET",
+        "endpoint":  "/auth/google/callback",
+        "service_function":  "googleCallback",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Trạng thái 2FA",
+        "method":  "GET",
+        "endpoint":  "/auth/2fa/status",
+        "service_function":  "get2FAStatus",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Khởi tạo 2FA",
+        "method":  "POST",
+        "endpoint":  "/auth/2fa/setup",
+        "service_function":  "setup2FA",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Bật 2FA",
+        "method":  "POST",
+        "endpoint":  "/auth/2fa/enable",
+        "service_function":  "enable2FA",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Tắt 2FA",
+        "method":  "POST",
+        "endpoint":  "/auth/2fa/disable",
+        "service_function":  "disable2FA",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "2. Xác thực (Auth)",
+        "request_name":  "Xác thực 2FA khi đăng nhập",
+        "method":  "POST",
+        "endpoint":  "/auth/2fa/verify-login",
+        "service_function":  "verify2FALogin",
+        "file":  "src/service/authService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Danh sách người dùng",
+        "method":  "GET",
+        "endpoint":  "/users",
+        "service_function":  "getAll",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Lấy người dùng theo ID",
+        "method":  "GET",
+        "endpoint":  "/users/{{userId}}",
+        "service_function":  "getById",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Tạo người dùng",
+        "method":  "POST",
+        "endpoint":  "/users",
+        "service_function":  "create",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Cập nhật người dùng",
+        "method":  "PUT",
+        "endpoint":  "/users/{{userId}}",
+        "service_function":  "update",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Khoá tài khoản",
+        "method":  "PUT",
+        "endpoint":  "/users/{{userId}}/lock",
+        "service_function":  "lock",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Mở khoá tài khoản",
+        "method":  "DELETE",
+        "endpoint":  "/users/{{userId}}/lock",
+        "service_function":  "unlock",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Xoá hàng loạt",
+        "method":  "DELETE",
+        "endpoint":  "/users/batch",
+        "service_function":  "batchDelete",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Gán vai trò",
+        "method":  "PUT",
+        "endpoint":  "/users/{{userId}}/role",
+        "service_function":  "assignRole",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "3. Người dùng (Users)",
+        "request_name":  "Xoá người dùng",
+        "method":  "DELETE",
+        "endpoint":  "/users/{{userId}}",
+        "service_function":  "delete",
+        "file":  "src/service/userService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "4. Vai trò (Roles)",
+        "request_name":  "Danh sách vai trò",
+        "method":  "GET",
+        "endpoint":  "/roles",
+        "service_function":  "getAll",
+        "file":  "src/service/roleService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "4. Vai trò (Roles)",
+        "request_name":  "Lấy vai trò",
+        "method":  "GET",
+        "endpoint":  "/roles/{{roleId}}",
+        "service_function":  "getById",
+        "file":  "src/service/roleService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "4. Vai trò (Roles)",
+        "request_name":  "Tạo vai trò",
+        "method":  "POST",
+        "endpoint":  "/roles",
+        "service_function":  "create",
+        "file":  "src/service/roleService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "4. Vai trò (Roles)",
+        "request_name":  "Cập nhật vai trò",
+        "method":  "PUT",
+        "endpoint":  "/roles/{{roleId}}",
+        "service_function":  "update",
+        "file":  "src/service/roleService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "4. Vai trò (Roles)",
+        "request_name":  "Xoá vai trò",
+        "method":  "DELETE",
+        "endpoint":  "/roles/{{roleId}}",
+        "service_function":  "delete",
+        "file":  "src/service/roleService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "5. Nhật ký kiểm toán (Audit Logs)",
+        "request_name":  "Danh sách audit log",
+        "method":  "GET",
+        "endpoint":  "/audit-logs",
+        "service_function":  "getAll",
+        "file":  "src/service/auditLogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "5. Nhật ký kiểm toán (Audit Logs)",
+        "request_name":  "Thống kê lượt truy cập",
+        "method":  "GET",
+        "endpoint":  "/audit-logs/visitor-statistics",
+        "service_function":  "getVisitorStatistics",
+        "file":  "src/service/auditLogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "6. Địa lý hành chính (Geography)",
+        "request_name":  "Danh sách tỉnh/thành",
+        "method":  "GET",
+        "endpoint":  "/geography/provinces",
+        "service_function":  "getProvinces",
+        "file":  "src/service/geographyService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "6. Địa lý hành chính (Geography)",
+        "request_name":  "Tìm tỉnh/thành",
+        "method":  "GET",
+        "endpoint":  "/geography/provinces/search",
+        "service_function":  "searchProvinces",
+        "file":  "src/service/geographyService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "6. Địa lý hành chính (Geography)",
+        "request_name":  "Lấy tỉnh theo mã",
+        "method":  "GET",
+        "endpoint":  "/geography/provinces/NB",
+        "service_function":  "getProvinceByCode",
+        "file":  "src/service/geographyService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "6. Địa lý hành chính (Geography)",
+        "request_name":  "Phường/xã theo tỉnh",
+        "method":  "GET",
+        "endpoint":  "/geography/provinces/NB/wards",
+        "service_function":  "getWardsByProvince",
+        "file":  "src/service/geographyService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "6. Địa lý hành chính (Geography)",
+        "request_name":  "Danh sách phường/xã",
+        "method":  "GET",
+        "endpoint":  "/geography/wards",
+        "service_function":  "getWards",
+        "file":  "src/service/geographyService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "6. Địa lý hành chính (Geography)",
+        "request_name":  "Tìm phường/xã",
+        "method":  "GET",
+        "endpoint":  "/geography/wards/search",
+        "service_function":  "searchWards",
+        "file":  "src/service/geographyService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Cây danh mục",
+        "method":  "GET",
+        "endpoint":  "/spot-categories/tree",
+        "service_function":  "getTree",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Danh sách danh mục",
+        "method":  "GET",
+        "endpoint":  "/spot-categories",
+        "service_function":  "getAll",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Lấy danh mục",
+        "method":  "GET",
+        "endpoint":  "/spot-categories/{{categoryId}}",
+        "service_function":  "getById",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Tạo danh mục",
+        "method":  "POST",
+        "endpoint":  "/spot-categories",
+        "service_function":  "create",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Cập nhật danh mục",
+        "method":  "PUT",
+        "endpoint":  "/spot-categories/{{categoryId}}",
+        "service_function":  "update",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Bật/tắt danh mục",
+        "method":  "PATCH",
+        "endpoint":  "/spot-categories/{{categoryId}}/toggle",
+        "service_function":  "toggle",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "7. Danh mục điểm đến (Spot Categories)",
+        "request_name":  "Xoá danh mục",
+        "method":  "DELETE",
+        "endpoint":  "/spot-categories/{{categoryId}}",
+        "service_function":  "delete",
+        "file":  "src/service/spotCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Danh sách điểm đến",
+        "method":  "GET",
+        "endpoint":  "/spots",
+        "service_function":  "getAll",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Danh sách điểm đến ở bản đồ map",
+        "method":  "GET",
+        "endpoint":  "/spots/map",
+        "service_function":  "getBySlug",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Danh sách điểm đến ở bản đồ map",
+        "method":  "GET",
+        "endpoint":  "/spots/map",
+        "service_function":  "getMap",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Điểm đến gần đây",
+        "method":  "GET",
+        "endpoint":  "/spots/nearby",
+        "service_function":  "getNearby",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Điểm đến trong khung tọa độ",
+        "method":  "GET",
+        "endpoint":  "/spots/bbox",
+        "service_function":  "getByBBox",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Dữ liệu GeoJSON",
+        "method":  "GET",
+        "endpoint":  "/spots/geojson",
+        "service_function":  "getGeoJSON",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Điểm đến nổi bật",
+        "method":  "GET",
+        "endpoint":  "/spots/featured",
+        "service_function":  "getFeatured",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Lấy điểm đến theo id",
+        "method":  "GET",
+        "endpoint":  "/spots/id/:id",
+        "service_function":  "getById",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Lấy điểm đến theo slug",
+        "method":  "GET",
+        "endpoint":  "/spots/:slug",
+        "service_function":  "getBySlug",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Lấy điểm đến theo slug",
+        "method":  "GET",
+        "endpoint":  "/spots/:slug",
+        "service_function":  "getMap",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Lấy media của điểm đến",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/media",
+        "service_function":  "getMedia",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Lấy thuyết minh âm thanh",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/audio-guide",
+        "service_function":  "getAudioGuide",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Tạo điểm đến",
+        "method":  "POST",
+        "endpoint":  "/spots",
+        "service_function":  "create",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Cập nhật điểm đến",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}",
+        "service_function":  "update",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Xoá điểm đến",
+        "method":  "DELETE",
+        "endpoint":  "/spots/{{spotId}}",
+        "service_function":  "delete",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Bật/tắt nổi bật",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/featured",
+        "service_function":  "toggleFeatured",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Thêm media",
+        "method":  "POST",
+        "endpoint":  "/spots/{{spotId}}/media",
+        "service_function":  "uploadMedia",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Thêm media hàng loạt",
+        "method":  "POST",
+        "endpoint":  "/spots/{{spotId}}/media/batch",
+        "service_function":  "uploadMediaBatch",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Xoá media",
+        "method":  "DELETE",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}",
+        "service_function":  "deleteMedia",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Đặt media chính",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}/primary",
+        "service_function":  "setPrimaryMedia",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "8. Điểm đến (Spots)",
+        "request_name":  "Cập nhật thông tin media",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}",
+        "service_function":  "updateMedia",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Danh sách cảnh VR",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes",
+        "service_function":  "getScenes",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Lấy cảnh VR",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}",
+        "service_function":  "getSceneById",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Preload cảnh VR",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/preload",
+        "service_function":  "preloadScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Tạo cảnh VR",
+        "method":  "POST",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes",
+        "service_function":  "createScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Cập nhật cảnh VR",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}",
+        "service_function":  "updateScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Đặt làm cảnh chính",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/set-main",
+        "service_function":  "setMainScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Kích hoạt cảnh",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/activate",
+        "service_function":  "activateScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Vô hiệu hoá cảnh",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/deactivate",
+        "service_function":  "deactivateScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Xoá cảnh VR",
+        "method":  "DELETE",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}",
+        "service_function":  "deleteScene",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Danh sách hotspot trong cảnh",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots",
+        "service_function":  "getSceneHotspots",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Tạo hotspot",
+        "method":  "POST",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots",
+        "service_function":  "createSceneHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Cập nhật hotspot",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}",
+        "service_function":  "updateSceneHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Kích hoạt hotspot",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}/activate",
+        "service_function":  "activateSceneHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Vô hiệu hoá hotspot",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}/deactivate",
+        "service_function":  "deactivateSceneHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "9. Cảnh A-Frame VR (Spots)",
+        "request_name":  "Xoá hotspot",
+        "method":  "DELETE",
+        "endpoint":  "/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}",
+        "service_function":  "deleteSceneHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "10. Hotspot trên Media VR (Spots)",
+        "request_name":  "Danh sách hotspot media",
+        "method":  "GET",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}/hotspots",
+        "service_function":  "getMediaHotspots",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "10. Hotspot trên Media VR (Spots)",
+        "request_name":  "Tạo hotspot media",
+        "method":  "POST",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}/hotspots",
+        "service_function":  "createMediaHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "10. Hotspot trên Media VR (Spots)",
+        "request_name":  "Cập nhật hotspot media",
+        "method":  "PATCH",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}/hotspots/{{hotspotId}}",
+        "service_function":  "updateMediaHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "10. Hotspot trên Media VR (Spots)",
+        "request_name":  "Xoá hotspot media",
+        "method":  "DELETE",
+        "endpoint":  "/spots/{{spotId}}/media/{{mediaId}}/hotspots/{{hotspotId}}",
+        "service_function":  "deleteMediaHotspot",
+        "file":  "src/service/spotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Sức chứa hiện tại - Tất cả",
+        "method":  "GET",
+        "endpoint":  "/capacity/current",
+        "service_function":  "getCurrent",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Sức chứa hiện tại - GeoJSON",
+        "method":  "GET",
+        "endpoint":  "/capacity/current/geojson",
+        "service_function":  "getCurrentGeoJSON",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Stream thời gian thực (SSE)",
+        "method":  "GET",
+        "endpoint":  "/capacity/stream",
+        "service_function":  "",
+        "file":  "src/service/capacityRealtimeService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Lịch sử theo điểm",
+        "method":  "GET",
+        "endpoint":  "/capacity/spots/{{spotId}}/history",
+        "service_function":  "getHistory",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Thống kê theo điểm",
+        "method":  "GET",
+        "endpoint":  "/capacity/spots/{{spotId}}/stats",
+        "service_function":  "getStats",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Gợi ý điểm thay thế",
+        "method":  "GET",
+        "endpoint":  "/capacity/spots/{{spotId}}/alternatives",
+        "service_function":  "getAlternatives",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Cấu hình lượng du khách tối đa trong 1 điểm",
+        "method":  "PATCH",
+        "endpoint":  "/capacity/spots/:spotId/settings",
+        "service_function":  "updateSettings",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Ghi nhận lượng khách",
+        "method":  "POST",
+        "endpoint":  "/capacity/spots/{{spotId}}/log",
+        "service_function":  "log",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Danh sách cấu hình cảnh báo",
+        "method":  "GET",
+        "endpoint":  "/capacity/configs",
+        "service_function":  "getConfigs",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "11. Sức chứa điểm đến (Capacity)",
+        "request_name":  "Lưu cấu hình cảnh báo",
+        "method":  "POST",
+        "endpoint":  "/capacity/configs",
+        "service_function":  "saveConfig",
+        "file":  "src/service/capacityService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Danh sách tour",
+        "method":  "GET",
+        "endpoint":  "/tours",
+        "service_function":  "getAll",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Lấy tour theo slug",
+        "method":  "GET",
+        "endpoint":  "/tours/slug/:slug",
+        "service_function":  "getBySlug",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Lấy tour theo ID",
+        "method":  "GET",
+        "endpoint":  "/tours/{{tourId}}",
+        "service_function":  "getById",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Danh sách điểm dừng",
+        "method":  "GET",
+        "endpoint":  "/tours/{{tourId}}/stops",
+        "service_function":  "getStops",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Tạo tour",
+        "method":  "POST",
+        "endpoint":  "/tours",
+        "service_function":  "create",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Cập nhật tour",
+        "method":  "PATCH",
+        "endpoint":  "/tours/{{tourId}}",
+        "service_function":  "update",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Xoá tour",
+        "method":  "DELETE",
+        "endpoint":  "/tours/{{tourId}}",
+        "service_function":  "delete",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Thêm điểm dừng",
+        "method":  "POST",
+        "endpoint":  "/tours/{{tourId}}/stops",
+        "service_function":  "addStop",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Cập nhật điểm dừng",
+        "method":  "PATCH",
+        "endpoint":  "/tours/{{tourId}}/stops/{{stopId}}",
+        "service_function":  "updateStop",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "12. Tour du lịch (Tours)",
+        "request_name":  "Xoá điểm dừng",
+        "method":  "DELETE",
+        "endpoint":  "/tours/{{tourId}}/stops/{{stopId}}",
+        "service_function":  "deleteStop",
+        "file":  "src/service/tourService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Lấy lịch trình chia sẻ",
+        "method":  "GET",
+        "endpoint":  "/itineraries/shared/:token",
+        "service_function":  "getShared",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Tạo lịch trình bằng AI",
+        "method":  "POST",
+        "endpoint":  "/itineraries/ai-generate",
+        "service_function":  "aiGenerate",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Lịch trình của tôi",
+        "method":  "GET",
+        "endpoint":  "/itineraries",
+        "service_function":  "getAll",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Tạo lịch trình",
+        "method":  "POST",
+        "endpoint":  "/itineraries",
+        "service_function":  "create",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Lấy lịch trình",
+        "method":  "GET",
+        "endpoint":  "/itineraries/{{itineraryId}}",
+        "service_function":  "getById",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Cập nhật lịch trình",
+        "method":  "PATCH",
+        "endpoint":  "/itineraries/{{itineraryId}}",
+        "service_function":  "update",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Xoá lịch trình",
+        "method":  "DELETE",
+        "endpoint":  "/itineraries/{{itineraryId}}",
+        "service_function":  "delete",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Chia sẻ lịch trình",
+        "method":  "POST",
+        "endpoint":  "/itineraries/{{itineraryId}}/share",
+        "service_function":  "share",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Huỷ chia sẻ",
+        "method":  "DELETE",
+        "endpoint":  "/itineraries/{{itineraryId}}/share",
+        "service_function":  "unshare",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Xuất file PDF",
+        "method":  "GET",
+        "endpoint":  "/itineraries/{{itineraryId}}/export/pdf",
+        "service_function":  "exportPDF",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Lấy danh sách ngày",
+        "method":  "GET",
+        "endpoint":  "/itineraries/{{itineraryId}}/days",
+        "service_function":  "getDays",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Thêm ngày",
+        "method":  "POST",
+        "endpoint":  "/itineraries/{{itineraryId}}/days",
+        "service_function":  "addDay",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Cập nhật ngày",
+        "method":  "PATCH",
+        "endpoint":  "/itineraries/{{itineraryId}}/days/{{dayId}}",
+        "service_function":  "updateDay",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Xoá ngày",
+        "method":  "DELETE",
+        "endpoint":  "/itineraries/{{itineraryId}}/days/{{dayId}}",
+        "service_function":  "deleteDay",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Thêm điểm dừng vào ngày",
+        "method":  "POST",
+        "endpoint":  "/itineraries/{{itineraryId}}/days/{{dayId}}/stops",
+        "service_function":  "addStop",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Cập nhật điểm dừng",
+        "method":  "PATCH",
+        "endpoint":  "/itineraries/{{itineraryId}}/stops/{{stopId}}",
+        "service_function":  "updateStop",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "13. Lịch trình (Itineraries)",
+        "request_name":  "Xoá điểm dừng",
+        "method":  "DELETE",
+        "endpoint":  "/itineraries/{{itineraryId}}/stops/{{stopId}}",
+        "service_function":  "deleteStop",
+        "file":  "src/service/itineraryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Lịch lễ hội",
+        "method":  "GET",
+        "endpoint":  "/festivals/calendar",
+        "service_function":  "getCalendar",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Loại lễ hội",
+        "method":  "GET",
+        "endpoint":  "/festivals/types",
+        "service_function":  "getTypes",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Danh sách lễ hội",
+        "method":  "GET",
+        "endpoint":  "/festivals",
+        "service_function":  "getAll",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/festivals/{{festivalId}}",
+        "service_function":  "getById",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Tạo lễ hội",
+        "method":  "POST",
+        "endpoint":  "/festivals",
+        "service_function":  "create",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Cập nhật lễ hội",
+        "method":  "PATCH",
+        "endpoint":  "/festivals/{{festivalId}}",
+        "service_function":  "update",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "14. Lễ hội (Festivals)",
+        "request_name":  "Xoá lễ hội",
+        "method":  "DELETE",
+        "endpoint":  "/festivals/{{festivalId}}",
+        "service_function":  "delete",
+        "file":  "src/service/festivalService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "15. Ẩm thực (Culinary)",
+        "request_name":  "Danh sách món ăn",
+        "method":  "GET",
+        "endpoint":  "/culinary",
+        "service_function":  "getAll",
+        "file":  "src/service/culinaryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "15. Ẩm thực (Culinary)",
+        "request_name":  "Danh mục ẩm thực",
+        "method":  "GET",
+        "endpoint":  "/culinary/categories",
+        "service_function":  "getCategories",
+        "file":  "src/service/culinaryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "15. Ẩm thực (Culinary)",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/culinary/{{culinaryId}}",
+        "service_function":  "getById",
+        "file":  "src/service/culinaryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "15. Ẩm thực (Culinary)",
+        "request_name":  "Tạo món ăn",
+        "method":  "POST",
+        "endpoint":  "/culinary",
+        "service_function":  "create",
+        "file":  "src/service/culinaryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "15. Ẩm thực (Culinary)",
+        "request_name":  "Cập nhật món ăn",
+        "method":  "PATCH",
+        "endpoint":  "/culinary/{{culinaryId}}",
+        "service_function":  "update",
+        "file":  "src/service/culinaryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "15. Ẩm thực (Culinary)",
+        "request_name":  "Xoá món ăn",
+        "method":  "DELETE",
+        "endpoint":  "/culinary/{{culinaryId}}",
+        "service_function":  "delete",
+        "file":  "src/service/culinaryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Danh sách sản phẩm",
+        "method":  "GET",
+        "endpoint":  "/ocop",
+        "service_function":  "getAll",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Danh sách sản phẩm của tôi(Doanh Nghiệp)",
+        "method":  "GET",
+        "endpoint":  "/ocop/me",
+        "service_function":  "getMe",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Danh sách sản phẩm của tôi(Doanh Nghiệp)",
+        "method":  "GET",
+        "endpoint":  "/ocop/me",
+        "service_function":  "getById",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Danh mục",
+        "method":  "GET",
+        "endpoint":  "/ocop/categories",
+        "service_function":  "getCategories",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/ocop/{{ocopId}}",
+        "service_function":  "getMe",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/ocop/{{ocopId}}",
+        "service_function":  "getById",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Tạo sản phẩm",
+        "method":  "POST",
+        "endpoint":  "/ocop",
+        "service_function":  "create",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Cập nhật sản phẩm",
+        "method":  "PATCH",
+        "endpoint":  "/ocop/{{ocopId}}",
+        "service_function":  "update",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Xoá sản phẩm",
+        "method":  "DELETE",
+        "endpoint":  "/ocop/{{ocopId}}",
+        "service_function":  "delete",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "16. Sản phẩm OCOP",
+        "request_name":  "Danh sách sản phẩm Copy",
+        "method":  "GET",
+        "endpoint":  "/ocop",
+        "service_function":  "getAll",
+        "file":  "src/service/ocopService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Danh sách công khai",
+        "method":  "GET",
+        "endpoint":  "/news",
+        "service_function":  "getAll",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Lấy tin theo slug",
+        "method":  "GET",
+        "endpoint":  "/news/:slug",
+        "service_function":  "getBySlug",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Bình luận của tin",
+        "method":  "GET",
+        "endpoint":  "/news/{{newsId}}/comments",
+        "service_function":  "getByNewsId",
+        "file":  "src/service/newsCommentService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Quản trị - Danh sách tất cả",
+        "method":  "GET",
+        "endpoint":  "/news/admin/all",
+        "service_function":  "getAllAdmin",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Quản trị - Danh sách tất cả",
+        "method":  "GET",
+        "endpoint":  "/news/admin/all",
+        "service_function":  "getByIdAdmin",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Quản trị - Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/news/admin/{{newsId}}",
+        "service_function":  "getAllAdmin",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Quản trị - Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/news/admin/{{newsId}}",
+        "service_function":  "getByIdAdmin",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Đặt trạng thái xuất bản",
+        "method":  "PATCH",
+        "endpoint":  "/news/admin/{{newsId}}/publish",
+        "service_function":  "setPublished",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Tạo tin tức",
+        "method":  "POST",
+        "endpoint":  "/news",
+        "service_function":  "create",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Cập nhật tin tức",
+        "method":  "PATCH",
+        "endpoint":  "/news/{{newsId}}",
+        "service_function":  "update",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Xoá tin tức",
+        "method":  "DELETE",
+        "endpoint":  "/news/{{newsId}}",
+        "service_function":  "delete",
+        "file":  "src/service/newsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Tạo bình luận",
+        "method":  "POST",
+        "endpoint":  "/news/{{newsId}}/comments",
+        "service_function":  "create",
+        "file":  "src/service/newsCommentService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Cập nhật bình luận",
+        "method":  "PATCH",
+        "endpoint":  "/news/{{newsId}}/comments/{{commentId}}",
+        "service_function":  "update",
+        "file":  "src/service/newsCommentService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Xoá bình luận",
+        "method":  "DELETE",
+        "endpoint":  "/news/{{newsId}}/comments/{{commentId}}",
+        "service_function":  "delete",
+        "file":  "src/service/newsCommentService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "17. Tin tức (News)",
+        "request_name":  "Duyệt bình luận",
+        "method":  "PATCH",
+        "endpoint":  "/news/{{newsId}}/comments/{{commentId}}/approval",
+        "service_function":  "setApproval",
+        "file":  "src/service/newsCommentService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Danh sách vlog",
+        "method":  "GET",
+        "endpoint":  "/vlogs",
+        "service_function":  "getAll",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/vlogs/{{vlogId}}",
+        "service_function":  "getById",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Bình luận của vlog",
+        "method":  "GET",
+        "endpoint":  "/vlogs/{{vlogId}}/comments",
+        "service_function":  "getComments",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Quản trị - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/vlogs/admin/all",
+        "service_function":  "getAllAdmin",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Quản trị - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/vlogs/admin/all",
+        "service_function":  "getByIdAdmin",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Quản trị - Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/vlogs/admin/{{vlogId}}",
+        "service_function":  "getAllAdmin",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Quản trị - Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/vlogs/admin/{{vlogId}}",
+        "service_function":  "getByIdAdmin",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Kiểm duyệt",
+        "method":  "PATCH",
+        "endpoint":  "/vlogs/admin/{{vlogId}}/moderate",
+        "service_function":  "moderate",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Vlog đã lưu",
+        "method":  "GET",
+        "endpoint":  "/vlogs/user/saved",
+        "service_function":  "getSaved",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Thích",
+        "method":  "PUT",
+        "endpoint":  "/vlogs/{{vlogId}}/like",
+        "service_function":  "like",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Bỏ thích",
+        "method":  "DELETE",
+        "endpoint":  "/vlogs/{{vlogId}}/like",
+        "service_function":  "unlike",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Lưu vlog",
+        "method":  "PUT",
+        "endpoint":  "/vlogs/{{vlogId}}/save",
+        "service_function":  "save",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Bỏ lưu",
+        "method":  "DELETE",
+        "endpoint":  "/vlogs/{{vlogId}}/save",
+        "service_function":  "unsave",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Tạo vlog",
+        "method":  "POST",
+        "endpoint":  "/vlogs",
+        "service_function":  "create",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Cập nhật vlog",
+        "method":  "PATCH",
+        "endpoint":  "/vlogs/{{vlogId}}",
+        "service_function":  "update",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Xoá vlog",
+        "method":  "DELETE",
+        "endpoint":  "/vlogs/{{vlogId}}",
+        "service_function":  "delete",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Tạo bình luận",
+        "method":  "POST",
+        "endpoint":  "/vlogs/{{vlogId}}/comments",
+        "service_function":  "createComment",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "18. Vlog",
+        "request_name":  "Xoá bình luận",
+        "method":  "DELETE",
+        "endpoint":  "/vlogs/{{vlogId}}/comments/{{commentId}}",
+        "service_function":  "deleteComment",
+        "file":  "src/service/vlogService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Danh sách đánh giá",
+        "method":  "GET",
+        "endpoint":  "/ratings",
+        "service_function":  "getAll",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Đánh giá doanh nghiệp của tôi",
+        "method":  "GET",
+        "endpoint":  "/ratings/business/my",
+        "service_function":  "getMyBusiness",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Tạo đánh giá",
+        "method":  "POST",
+        "endpoint":  "/ratings",
+        "service_function":  "create",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Cập nhật đánh giá",
+        "method":  "PATCH",
+        "endpoint":  "/ratings/{{ratingId}}",
+        "service_function":  "update",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Xoá đánh giá",
+        "method":  "DELETE",
+        "endpoint":  "/ratings/{{ratingId}}",
+        "service_function":  "delete",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Trả lời đánh giá",
+        "method":  "POST",
+        "endpoint":  "/ratings/{{ratingId}}/reply",
+        "service_function":  "reply",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Đánh dấu hữu ích",
+        "method":  "POST",
+        "endpoint":  "/ratings/{{ratingId}}/helpful",
+        "service_function":  "markHelpful",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "19. Đánh giá (Ratings)",
+        "request_name":  "Cập nhật trạng thái",
+        "method":  "PATCH",
+        "endpoint":  "/ratings/{{ratingId}}/status",
+        "service_function":  "setStatus",
+        "file":  "src/service/ratingService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Danh sách công khai",
+        "method":  "GET",
+        "endpoint":  "/businesses/public",
+        "service_function":  "getPublic",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Voucher gần đây",
+        "method":  "GET",
+        "endpoint":  "/businesses/vouchers/nearby",
+        "service_function":  "getNearbyVouchers",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Kiểm tra voucher",
+        "method":  "POST",
+        "endpoint":  "/businesses/vouchers/validate",
+        "service_function":  "validateVoucher",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Đăng ký doanh nghiệp",
+        "method":  "POST",
+        "endpoint":  "/businesses",
+        "service_function":  "create",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Doanh nghiệp của tôi",
+        "method":  "GET",
+        "endpoint":  "/businesses/me",
+        "service_function":  "getMe",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Doanh nghiệp của tôi",
+        "method":  "GET",
+        "endpoint":  "/businesses/me",
+        "service_function":  "getById",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Quản trị - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/businesses",
+        "service_function":  "getAll",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Lấy doanh nghiệp",
+        "method":  "GET",
+        "endpoint":  "/businesses/{{businessId}}",
+        "service_function":  "getMe",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Lấy doanh nghiệp",
+        "method":  "GET",
+        "endpoint":  "/businesses/{{businessId}}",
+        "service_function":  "getById",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Cập nhật doanh nghiệp",
+        "method":  "PATCH",
+        "endpoint":  "/businesses/{{businessId}}",
+        "service_function":  "update",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Cập nhật trạng thái",
+        "method":  "PATCH",
+        "endpoint":  "/businesses/{{businessId}}/status",
+        "service_function":  "updateStatus",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Danh sách dịch vụ",
+        "method":  "GET",
+        "endpoint":  "/businesses/{{businessId}}/services",
+        "service_function":  "getServices",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Tạo dịch vụ",
+        "method":  "POST",
+        "endpoint":  "/businesses/{{businessId}}/services",
+        "service_function":  "createService",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Cập nhật dịch vụ",
+        "method":  "PATCH",
+        "endpoint":  "/businesses/{{businessId}}/services/{{serviceId}}",
+        "service_function":  "updateService",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Xoá dịch vụ",
+        "method":  "DELETE",
+        "endpoint":  "/businesses/{{businessId}}/services/{{serviceId}}",
+        "service_function":  "deleteService",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Danh sách voucher",
+        "method":  "GET",
+        "endpoint":  "/businesses/{{businessId}}/vouchers",
+        "service_function":  "getVouchers",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Tạo voucher",
+        "method":  "POST",
+        "endpoint":  "/businesses/{{businessId}}/vouchers",
+        "service_function":  "createVoucher",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Cập nhật voucher",
+        "method":  "PATCH",
+        "endpoint":  "/businesses/{{businessId}}/vouchers/{{voucherId}}",
+        "service_function":  "updateVoucher",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "20. Doanh nghiệp (Businesses)",
+        "request_name":  "Vô hiệu hoá voucher",
+        "method":  "DELETE",
+        "endpoint":  "/businesses/{{businessId}}/vouchers/{{voucherId}}",
+        "service_function":  "deleteVoucher",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Danh sách công khai",
+        "method":  "GET",
+        "endpoint":  "/feedbacks",
+        "service_function":  "getPublic",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Quản trị - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/feedbacks/admin/all",
+        "service_function":  "getAll",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/feedbacks/{{feedbackId}}",
+        "service_function":  "getById",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Tạo phản ánh",
+        "method":  "POST",
+        "endpoint":  "/feedbacks",
+        "service_function":  "create",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Cập nhật phản ánh",
+        "method":  "PUT",
+        "endpoint":  "/feedbacks/{{feedbackId}}",
+        "service_function":  "update",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Cập nhật trạng thái",
+        "method":  "PATCH",
+        "endpoint":  "/feedbacks/{{feedbackId}}/status",
+        "service_function":  "updateStatus",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Cập nhật kiểm duyệt",
+        "method":  "PATCH",
+        "endpoint":  "/feedbacks/{{feedbackId}}/moderation",
+        "service_function":  "updateModeration",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "21. Phản ánh người dân (Citizen Feedbacks)",
+        "request_name":  "Xoá phản ánh",
+        "method":  "DELETE",
+        "endpoint":  "/feedbacks/{{feedbackId}}",
+        "service_function":  "delete",
+        "file":  "src/service/citizenFeedbackService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "22. Tìm kiếm (Search)",
+        "request_name":  "Loại đối tượng tìm kiếm",
+        "method":  "GET",
+        "endpoint":  "/search/types",
+        "service_function":  "getTypes",
+        "file":  "src/service/searchService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "22. Tìm kiếm (Search)",
+        "request_name":  "Tìm kiếm tổng hợp",
+        "method":  "GET",
+        "endpoint":  "/search",
+        "service_function":  "search",
+        "file":  "src/service/searchService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "22. Tìm kiếm (Search)",
+        "request_name":  "Tìm kiếm theo loại",
+        "method":  "GET",
+        "endpoint":  "/search/spots",
+        "service_function":  "searchSpots",
+        "file":  "src/service/searchService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "23. Trợ lý ảo (Chatbot)",
+        "request_name":  "Tạo phiên chat",
+        "method":  "POST",
+        "endpoint":  "/chatbot/sessions",
+        "service_function":  "createSession",
+        "file":  "src/service/chatbotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "23. Trợ lý ảo (Chatbot)",
+        "request_name":  "Danh sách phiên chat",
+        "method":  "GET",
+        "endpoint":  "/chatbot/sessions",
+        "service_function":  "getSessions",
+        "file":  "src/service/chatbotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "23. Trợ lý ảo (Chatbot)",
+        "request_name":  "Lấy tin nhắn của phiên",
+        "method":  "GET",
+        "endpoint":  "/chatbot/sessions/{{sessionId}}",
+        "service_function":  "getSession",
+        "file":  "src/service/chatbotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "23. Trợ lý ảo (Chatbot)",
+        "request_name":  "Gửi tin nhắn",
+        "method":  "POST",
+        "endpoint":  "/chatbot/sessions/{{sessionId}}/messages",
+        "service_function":  "sendMessage",
+        "file":  "src/service/chatbotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "23. Trợ lý ảo (Chatbot)",
+        "request_name":  "Xoá phiên chat",
+        "method":  "DELETE",
+        "endpoint":  "/chatbot/sessions/{{sessionId}}",
+        "service_function":  "deleteSession",
+        "file":  "src/service/chatbotService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Tạo thông báo",
+        "method":  "POST",
+        "endpoint":  "/notifications",
+        "service_function":  "send",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Thông báo của tôi",
+        "method":  "GET",
+        "endpoint":  "/notifications/me",
+        "service_function":  "getMy",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Số lượng chưa đọc",
+        "method":  "GET",
+        "endpoint":  "/notifications/unread-count",
+        "service_function":  "getUnreadCount",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Đánh dấu đã đọc tất cả",
+        "method":  "PATCH",
+        "endpoint":  "/notifications/read-all",
+        "service_function":  "markAllAsRead",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Đánh dấu đã đọc",
+        "method":  "PATCH",
+        "endpoint":  "/notifications/{{notificationId}}/read",
+        "service_function":  "markAsRead",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Xoá thông báo",
+        "method":  "DELETE",
+        "endpoint":  "/notifications/{{notificationId}}",
+        "service_function":  "delete",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "24. Thông báo (Notifications)",
+        "request_name":  "Xoá tất cả",
+        "method":  "DELETE",
+        "endpoint":  "/notifications",
+        "service_function":  "deleteAll",
+        "file":  "src/service/notificationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Tạo phiên AR",
+        "method":  "POST",
+        "endpoint":  "/ar-sessions",
+        "service_function":  "create",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Phiên AR của tôi",
+        "method":  "GET",
+        "endpoint":  "/ar-sessions/my",
+        "service_function":  "getMy",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Phiên AR của tôi",
+        "method":  "GET",
+        "endpoint":  "/ar-sessions/my",
+        "service_function":  "getById",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Thống kê AR",
+        "method":  "GET",
+        "endpoint":  "/ar-sessions/stats",
+        "service_function":  "getStats",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Phiên AR theo điểm",
+        "method":  "GET",
+        "endpoint":  "/ar-sessions/spots/{{spotId}}",
+        "service_function":  "getBySpot",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Lấy phiên AR theo ID",
+        "method":  "GET",
+        "endpoint":  "/ar-sessions/{{arSessionId}}",
+        "service_function":  "getMy",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "25. Phiên AR (AR Sessions)",
+        "request_name":  "Lấy phiên AR theo ID",
+        "method":  "GET",
+        "endpoint":  "/ar-sessions/{{arSessionId}}",
+        "service_function":  "getById",
+        "file":  "src/service/arSessionService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "26. GPS Tracking",
+        "request_name":  "Bắt đầu track",
+        "method":  "POST",
+        "endpoint":  "/gps/start",
+        "service_function":  "start",
+        "file":  "src/service/gpsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "26. GPS Tracking",
+        "request_name":  "Đồng bộ điểm GPS",
+        "method":  "POST",
+        "endpoint":  "/gps/{{trackId}}/sync",
+        "service_function":  "sync",
+        "file":  "src/service/gpsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "26. GPS Tracking",
+        "request_name":  "Kết thúc track",
+        "method":  "PATCH",
+        "endpoint":  "/gps/{{trackId}}/end",
+        "service_function":  "end",
+        "file":  "src/service/gpsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "27. Bản đồ Offline (Offline)",
+        "request_name":  "Tải bản đồ offline",
+        "method":  "POST",
+        "endpoint":  "/offline/download",
+        "service_function":  "download",
+        "file":  "src/service/offlineMapService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "27. Bản đồ Offline (Offline)",
+        "request_name":  "Danh sách bản đồ offline",
+        "method":  "GET",
+        "endpoint":  "/offline",
+        "service_function":  "getAll",
+        "file":  "src/service/offlineMapService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "27. Bản đồ Offline (Offline)",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/offline/{{offlineMapId}}",
+        "service_function":  "getById",
+        "file":  "src/service/offlineMapService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "27. Bản đồ Offline (Offline)",
+        "request_name":  "Xoá bản đồ offline",
+        "method":  "DELETE",
+        "endpoint":  "/offline/{{offlineMapId}}",
+        "service_function":  "delete",
+        "file":  "src/service/offlineMapService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "28. Đo đạc bản đồ (Map Measure)",
+        "request_name":  "Đo khoảng cách",
+        "method":  "POST",
+        "endpoint":  "/map/measure/distance",
+        "service_function":  "measureDistance",
+        "file":  "src/service/mapMeasureService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "28. Đo đạc bản đồ (Map Measure)",
+        "request_name":  "Đo diện tích",
+        "method":  "POST",
+        "endpoint":  "/map/measure/area",
+        "service_function":  "measureArea",
+        "file":  "src/service/mapMeasureService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Danh mục - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/map-admin/categories",
+        "service_function":  "getAll",
+        "file":  "src/service/mapAdminCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Danh mục - Tạo",
+        "method":  "POST",
+        "endpoint":  "/map-admin/categories",
+        "service_function":  "create",
+        "file":  "src/service/mapAdminCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Danh mục - Cập nhật",
+        "method":  "PATCH",
+        "endpoint":  "/map-admin/categories/{{mapCategoryId}}",
+        "service_function":  "update",
+        "file":  "src/service/mapAdminCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Danh mục - Xoá",
+        "method":  "DELETE",
+        "endpoint":  "/map-admin/categories/{{mapCategoryId}}",
+        "service_function":  "delete",
+        "file":  "src/service/mapAdminCategoryService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Lớp bản đồ - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/map-admin/layers",
+        "service_function":  "getAll",
+        "file":  "src/service/mapLayerService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Lớp bản đồ - Tạo",
+        "method":  "POST",
+        "endpoint":  "/map-admin/layers",
+        "service_function":  "create",
+        "file":  "src/service/mapLayerService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Lớp bản đồ - Bật/tắt",
+        "method":  "PATCH",
+        "endpoint":  "/map-admin/layers/{{mapLayerId}}/toggle",
+        "service_function":  "toggle",
+        "file":  "src/service/mapLayerService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Lớp bản đồ - Cập nhật",
+        "method":  "PATCH",
+        "endpoint":  "/map-admin/layers/{{mapLayerId}}",
+        "service_function":  "update",
+        "file":  "src/service/mapLayerService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "Lớp bản đồ - Xoá",
+        "method":  "DELETE",
+        "endpoint":  "/map-admin/layers/{{mapLayerId}}",
+        "service_function":  "delete",
+        "file":  "src/service/mapLayerService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/map-admin/apis",
+        "service_function":  "getAll",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Tạo",
+        "method":  "POST",
+        "endpoint":  "/map-admin/apis",
+        "service_function":  "create",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Cập nhật",
+        "method":  "PATCH",
+        "endpoint":  "/map-admin/apis/{{mapApiId}}",
+        "service_function":  "update",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Xoá",
+        "method":  "DELETE",
+        "endpoint":  "/map-admin/apis/{{mapApiId}}",
+        "service_function":  "delete",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Permission",
+        "method":  "GET",
+        "endpoint":  "/map-admin/apis/{{mapApiId}}/permissions",
+        "service_function":  "getPermissions",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Gán permission",
+        "method":  "PUT",
+        "endpoint":  "/map-admin/apis/{{mapApiId}}/permissions",
+        "service_function":  "setPermission",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API - Xoá permission",
+        "method":  "DELETE",
+        "endpoint":  "/map-admin/apis/{{mapApiId}}/permissions/{{permissionId}}",
+        "service_function":  "deletePermission",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API Key - Danh sách",
+        "method":  "GET",
+        "endpoint":  "/map-admin/api-keys",
+        "service_function":  "getApiKeys",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API Key - Tạo",
+        "method":  "POST",
+        "endpoint":  "/map-admin/api-keys",
+        "service_function":  "createApiKey",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "29. Quản trị bản đồ (Map Admin)",
+        "request_name":  "API Key - Thu hồi",
+        "method":  "PATCH",
+        "endpoint":  "/map-admin/api-keys/{{apiKeyId}}/revoke",
+        "service_function":  "revokeApiKey",
+        "file":  "src/service/mapLayerApiService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "30. Dữ liệu bản đồ (Map Data - API Key)",
+        "request_name":  "Danh sách API",
+        "method":  "GET",
+        "endpoint":  "/map-data/apis",
+        "service_function":  "getApis",
+        "file":  "src/service/mapDataService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "30. Dữ liệu bản đồ (Map Data - API Key)",
+        "request_name":  "Danh sách lớp bản đồ",
+        "method":  "GET",
+        "endpoint":  "/map-data/layers",
+        "service_function":  "getLayers",
+        "file":  "src/service/mapDataService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "30. Dữ liệu bản đồ (Map Data - API Key)",
+        "request_name":  "Lấy dữ liệu API",
+        "method":  "GET",
+        "endpoint":  "/map-data/apis/:apiId/data",
+        "service_function":  "getApiData",
+        "file":  "src/service/mapDataService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Danh sách tích hợp",
+        "method":  "GET",
+        "endpoint":  "/integrations",
+        "service_function":  "getAll",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Lấy theo ID",
+        "method":  "GET",
+        "endpoint":  "/integrations/{{integrationId}}",
+        "service_function":  "getById",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Tạo tích hợp",
+        "method":  "POST",
+        "endpoint":  "/integrations",
+        "service_function":  "create",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Cập nhật tích hợp",
+        "method":  "PATCH",
+        "endpoint":  "/integrations/{{integrationId}}",
+        "service_function":  "update",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Xoá tích hợp",
+        "method":  "DELETE",
+        "endpoint":  "/integrations/{{integrationId}}",
+        "service_function":  "delete",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Đồng bộ",
+        "method":  "POST",
+        "endpoint":  "/integrations/{{integrationId}}/sync",
+        "service_function":  "sync",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "31. Tích hợp bên thứ 3 (Integrations)",
+        "request_name":  "Nhật ký tích hợp",
+        "method":  "GET",
+        "endpoint":  "/integrations/{{integrationId}}/logs",
+        "service_function":  "getLogs",
+        "file":  "src/service/integrationService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Bộ - Tổng quan",
+        "method":  "GET",
+        "endpoint":  "/governance/ministry/overview",
+        "service_function":  "getMinistryOverview",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Bộ - Cảnh báo sức chứa",
+        "method":  "GET",
+        "endpoint":  "/governance/ministry/capacity-alerts",
+        "service_function":  "getMinistryCapacityAlerts",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Bộ - Tóm tắt bảo tồn",
+        "method":  "GET",
+        "endpoint":  "/governance/ministry/conservation-summary",
+        "service_function":  "getMinistryConservationSummary",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Đăng ký doanh nghiệp",
+        "method":  "GET",
+        "endpoint":  "/governance/department/registrations/businesses",
+        "service_function":  "getDepartmentBusinessRegistrations",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Duyệt đăng ký doanh nghiệp",
+        "method":  "PATCH",
+        "endpoint":  "/governance/department/registrations/businesses/{{businessId}}",
+        "service_function":  "setApproval",
+        "file":  "src/service/businessService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Đăng ký điểm đến",
+        "method":  "GET",
+        "endpoint":  "/governance/department/registrations/spots",
+        "service_function":  "getDepartmentSpotRegistrations",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Duyệt đăng ký điểm đến",
+        "method":  "PATCH",
+        "endpoint":  "/governance/department/registrations/spots/{{spotId}}",
+        "service_function":  "approveDepartmentSpot",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Phản ánh người dân",
+        "method":  "GET",
+        "endpoint":  "/governance/department/feedbacks",
+        "service_function":  "getDepartmentFeedbacks",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Tạo báo cáo",
+        "method":  "POST",
+        "endpoint":  "/governance/department/reports",
+        "service_function":  "createDepartmentReport",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Danh sách báo cáo",
+        "method":  "GET",
+        "endpoint":  "/governance/department/reports",
+        "service_function":  "getDepartmentReports",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Gửi báo cáo",
+        "method":  "POST",
+        "endpoint":  "/governance/department/reports/{{reportId}}/send",
+        "service_function":  "sendDepartmentReport",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Cảnh báo sức chứa",
+        "method":  "GET",
+        "endpoint":  "/governance/department/capacity-alerts",
+        "service_function":  "getDepartmentCapacityAlerts",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Sở - Tóm tắt bảo tồn",
+        "method":  "GET",
+        "endpoint":  "/governance/department/conservation-summary",
+        "service_function":  "getDepartmentConservationSummary",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Doanh nghiệp - Tạo báo cáo",
+        "method":  "POST",
+        "endpoint":  "/governance/enterprise/reports",
+        "service_function":  "createEnterpriseReport",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Doanh nghiệp - Danh sách báo cáo",
+        "method":  "GET",
+        "endpoint":  "/governance/enterprise/reports",
+        "service_function":  "getEnterpriseReports",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Doanh nghiệp - Dashboard",
+        "method":  "GET",
+        "endpoint":  "/governance/enterprise/businesses/{{businessId}}/dashboard",
+        "service_function":  "getEnterpriseDashboard",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Doanh nghiệp - Cập nhật profile",
+        "method":  "PATCH",
+        "endpoint":  "/governance/enterprise/businesses/{{businessId}}",
+        "service_function":  "updateEnterpriseBusiness",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Doanh nghiệp - Phản ánh xung quanh",
+        "method":  "GET",
+        "endpoint":  "/governance/enterprise/businesses/{{businessId}}/feedbacks",
+        "service_function":  "getEnterpriseFeedbacks",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Admin - Dashboard",
+        "method":  "GET",
+        "endpoint":  "/governance/admin/dashboard",
+        "service_function":  "getDashboard",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Admin - Lưu lượng",
+        "method":  "GET",
+        "endpoint":  "/governance/admin/traffic",
+        "service_function":  "getTraffic",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Admin - Danh sách permission",
+        "method":  "GET",
+        "endpoint":  "/governance/admin/permissions",
+        "service_function":  "getPermissions",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Admin - Tạo permission",
+        "method":  "POST",
+        "endpoint":  "/governance/admin/permissions",
+        "service_function":  "createPermission",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Admin - Permission của role",
+        "method":  "GET",
+        "endpoint":  "/governance/admin/roles/{{roleId}}/permissions",
+        "service_function":  "getRolePermissions",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "32. Quản trị nâng cao (Governance)",
+        "request_name":  "Admin - Gán permission cho role",
+        "method":  "PUT",
+        "endpoint":  "/governance/admin/roles/{{roleId}}/permissions",
+        "service_function":  "setRolePermissions",
+        "file":  "src/service/governanceService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "33. Thống kê \u0026 Báo cáo (Statistics)",
+        "request_name":  "Danh sách file dữ liệu",
+        "method":  "GET",
+        "endpoint":  "/statistics/data-files",
+        "service_function":  "getDataFiles",
+        "file":  "src/service/statisticsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "33. Thống kê \u0026 Báo cáo (Statistics)",
+        "request_name":  "Tải file dữ liệu",
+        "method":  "GET",
+        "endpoint":  "/statistics/data-files/download/:filename",
+        "service_function":  "downloadFile",
+        "file":  "src/service/statisticsService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "34. Ảnh vệ tinh (Satellite)",
+        "request_name":  "Ảnh RGB composite",
+        "method":  "POST",
+        "endpoint":  "/satellite/rgb",
+        "service_function":  "getRGB",
+        "file":  "src/service/satelliteService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "34. Ảnh vệ tinh (Satellite)",
+        "request_name":  "Ảnh NDVI",
+        "method":  "POST",
+        "endpoint":  "/satellite/ndvi",
+        "service_function":  "getNDVI",
+        "file":  "src/service/satelliteService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "34. Ảnh vệ tinh (Satellite)",
+        "request_name":  "Bản đồ nhiệt LST",
+        "method":  "POST",
+        "endpoint":  "/satellite/heat-map",
+        "service_function":  "getHeatMap",
+        "file":  "src/service/satelliteService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "34. Ảnh vệ tinh (Satellite)",
+        "request_name":  "Phân loại lớp phủ",
+        "method":  "POST",
+        "endpoint":  "/satellite/classified",
+        "service_function":  "getClassified",
+        "file":  "src/service/satelliteService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "34. Ảnh vệ tinh (Satellite)",
+        "request_name":  "So sánh RGB 2 thời điểm",
+        "method":  "POST",
+        "endpoint":  "/satellite/compare",
+        "service_function":  "compare",
+        "file":  "src/service/satelliteService.ts",
+        "status":  "OK"
+    },
+    {
+        "api_group":  "34. Ảnh vệ tinh (Satellite)",
+        "request_name":  "Phát hiện thay đổi rừng",
+        "method":  "POST",
+        "endpoint":  "/satellite/change",
+        "service_function":  "detectChange",
+        "file":  "src/service/satelliteService.ts",
+        "status":  "OK"
+    }
+]

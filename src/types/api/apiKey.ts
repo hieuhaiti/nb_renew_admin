@@ -33,6 +33,8 @@ export interface ApiKeyListParams {
     limit?: number
     search?: string
     status?: ApiKeyStatus
+    sortBy?: string
+    sortOrder?: 'ASC' | 'DESC'
 }
 
 export interface CreateApiKeyResponseData {

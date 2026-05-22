@@ -1,24 +1,26 @@
-// ── Priority ─────────────────────────────────────────────────────
+﻿// Priority
 export const PRIORITY_LABEL: Record<string, string> = {
   low: 'Thấp',
-  normal: 'Thường',
+  normal: 'Bình thường',
   high: 'Cao',
-  urgent: 'Khẩn',
-}
-export const PRIORITY_CLASS: Record<string, string> = {
-  low: 'bg-slate-100 text-slate-600 border-slate-200',
-  normal: 'bg-blue-50 text-blue-700 border-blue-200',
-  high: 'bg-orange-50 text-orange-700 border-orange-200',
-  urgent: 'bg-red-100 text-red-700 border-red-300',
-}
-export const PRIORITY_DOT: Record<string, string> = {
-  low: 'bg-slate-400',
-  normal: 'bg-blue-500',
-  high: 'bg-orange-500',
-  urgent: 'bg-red-600',
+  critical: 'Khẩn cấp',
 }
 
-// ── Processing status ─────────────────────────────────────────────
+export const PRIORITY_CLASS: Record<string, string> = {
+  low: 'bg-muted text-muted-foreground border-border',
+  normal: 'bg-primary/10 text-primary border-primary/20',
+  high: 'bg-warning/10 text-warning border-warning/20',
+  critical: 'bg-destructive/10 text-destructive border-destructive/20',
+}
+
+export const PRIORITY_DOT: Record<string, string> = {
+  low: 'bg-muted-foreground',
+  normal: 'bg-primary',
+  high: 'bg-warning',
+  critical: 'bg-destructive',
+}
+
+// Processing status
 export const STATUS_LABEL: Record<string, string> = {
   pending: 'Chờ xử lý',
   in_progress: 'Đang xử lý',
@@ -26,34 +28,38 @@ export const STATUS_LABEL: Record<string, string> = {
   rejected: 'Từ chối',
   closed: 'Đóng',
 }
+
 export const STATUS_CLASS: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
-  resolved: 'bg-green-50 text-green-700 border-green-200',
-  rejected: 'bg-red-50 text-red-700 border-red-200',
-  closed: 'bg-slate-100 text-slate-500 border-slate-200',
-}
-export const STATUS_DOT: Record<string, string> = {
-  pending: 'bg-amber-500',
-  in_progress: 'bg-blue-500',
-  resolved: 'bg-green-500',
-  rejected: 'bg-red-500',
-  closed: 'bg-slate-400',
+  pending: 'bg-warning/10 text-warning border-warning/20',
+  in_progress: 'bg-primary/10 text-primary border-primary/20',
+  resolved: 'bg-success/10 text-success border-success/20',
+  rejected: 'bg-destructive/10 text-destructive border-destructive/20',
+  closed: 'bg-muted text-muted-foreground border-border',
 }
 
-// ── Moderation status ─────────────────────────────────────────────
+export const STATUS_DOT: Record<string, string> = {
+  pending: 'bg-warning',
+  in_progress: 'bg-primary',
+  resolved: 'bg-success',
+  rejected: 'bg-destructive',
+  closed: 'bg-muted-foreground',
+}
+
+// Moderation status
 export const MOD_LABEL: Record<string, string> = {
   pending: 'Chờ duyệt',
   approved: 'Đã duyệt',
   rejected: 'Từ chối',
 }
+
 export const MOD_CLASS: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  approved: 'bg-green-50 text-green-700 border-green-200',
-  rejected: 'bg-red-50 text-red-700 border-red-200',
+  pending: 'bg-warning/10 text-warning border-warning/20',
+  approved: 'bg-success/10 text-success border-success/20',
+  rejected: 'bg-destructive/10 text-destructive border-destructive/20',
 }
+
 export const MOD_DOT: Record<string, string> = {
-  pending: 'bg-amber-500',
-  approved: 'bg-green-500',
-  rejected: 'bg-red-500',
+  pending: 'bg-warning',
+  approved: 'bg-success',
+  rejected: 'bg-destructive',
 }

@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, vlogService } from '@/service'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import type { ApiResponse, Vlog, VlogListData, VlogStatus, VlogModerationBody, Pagination } from '@/types/api'
 import {
   Select,
@@ -43,6 +44,7 @@ import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
 import { parseLink } from '@/lib/utils'
+import { STALE_HOT } from '@/constant/queryConstant'
 
 const STATUS_LABEL: Record<VlogStatus, string> = {
   pending: 'Chờ duyệt',
@@ -64,10 +66,13 @@ const STATUS_DOT: Record<VlogStatus, string> = {
 }
 
 export default function VlogPage(): JSX.Element {
+  const openLightbox = useLightboxStore((s) => s.open)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [platformFilter, setPlatformFilter] = useState<string>('')
+  const [userIdFilter, setUserIdFilter] = useState<string>('')
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [vlogToReject, setVlogToReject] = useState<Vlog | null>(null)
@@ -81,13 +86,15 @@ export default function VlogPage(): JSX.Element {
     sortBy: 'created_at',
     sortOrder: 'DESC' as const,
     ...(statusFilter !== 'all' && { status: statusFilter as VlogStatus }),
+    ...(platformFilter.trim() && { platform: platformFilter.trim() }),
+    ...(userIdFilter.trim() && { user_id: userIdFilter.trim() }),
     ...(searchValue && { search: searchValue }),
   }
 
   const dbQuery = useApiQuery(
     ['vlogs', queryParams],
     () => vlogService.getAllAdmin(queryParams),
-    {},
+    { staleTime: STALE_HOT },
     false,
     false
   )
@@ -151,6 +158,9 @@ export default function VlogPage(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
             <Select
@@ -171,6 +181,24 @@ export default function VlogPage(): JSX.Element {
                 <SelectItem value="draft">Nháp</SelectItem>
               </SelectContent>
             </Select>
+            <Input
+              value={platformFilter}
+              onChange={(e) => {
+                setPlatformFilter(e.target.value)
+                setCurrentPage(1)
+              }}
+              placeholder="Nền tảng"
+              className="w-32"
+            />
+            <Input
+              value={userIdFilter}
+              onChange={(e) => {
+                setUserIdFilter(e.target.value)
+                setCurrentPage(1)
+              }}
+              placeholder="User ID"
+              className="w-48"
+            />
             <Select
               value={`${limit}`}
               onValueChange={(v) => {
@@ -223,7 +251,8 @@ export default function VlogPage(): JSX.Element {
                       <img
                         src={parseLink(vlog.cover_image_url)}
                         alt={vlog.title}
-                        className="h-10 w-10 rounded border object-cover"
+                        className="h-10 w-10 cursor-zoom-in rounded border object-cover"
+                        onClick={(e) => { e.stopPropagation(); openLightbox(parseLink(vlog.cover_image_url!)) }}
                       />
                     ) : (
                       <div className="bg-muted h-10 w-10 rounded border" />

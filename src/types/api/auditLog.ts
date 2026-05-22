@@ -1,17 +1,16 @@
 export interface AuditLog {
-  id: number
-  user_id?: number
+  id: string
+  user_id?: string
   action: string
-  method: string
-  endpoint: string
-  status_code: number
+  entity_type?: string | null
+  entity_id?: string | null
+  old_value?: unknown | null
+  new_value?: unknown | null
   ip_address?: string
   user_agent?: string
-  request_payload?: Record<string, unknown> | null
-  response_time_ms?: number
   created_at: string
   user?: {
-    username: string
+    email: string
     full_name: string
   } | null
 }
@@ -24,12 +23,12 @@ export interface AuditLogListData {
 export interface AuditLogListParams {
   page?: number
   limit?: number
-  user_id?: number
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-  status_code?: number
+  user_id?: string
   from_date?: string
   to_date?: string
   search?: string
+  sortBy?: string
+  sortOrder?: 'ASC' | 'DESC'
 }
 
 export interface VisitorStatisticsOverview {

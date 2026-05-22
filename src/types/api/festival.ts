@@ -1,27 +1,28 @@
 export interface Festival {
   id: string
-  name_vi: string
-  name_en: string | null
+  name: string
   festival_type: string | null
-  description_vi: string | null
+  description: string | null
   start_date: string | null
   end_date: string | null
   is_recurring: boolean
   recurrence_rule: string | null
-  latitude: number | null
-  longitude: number | null
+  lat: number | null
+  lng: number | null
   cover_image_url: string | null
   website: string | null
   location_name: string | null
   province_code: string | null
+  province_name: string | null
   spot_id: string | null
+  spot_name: string | null
   is_published: boolean
   created_at: string
   updated_at: string
 }
 
 export interface FestivalListData {
-  festivals: Festival[]
+  items: Festival[]
   pagination: import('./index').Pagination
 }
 

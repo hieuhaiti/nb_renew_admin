@@ -19,6 +19,7 @@ export interface MapAdminCategoryListParams {
   page?: number
   limit?: number
   search?: string
+  is_active?: boolean
   sortBy?: string
   sortOrder?: 'ASC' | 'DESC'
 }

@@ -1,8 +1,32 @@
-import type { ApiResponse } from '@/types/api'
 import { tokenManager } from '@/lib/tokenManager'
+import { currentRole } from '@/lib/currentRole'
 import { toast } from 'react-toastify'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+
+function guardRole(): void {
+  const roleId = currentRole.get()
+  // undefined → chưa authenticated (fetchProfile đang chạy) → bỏ qua
+  if (roleId === 7) {
+    toast.error('Không có quyền truy cập', { toastId: 'role7-blocked', autoClose: 3000 })
+    const err: any = new Error('Không có quyền truy cập')
+    err.status = 403
+    throw err
+  }
+}
+
+function normalizeQueryParams(params?: Record<string, any>): Record<string, any> | undefined {
+  if (!params) return params
+
+  const normalized = { ...params }
+
+  if (normalized.page !== undefined) {
+    const rawPage = Number(normalized.page)
+    normalized.page = Number.isFinite(rawPage) ? Math.max(1, Math.trunc(rawPage)) : 1
+  }
+
+  return normalized
+}
 
 function getAccessToken() {
   try {
@@ -12,7 +36,7 @@ function getAccessToken() {
   }
 }
 
-async function handleResponse<T>(res: Response, isAuthEndpoint = false): Promise<ApiResponse<T>> {
+async function handleResponse<T>(res: Response, isAuthEndpoint = false): Promise<T> {
   const contentType = res.headers.get('content-type') || ''
   const isJson = contentType.includes('application/json')
   const body = isJson ? await res.json() : undefined
@@ -42,7 +66,7 @@ async function handleResponse<T>(res: Response, isAuthEndpoint = false): Promise
     throw err
   }
 
-  return body as ApiResponse<T>
+  return body as T
 }
 
 function authHeaders(): Record<string, string> {
@@ -89,7 +113,7 @@ async function requestWithRefresh(
     const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({ refresh_token: refreshToken }),
     })
 
     if (!refreshRes.ok) {
@@ -99,8 +123,8 @@ async function requestWithRefresh(
     }
 
     const refreshBody = await refreshRes.json()
-    const newAccess = refreshBody?.data?.accessToken
-    const newRefresh = refreshBody?.data?.refreshToken
+    const newAccess = refreshBody?.data?.access_token || refreshBody?.data?.accessToken
+    const newRefresh = refreshBody?.data?.refresh_token || refreshBody?.data?.refreshToken
     if (newAccess) setTokens({ accessToken: newAccess, refreshToken: newRefresh })
 
     // retry original request with updated auth header
@@ -121,11 +145,13 @@ async function requestWithRefresh(
 export async function get<T = any>(
   url: string,
   params?: Record<string, any>
-): Promise<ApiResponse<T>> {
-  const qs = params
+): Promise<T> {
+  guardRole()
+  const normalizedParams = normalizeQueryParams(params)
+  const qs = normalizedParams
     ? '?' +
       new URLSearchParams(
-        Object.entries(params)
+        Object.entries(normalizedParams)
           .filter(([, v]) => v !== undefined)
           .map(([k, v]) => [k, String(v)]) as any
       ).toString()
@@ -145,7 +171,8 @@ export async function post<T = any>(
   url: string,
   data?: any,
   useForm = false
-): Promise<ApiResponse<T>> {
+): Promise<T> {
+  guardRole()
   const headers: Record<string, string> = { ...authHeaders() }
   let body: any
   if (useForm) {
@@ -168,7 +195,8 @@ export async function put<T = any>(
   url: string,
   data?: any,
   useForm = false
-): Promise<ApiResponse<T>> {
+): Promise<T> {
+  guardRole()
   const headers: Record<string, string> = { ...authHeaders() }
   let body: any
   if (useForm) {
@@ -187,7 +215,8 @@ export async function put<T = any>(
   return handleResponse(res, isAuthUrl(url))
 }
 
-export async function patch<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+export async function patch<T = any>(url: string, data?: any): Promise<T> {
+  guardRole()
   const opts: RequestInit = {
     method: 'PATCH',
     headers: {
@@ -200,7 +229,8 @@ export async function patch<T = any>(url: string, data?: any): Promise<ApiRespon
   return handleResponse(res, isAuthUrl(url))
 }
 
-export async function del<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+export async function del<T = any>(url: string, data?: any): Promise<T> {
+  guardRole()
   const opts: RequestInit = {
     method: 'DELETE',
     headers: {

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { User } from '@/types/api'
 import apiClient from '@/service/common/apiClient'
 import { tokenManager } from '@/lib/tokenManager'
+import { currentRole } from '@/lib/currentRole'
 import authService from '@/service/authService'
 
 interface AuthState {
@@ -50,19 +51,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const res = await authService.getProfile()
       const user = res?.data?.user ?? null
-      const roleName = user?.role?.name?.trim().toLowerCase() ?? ''
-      const isAdmin = !!user && (roleName === 'admin' || user.role_id === 1)
+      // Roles 1–6 được phép vào admin panel; role 7 (Khách du lịch) bị chặn
+      const isAdmin = !!user && user.role_id >= 1 && user.role_id <= 6
 
       if (!isAdmin) {
         tokenManager.clearAll()
+        currentRole.set(undefined)
         set({ user: null, isAuthenticated: false, isAdmin: false })
         return false
       }
 
+      currentRole.set(user.role_id)
       set({ user, isAuthenticated: true, isAdmin: true })
       return true
     } catch {
       tokenManager.clearAll()
+      currentRole.set(undefined)
       set({ user: null, isAuthenticated: false, isAdmin: false })
       return false
     }
@@ -70,6 +74,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: () => {
     tokenManager.clearAll()
+    currentRole.set(undefined)
     set({ user: null, isAuthenticated: false, isAdmin: false, loggedOut: true })
   },
 

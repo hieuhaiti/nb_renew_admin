@@ -1,7 +1,14 @@
 import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, culinaryService } from '@/service'
-import type { ApiResponse, Culinary, CulinaryListData, CulinaryFormBody, Pagination } from '@/types/api'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import type {
+  ApiResponse,
+  Culinary,
+  CulinaryListData,
+  CulinaryFormBody,
+  Pagination,
+} from '@/types/api'
 import {
   Select,
   SelectTrigger,
@@ -11,8 +18,6 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -33,48 +38,38 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Pen, Plus, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
-import { useForm, type SubmitHandler } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { parseLink } from '@/lib/utils'
-
-const culinarySchema = z.object({
-  name_vi: z.string().min(1, 'Tên tiếng Việt không được để trống').max(255),
-  name_en: z.string().max(255).optional().or(z.literal('')),
-  category: z.string().max(100).optional().or(z.literal('')),
-  description_vi: z.string().optional().or(z.literal('')),
-  cover_image_url: z.string().url('URL không hợp lệ').optional().or(z.literal('')),
-  is_speciality: z.boolean(),
-  province_code: z.string().max(10).optional().or(z.literal('')),
-})
-type CulinaryFormValues = z.infer<typeof culinarySchema>
+import { STALE_DEFAULT } from '@/constant/queryConstant'
+import CulinaryDetailDialog from './CulinaryDetailDialog'
+import CulinaryFormDialog from './CulinaryFormDialog'
 
 export default function CulinaryPage(): JSX.Element {
+  const openLightbox = useLightboxStore((s) => s.open)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [specialityFilter, setSpecialityFilter] = useState<string>('all')
+
+  const trimmedCategory = categoryFilter.trim()
 
   const queryParams = {
     page: currentPage,
     limit,
     sortBy: 'created_at',
     sortOrder: 'DESC' as const,
+    ...(trimmedCategory && { category: trimmedCategory }),
+    ...(specialityFilter !== 'all' && { is_speciality: specialityFilter === 'true' }),
     ...(searchValue && { search: searchValue }),
   }
 
   const dbQuery = useApiQuery(
     ['culinary', queryParams],
     () => culinaryService.getAll(queryParams),
-    {},
+    { staleTime: STALE_DEFAULT },
     false,
     false
   )
@@ -91,8 +86,9 @@ export default function CulinaryPage(): JSX.Element {
     if (currentPage > totalPages) setCurrentPage(totalPages)
   }, [currentPage, totalPages])
 
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [formDialogOpen, setFormDialogOpen] = useState(false)
-  const [editItem, setEditItem] = useState<Culinary | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<Culinary | null>(null)
 
@@ -102,7 +98,7 @@ export default function CulinaryPage(): JSX.Element {
       onSuccess: () => {
         dbQuery.refetch()
         setFormDialogOpen(false)
-        setEditItem(null)
+        setSelectedId(null)
       },
     },
     true
@@ -115,7 +111,7 @@ export default function CulinaryPage(): JSX.Element {
       onSuccess: () => {
         dbQuery.refetch()
         setFormDialogOpen(false)
-        setEditItem(null)
+        setSelectedId(null)
       },
     },
     true
@@ -133,63 +129,6 @@ export default function CulinaryPage(): JSX.Element {
     true
   )
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<CulinaryFormValues>({
-    resolver: zodResolver(culinarySchema) as any,
-    defaultValues: {
-      name_vi: '',
-      name_en: '',
-      category: '',
-      description_vi: '',
-      cover_image_url: '',
-      is_speciality: false,
-      province_code: '',
-    },
-  })
-
-  function openAdd() {
-    setEditItem(null)
-    reset({ name_vi: '', name_en: '', category: '', description_vi: '', cover_image_url: '', is_speciality: false, province_code: '' })
-    setFormDialogOpen(true)
-  }
-
-  function openEdit(item: Culinary) {
-    setEditItem(item)
-    reset({
-      name_vi: item.name_vi,
-      name_en: item.name_en || '',
-      category: item.category || '',
-      description_vi: item.description_vi || '',
-      cover_image_url: item.cover_image_url || '',
-      is_speciality: item.is_speciality,
-      province_code: item.province_code || '',
-    })
-    setFormDialogOpen(true)
-  }
-
-  const handleFormSubmit: SubmitHandler<CulinaryFormValues> = (data) => {
-    const payload: CulinaryFormBody = {
-      name_vi: data.name_vi,
-      ...(data.name_en?.trim() && { name_en: data.name_en }),
-      ...(data.category?.trim() && { category: data.category }),
-      ...(data.description_vi?.trim() && { description_vi: data.description_vi }),
-      ...(data.cover_image_url?.trim() && { cover_image_url: data.cover_image_url }),
-      is_speciality: data.is_speciality,
-      ...(data.province_code?.trim() && { province_code: data.province_code }),
-    }
-    if (editItem) {
-      updateMutation.mutate({ id: editItem.id, data: payload })
-    } else {
-      createMutation.mutate(payload)
-    }
-  }
-
   return (
     <PageLayout title="Ẩm thực" description="Quản lý danh mục ẩm thực">
       <ToolTableCustom
@@ -198,8 +137,36 @@ export default function CulinaryPage(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
+            <Input
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value)
+                setCurrentPage(1)
+              }}
+              placeholder="Loại ẩm thực"
+              className="w-40"
+            />
+            <Select
+              value={specialityFilter}
+              onValueChange={(v) => {
+                setSpecialityFilter(v)
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Đặc sản" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả đặc sản</SelectItem>
+                <SelectItem value="true">Đặc sản</SelectItem>
+                <SelectItem value="false">Không đặc sản</SelectItem>
+              </SelectContent>
+            </Select>
             <Select
               value={`${limit}`}
               onValueChange={(v) => {
@@ -216,7 +183,13 @@ export default function CulinaryPage(): JSX.Element {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="default" onClick={openAdd}>
+            <Button
+              variant="default"
+              onClick={() => {
+                setSelectedId(null)
+                setFormDialogOpen(true)
+              }}
+            >
               <Plus className="mr-1 size-4" />
               Thêm ẩm thực
             </Button>
@@ -232,16 +205,28 @@ export default function CulinaryPage(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-16">Ảnh</TableHead>
+              <TableHead>Ảnh</TableHead>
               <TableHead>Tên (VI)</TableHead>
-              <TableHead className="w-36">Phân loại</TableHead>
-              <TableHead className="w-24">Đặc sản</TableHead>
-              <TableHead className="w-32">Ngày tạo</TableHead>
+              <TableHead>Phân loại</TableHead>
+              <TableHead>Đặc sản</TableHead>
+              <TableHead>Ngày tạo</TableHead>
               <TableHead className="w-24 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.length === 0 ? (
+            {dbQuery.isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-muted-foreground py-8 text-center">
+                  Đang tải...
+                </TableCell>
+              </TableRow>
+            ) : dbQuery.isError ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-destructive py-8 text-center">
+                  Đã xảy ra lỗi, vui lòng thử lại
+                </TableCell>
+              </TableRow>
+            ) : items.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-muted-foreground text-center">
                   Không có dữ liệu
@@ -249,23 +234,28 @@ export default function CulinaryPage(): JSX.Element {
               </TableRow>
             ) : (
               items.map((item: Culinary) => (
-                <TableRow key={item.id}>
+                <TableRow
+                  key={item.id}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedId(item.id)
+                    setDetailDialogOpen(true)
+                  }}
+                >
                   <TableCell>
                     {item.cover_image_url ? (
                       <img
                         src={parseLink(item.cover_image_url)}
-                        alt={item.name_vi}
-                        className="h-10 w-10 rounded border object-cover"
+                        alt={item.name}
+                        className="h-10 w-10 cursor-zoom-in rounded border object-cover"
+                        onClick={(e) => { e.stopPropagation(); openLightbox(parseLink(item.cover_image_url!)) }}
                       />
                     ) : (
                       <div className="bg-muted h-10 w-10 rounded border" />
                     )}
                   </TableCell>
                   <TableCell>
-                    <p className="font-medium">{item.name_vi}</p>
-                    {item.name_en && (
-                      <p className="text-muted-foreground text-xs">{item.name_en}</p>
-                    )}
+                    <p className="font-medium">{item.name}</p>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{item.category || '-'}</TableCell>
                   <TableCell>
@@ -280,13 +270,23 @@ export default function CulinaryPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(item)} title="Chỉnh sửa">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedId(item.id)
+                          setFormDialogOpen(true)
+                        }}
+                        title="Chỉnh sửa"
+                      >
                         <Pen className="size-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           setItemToDelete(item)
                           setDeleteDialogOpen(true)
                         }}
@@ -303,72 +303,33 @@ export default function CulinaryPage(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
-      <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
-        <DialogContent className="max-h-[80vh] max-w-lg overflow-y-auto">
-          <DialogTitle>{editItem ? 'Chỉnh sửa ẩm thực' : 'Thêm ẩm thực mới'}</DialogTitle>
-          <DialogDescription>
-            {editItem ? 'Cập nhật thông tin' : 'Thêm món ẩm thực mới'}
-          </DialogDescription>
-          <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-2 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name_vi">Tên (VI) <span className="text-destructive">*</span></Label>
-              <Input id="name_vi" {...register('name_vi')} placeholder="Tên tiếng Việt" />
-              {errors.name_vi && <p className="text-destructive text-sm">{errors.name_vi.message}</p>}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name_en">Tên (EN)</Label>
-                <Input id="name_en" {...register('name_en')} placeholder="English name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Phân loại</Label>
-                <Input id="category" {...register('category')} placeholder="VD: Món chính..." />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description_vi">Mô tả</Label>
-              <Textarea id="description_vi" {...register('description_vi')} rows={3} placeholder="Mô tả về món ăn" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cover_image_url">URL ảnh bìa</Label>
-              <Input id="cover_image_url" {...register('cover_image_url')} placeholder="https://..." />
-              {errors.cover_image_url && <p className="text-destructive text-sm">{errors.cover_image_url.message}</p>}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="province_code">Tỉnh/Thành</Label>
-                <Input id="province_code" {...register('province_code')} placeholder="Mã tỉnh" />
-              </div>
-              <div className="space-y-2">
-                <Label>Đặc sản</Label>
-                <Select
-                  value={watch('is_speciality') ? 'true' : 'false'}
-                  onValueChange={(v) => setValue('is_speciality', v === 'true')}
-                >
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="false">Không</SelectItem>
-                    <SelectItem value="true">Đặc sản</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setFormDialogOpen(false)} disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}>Hủy</Button>
-              <Button type="submit" disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}>
-                {isSubmitting || createMutation.isPending || updateMutation.isPending ? 'Đang xử lý...' : editItem ? 'Cập nhật' : 'Tạo mới'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <CulinaryDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        culinaryId={selectedId}
+      />
+
+      <CulinaryFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        culinaryId={selectedId}
+        onSubmit={(payload) => {
+          if (selectedId) {
+            updateMutation.mutate({ id: selectedId, data: payload })
+          } else {
+            createMutation.mutate(payload)
+          }
+        }}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa &quot;{itemToDelete?.name_vi}&quot;? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa &quot;{itemToDelete?.name}&quot;? Hành động này không thể
+              hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -6,6 +6,9 @@ import { ProtectedRoute } from './components/common/ProtectedRoute'
 import { useAuthStore } from './stores/common/useAuthStore'
 import { tokenManager } from './lib/tokenManager'
 import { ToastContainer } from 'react-toastify'
+import { AppErrorBoundary } from '@/components/common/AppErrorBoundary'
+import { lazyWithRetry } from '@/lib/lazyWithRetry'
+import ImageLightbox from '@/components/common/ImageLightbox'
 import 'react-toastify/dist/ReactToastify.css'
 
 const NotFoundPage = lazy(() => import('@/pages/Errors/404NotFoundPage'))
@@ -29,11 +32,24 @@ const NewsPage = lazy(() => import('@/pages/News'))
 const NewsCommentsPage = lazy(() => import('@/pages/NewsComments'))
 const RatingPage = lazy(() => import('@/pages/Ratings'))
 const MapLayerPage = lazy(() => import('@/pages/MapLayers'))
-const MapLayerApisPage = lazy(() => import('@/pages/MapLayerApis'))
+const MapLayerApisPage = lazyWithRetry(
+  () => import('@/pages/MapLayerApis'),
+  'retry:page:map-layer-apis'
+)
 const MapLayerApiPublicPage = lazy(() => import('@/pages/MapLayerApis/MapLayerApiPublicPage'))
 const FeedbackPage = lazy(() => import('@/pages/Feedback'))
 const AuditLogPage = lazy(() => import('@/pages/AuditLog'))
+const GovernancePage = lazy(() => import('@/pages/Governance'))
+const GovernanceAdminPage = lazy(() => import('@/pages/Governance/GovernanceAdminPage'))
+const GovernanceMinistryPage = lazy(() => import('@/pages/Governance/GovernanceMinistryPage'))
+const GovernanceDepartmentPage = lazy(() => import('@/pages/Governance/GovernanceDepartmentPage'))
+const GovernanceEnterprisePage = lazy(() => import('@/pages/Governance/GovernanceEnterprisePage'))
 const VisitorStatisticsPage = lazy(() => import('@/pages/Statistics/VisitorStatistics'))
+const StatisticsPage = lazy(() => import('@/pages/Statistics'))
+const MapAdminCategoriesPage = lazy(() => import('@/pages/MapAdminCategories'))
+const TourPage = lazy(() => import('@/pages/Tours'))
+const CapacityPage = lazy(() => import('@/pages/Capacity'))
+const IntegrationPage = lazy(() => import('@/pages/Integrations'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const ChangePasswordPage = lazy(() => import('@/pages/ChangePassword'))
 
@@ -47,61 +63,76 @@ function App() {
 
   return (
     <>
-      <Suspense fallback={<LoadingOverlay />} key={location.pathname}>
-        <Routes location={location}>
-          <Route
-            path="/login"
-            element={tokenManager.getAccessToken() ? <Navigate to="/" replace /> : <LoginPage />}
-          />
+      <AppErrorBoundary>
+        <Suspense fallback={<LoadingOverlay />} key={location.pathname}>
+          <Routes location={location}>
+            <Route
+              path="/login"
+              element={tokenManager.getAccessToken() ? <Navigate to="/" replace /> : <LoginPage />}
+            />
 
-          <Route path="/400" element={<BadRequestPage />} />
-          <Route path="/401" element={<UnauthorizedPage />} />
-          <Route path="/403" element={<ForbiddenPage />} />
-          <Route path="/500" element={<InternalServerErrorPage />} />
-          <Route path="/503" element={<ServiceUnavailablePage />} />
+            <Route path="/400" element={<BadRequestPage />} />
+            <Route path="/401" element={<UnauthorizedPage />} />
+            <Route path="/403" element={<ForbiddenPage />} />
+            <Route path="/500" element={<InternalServerErrorPage />} />
+            <Route path="/503" element={<ServiceUnavailablePage />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<VisitorStatisticsPage />} />
-              <Route path="/dashboard" element={<VisitorStatisticsPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<GovernancePage />} />
+                <Route path="/dashboard" element={<VisitorStatisticsPage />} />
 
-              {/* Quản lý người dùng */}
-              <Route path="/users" element={<UserPage />} />
-              <Route path="/roles" element={<RolePage />} />
+                {/* Quản lý người dùng */}
+                <Route path="/users" element={<UserPage />} />
+                <Route path="/roles" element={<RolePage />} />
 
-              {/* Du lịch */}
-              <Route path="/categories" element={<CategoryPage />} />
-              <Route path="/spots" element={<SpotPage />} />
-              <Route path="/culinary" element={<CulinaryPage />} />
-              <Route path="/festivals" element={<FestivalPage />} />
-              <Route path="/ocop" element={<OcopPage />} />
-              <Route path="/vlogs" element={<VlogPage />} />
-              <Route path="/businesses" element={<BusinessPage />} />
+                {/* Du lịch */}
+                <Route path="/categories" element={<CategoryPage />} />
+                <Route path="/spots" element={<SpotPage />} />
+                <Route path="/culinary" element={<CulinaryPage />} />
+                <Route path="/festivals" element={<FestivalPage />} />
+                <Route path="/ocop" element={<OcopPage />} />
+                <Route path="/tours" element={<TourPage />} />
+                <Route path="/capacity" element={<CapacityPage />} />
+                <Route path="/vlogs" element={<VlogPage />} />
+                <Route path="/businesses" element={<BusinessPage />} />
+                <Route path="/integrations" element={<IntegrationPage />} />
 
-              {/* Tin tức & đánh giá */}
-              <Route path="/news" element={<NewsPage />} />
-              <Route path="/news-comments" element={<NewsCommentsPage />} />
-              <Route path="/ratings" element={<RatingPage />} />
+                {/* Tin tức & đánh giá */}
+                <Route path="/news" element={<NewsPage />} />
+                <Route path="/news-comments" element={<NewsCommentsPage />} />
+                <Route path="/ratings" element={<RatingPage />} />
 
-              {/* Bản đồ */}
-              <Route path="/map-layers" element={<MapLayerPage />} />
-              <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
-              <Route path="/public/map-layer-apis" element={<MapLayerApiPublicPage />} />
+                {/* Bản đồ */}
+                <Route path="/map-layers" element={<MapLayerPage />} />
+                <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
+                <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
+                <Route path="/public/map-layer-apis" element={<MapLayerApiPublicPage />} />
 
-              {/* Phản ánh & nhật ký */}
-              <Route path="/feedbacks" element={<FeedbackPage />} />
-              <Route path="/audit-logs" element={<AuditLogPage />} />
+                {/* Quản trị nâng cao */}
+                <Route path="/governance" element={<GovernancePage />} />
+                <Route path="/governance/admin" element={<GovernanceAdminPage />} />
+                <Route path="/governance/ministry" element={<GovernanceMinistryPage />} />
+                <Route path="/governance/department" element={<GovernanceDepartmentPage />} />
+                <Route path="/governance/enterprise" element={<GovernanceEnterprisePage />} />
 
-              {/* Hồ sơ */}
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/change-password" element={<ChangePasswordPage />} />
+                {/* Phản ánh & nhật ký */}
+                <Route path="/feedbacks" element={<FeedbackPage />} />
+                <Route path="/audit-logs" element={<AuditLogPage />} />
+                <Route path="/statistics" element={<StatisticsPage />} />
+
+                {/* Hồ sơ */}
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/change-password" element={<ChangePasswordPage />} />
+              </Route>
             </Route>
-          </Route>
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </AppErrorBoundary>
       <ToastContainer position="top-right" className="z-9999" autoClose={3000} />
+      <ImageLightbox />
     </>
   )
 }

@@ -13,6 +13,10 @@ export default {
   getAll: (params?: CulinaryListParams) =>
     apiClient.get<ApiResponse<CulinaryListData>>(serviceCulinaryPath, params),
 
+  /** GET /culinary/categories */
+  getCategories: () =>
+    apiClient.get<ApiResponse<string[]>>(`${serviceCulinaryPath}/categories`),
+
   /** GET /culinary/:id */
   getById: (id: string) =>
     apiClient.get<ApiResponse<Culinary>>(`${serviceCulinaryPath}/${id}`),
@@ -21,9 +25,9 @@ export default {
   create: (data: CulinaryFormBody) =>
     apiClient.post<ApiResponse<Culinary>>(serviceCulinaryPath, data),
 
-  /** PUT /culinary/:id */
-  update: (id: string, data: CulinaryFormBody) =>
-    apiClient.put<ApiResponse<Culinary>>(`${serviceCulinaryPath}/${id}`, data),
+  /** PATCH /culinary/:id */
+  update: (id: string, data: Partial<CulinaryFormBody>) =>
+    apiClient.patch<ApiResponse<Culinary>>(`${serviceCulinaryPath}/${id}`, data),
 
   /** DELETE /culinary/:id */
   delete: (id: string) => apiClient.del<ApiResponse<{}>>(`${serviceCulinaryPath}/${id}`),

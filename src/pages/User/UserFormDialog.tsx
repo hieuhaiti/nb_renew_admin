@@ -45,6 +45,58 @@ interface UserFormDialogProps {
   isLoading?: boolean
 }
 
+function normalizeRoles(data: unknown): Role[] {
+  const normalizeRoleItem = (item: unknown): Role | null => {
+    if (!item || typeof item !== 'object') return null
+
+    const record = item as Record<string, unknown>
+    const nameVi = typeof record.name_vi === 'string' ? record.name_vi : ''
+    const nameEn = typeof record.name_en === 'string' ? record.name_en : ''
+    const name =
+      typeof record.name === 'string' && record.name.trim()
+        ? record.name
+        : nameVi || nameEn || (typeof record.code === 'string' ? record.code : '')
+    const id = typeof record.id === 'number' ? record.id : Number(record.id)
+    if (!Number.isFinite(id)) return null
+
+    return {
+      ...(record as Role),
+      id,
+      name,
+      description:
+        typeof record.description === 'string'
+          ? record.description
+          : record.description == null
+            ? null
+            : String(record.description),
+    }
+  }
+
+  const normalizeRoleList = (items: unknown[]): Role[] =>
+    items
+      .map(normalizeRoleItem)
+      .filter((role): role is Role => role !== null)
+
+  if (Array.isArray(data)) return normalizeRoleList(data)
+
+  if (data && typeof data === 'object') {
+    const record = data as { data?: unknown; roles?: unknown; items?: unknown }
+
+    if (Array.isArray(record.data)) return normalizeRoleList(record.data)
+    if (Array.isArray(record.roles)) return normalizeRoleList(record.roles)
+    if (Array.isArray(record.items)) return normalizeRoleList(record.items)
+
+    if (record.data && typeof record.data === 'object') {
+      const nested = record.data as { data?: unknown; roles?: unknown; items?: unknown }
+      if (Array.isArray(nested.data)) return normalizeRoleList(nested.data)
+      if (Array.isArray(nested.roles)) return normalizeRoleList(nested.roles)
+      if (Array.isArray(nested.items)) return normalizeRoleList(nested.items)
+    }
+  }
+
+  return []
+}
+
 export default function UserFormDialog({
   open,
   onOpenChange,
@@ -65,7 +117,7 @@ export default function UserFormDialog({
   const isEdit = !!user
 
   const rolesQuery = useApiQuery(['roles'], () => roleService.getAll(), {}, false, false)
-  const roles = (rolesQuery.data as ApiResponse<Role[]>)?.data ?? []
+  const roles = normalizeRoles(rolesQuery.data)
 
   const {
     register,

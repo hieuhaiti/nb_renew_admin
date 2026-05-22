@@ -4,6 +4,7 @@ import { userService, useApiQuery } from '@/service'
 import type { ApiResponse, User } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { formatDateTime } from '@/lib/date'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 
 interface UserDetailDialogProps {
   open: boolean
@@ -12,6 +13,7 @@ interface UserDetailDialogProps {
 }
 
 export default function UserDetailDialog({ open, onOpenChange, userId }: UserDetailDialogProps) {
+  const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['user', userId],
     () => userService.getById(userId!),
@@ -56,7 +58,8 @@ export default function UserDetailDialog({ open, onOpenChange, userId }: UserDet
                   <img
                     src={parseLink(user.avatar_url)}
                     alt="Avatar"
-                    className="h-20 w-20 rounded-full border object-cover"
+                    className="h-20 w-20 cursor-zoom-in rounded-full border object-cover"
+                    onClick={() => openLightbox(parseLink(user.avatar_url!))}
                   />
                 ) : (
                   '-'
@@ -65,7 +68,7 @@ export default function UserDetailDialog({ open, onOpenChange, userId }: UserDet
             </div>
             <div className="grid grid-cols-3 gap-2">
               <span className="font-semibold">Vai trò:</span>
-              <span className="col-span-2">{user.role?.name || `ID: ${user.role_id}` || '-'}</span>
+              <span className="col-span-2">{user.role_name || user.role?.name || (user.role_id ? `ID: ${user.role_id}` : '-')}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <span className="font-semibold">Kích hoạt:</span>

@@ -1,11 +1,14 @@
 export interface NewsComment {
   id: string
   news_id: string
-  user_id: string | null
+  user_id: number | null
   user?: {
-    id: string
+    id: string | number
     full_name: string | null
-    avatar_url: string | null
+    username?: string | null
+    email?: string | null
+    email_registered?: string | null
+    avatar_url?: string | null
   } | null
   content: string
   user_name?: string

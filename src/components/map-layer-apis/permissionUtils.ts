@@ -9,13 +9,13 @@ export function hasMapLayerApiPermission(user: User | null, action: MapLayerApiP
   if (user.role_id === 1 || roleName === 'admin') return true
 
   const permissions = user.role?.permissions
-  if (!permissions) return false
+  if (!permissions || Array.isArray(permissions)) return false
 
   const mapLayerPermissions = permissions.map_layer_apis ?? []
   if (mapLayerPermissions.includes('*') || mapLayerPermissions.includes(action)) return true
 
   const flattened = Object.entries(permissions).flatMap(([resource, actions]) =>
-    actions.map((item) => `${resource}:${item}`)
+    Array.isArray(actions) ? actions.map((item) => `${resource}:${String(item)}`) : []
   )
 
   return flattened.includes(`map_layer_apis:${action}`)

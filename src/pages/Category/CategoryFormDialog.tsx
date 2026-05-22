@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { spotCategoryService, useApiQuery } from '@/service'
-import type { ApiResponse, SpotCategory, SpotCategoryFormBody } from '@/types/api'
+import type { ApiResponse, SpotCategory } from '@/types/api'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadList,
+  FileUploadTrigger,
+} from '@/components/ui/file-upload'
+import { parseLink } from '@/lib/utils'
+import { toast } from 'react-toastify'
 
 const spotCategorySchema = z.object({
   code: z
@@ -44,7 +56,7 @@ interface CategoryFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   categoryId: number | null
-  onSubmit: (data: Partial<SpotCategoryFormBody>) => void
+  onSubmit: (data: FormData) => void
   isLoading?: boolean
 }
 
@@ -55,6 +67,8 @@ export default function CategoryFormDialog({
   onSubmit,
   isLoading = false,
 }: CategoryFormDialogProps) {
+  const [iconFiles, setIconFiles] = useState<File[]>([])
+
   const dbQuery = useApiQuery(
     ['spot-category', categoryId],
     () => spotCategoryService.getById(categoryId!),
@@ -109,18 +123,29 @@ export default function CategoryFormDialog({
         is_active: true,
       })
     }
+    setIconFiles([])
   }, [category, reset, open])
 
+  const onIconValidate = useCallback((file: File): string | null => {
+    if (file.type !== 'image/svg+xml') return 'Chỉ chấp nhận file SVG'
+    if (file.size > 512 * 1024) return 'Kích thước file không được quá 512KB'
+    return null
+  }, [])
+
+  const onIconReject = useCallback((file: File, message: string) => {
+    toast.error(`${message}: "${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}"`)
+  }, [])
+
   const handleFormSubmit: SubmitHandler<SpotCategoryFormValues> = (data) => {
-    const payload: Partial<SpotCategoryFormBody> = {
-      code: data.code,
-      name_vi: data.name_vi,
-      ...(data.name_en?.trim() && { name_en: data.name_en }),
-      ...(data.color_hex?.trim() && { color_hex: data.color_hex }),
-      ...(data.sort_order !== undefined && { sort_order: data.sort_order }),
-      is_active: data.is_active,
-    }
-    onSubmit(payload)
+    const fd = new FormData()
+    fd.append('code', data.code)
+    fd.append('name_vi', data.name_vi)
+    if (data.name_en?.trim()) fd.append('name_en', data.name_en)
+    if (data.color_hex?.trim()) fd.append('color_hex', data.color_hex)
+    if (data.sort_order !== undefined) fd.append('sort_order', String(data.sort_order))
+    fd.append('is_active', String(data.is_active))
+    if (iconFiles[0]) fd.append('icon_url', iconFiles[0])
+    onSubmit(fd)
   }
 
   return (
@@ -185,6 +210,58 @@ export default function CategoryFormDialog({
               {...register('sort_order')}
               placeholder="0"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Icon (SVG)</Label>
+            {category?.icon_url && iconFiles.length === 0 && (
+              <div className="mb-2 flex items-center gap-2">
+                <img
+                  src={parseLink(category.icon_url)}
+                  alt="icon hiện tại"
+                  className="h-8 w-8 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+                <span className="text-muted-foreground text-xs">Icon hiện tại</span>
+              </div>
+            )}
+            <FileUpload
+              value={iconFiles}
+              onValueChange={setIconFiles}
+              onFileValidate={onIconValidate}
+              onFileReject={onIconReject}
+              accept="image/svg+xml"
+              maxFiles={1}
+              maxSize={512 * 1024}
+            >
+              <FileUploadDropzone className="border-dashed">
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <p className="text-sm font-medium">Kéo thả file SVG vào đây</p>
+                  <p className="text-muted-foreground text-xs">hoặc</p>
+                  <FileUploadTrigger asChild>
+                    <Button type="button" variant="outline" size="sm">
+                      Chọn file SVG
+                    </Button>
+                  </FileUploadTrigger>
+                  <p className="text-muted-foreground text-xs">SVG · Tối đa 512KB</p>
+                </div>
+              </FileUploadDropzone>
+              <FileUploadList>
+                {iconFiles.map((file) => (
+                  <FileUploadItem key={file.name} value={file}>
+                    <FileUploadItemPreview />
+                    <FileUploadItemMetadata />
+                    <FileUploadItemDelete asChild>
+                      <Button type="button" variant="ghost" size="sm">
+                        Xóa
+                      </Button>
+                    </FileUploadItemDelete>
+                  </FileUploadItem>
+                ))}
+              </FileUploadList>
+            </FileUpload>
           </div>
 
           <div className="space-y-2">

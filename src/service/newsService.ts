@@ -15,13 +15,18 @@ export default {
   getByIdAdmin: (id: string) =>
     apiClient.get<ApiResponse<NewsData>>(`${serviceNewsPath}/admin/${id}`),
 
+  /** GET /news/:slug */
+  // TODO: Available in Postman but not used by admin UI yet
+  getBySlug: (slug: string) =>
+    apiClient.get<ApiResponse<NewsData>>(`${serviceNewsPath}/${slug}`),
+
   /** POST /news */
   create: (data: NewsFormBody) =>
     apiClient.post<ApiResponse<News>>(serviceNewsPath, data),
 
-  /** PUT /news/:id */
-  update: (id: string, data: NewsFormBody) =>
-    apiClient.put<ApiResponse<News>>(`${serviceNewsPath}/${id}`, data),
+  /** PATCH /news/:id */
+  update: (id: string, data: Partial<NewsFormBody>) =>
+    apiClient.patch<ApiResponse<News>>(`${serviceNewsPath}/${id}`, data),
 
   /** PATCH /news/admin/:id/publish */
   setPublished: (id: string, is_published: boolean) =>

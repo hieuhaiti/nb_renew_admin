@@ -1,0 +1,6551 @@
+{
+  "info": {
+    "_postman_id": "c729a6a6-a580-483d-958f-4debd206ff77",
+    "name": "DuLichNinhBinh API",
+    "description": "Bộ sưu tập Postman cho API máy chủ Du lịch Ninh Bình. Đường dẫn gốc: /api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25714748",
+    "_collection_link": "https://go.postman.co/collection/25714748-c729a6a6-a580-483d-958f-4debd206ff77?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Sức khoẻ hệ thống (Health)",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3004/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3004",
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Xác thực (Auth)",
+      "item": [
+        {
+          "name": "Đăng ký",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password@123\",\n  \"confirmPassword\": \"Password@123\",\n  \"full_name\": \"Nguyen Van A\",\n  \"phone\": \"0912345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin@gmail.com\",\n  \"password\": \"Password123@\",\n  \"remember\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Làm mới token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng xuất",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy thông tin cá nhân",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật thông tin cá nhân",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "full_name",
+                  "value": "Nguyen Van B",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "0987654321",
+                  "type": "text"
+                },
+                {
+                  "key": "date_of_birth",
+                  "value": "1995-05-20",
+                  "type": "text"
+                },
+                {
+                  "key": "gender",
+                  "value": "male",
+                  "type": "text"
+                },
+                {
+                  "key": "nationality",
+                  "value": "VN",
+                  "type": "text"
+                },
+                {
+                  "key": "preferred_language",
+                  "value": "vi",
+                  "type": "text"
+                },
+                {
+                  "key": "preferred_currency",
+                  "value": "VND",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đổi mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"OldPass@123\",\n  \"new_password\": \"NewPass@123\",\n  \"confirm_password\": \"NewPass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quên mật khẩu",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đặt lại mật khẩu",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<RESET_TOKEN>\",\n  \"password\": \"NewPass@123\",\n  \"confirmPassword\": \"NewPass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gửi email xác thực",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xác thực email qua token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email/:token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email", ":token"],
+              "variable": [
+                {
+                  "key": "token"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập Google - Bắt đầu",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "google"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập Google - Callback",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "google", "callback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trạng thái 2FA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/2fa/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "2fa", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Khởi tạo 2FA",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/2fa/setup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "2fa", "setup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bật 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totp_code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/2fa/enable",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "2fa", "enable"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tắt 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totp_code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/2fa/disable",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "2fa", "disable"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xác thực 2FA khi đăng nhập",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temp_token\": \"<TEMP_TOKEN>\",\n  \"totp_code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/2fa/verify-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "2fa", "verify-login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Người dùng (Users)",
+      "item": [
+        {
+          "name": "Danh sách người dùng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "role_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "DESC",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy người dùng theo ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo người dùng",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "newuser@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "Password@123",
+                  "type": "text"
+                },
+                {
+                  "key": "full_name",
+                  "value": "New User",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "0912345678",
+                  "type": "text"
+                },
+                {
+                  "key": "role_id",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật người dùng",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "full_name",
+                  "value": "Updated Name",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "0987654321",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Khoá tài khoản",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/lock",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "lock"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mở khoá tài khoản",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/lock",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "lock"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá hàng loạt",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"uuid-1\", \"uuid-2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "batch"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gán vai trò",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "role"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá người dùng",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Vai trò (Roles)",
+      "item": [
+        {
+          "name": "Danh sách vai trò",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy vai trò",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roles/{{roleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", "{{roleId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo vai trò",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"editor\",\n  \"description\": \"Vai trò biên tập\",\n  \"permissions\": [{\"resource\":\"news\",\"actions\":[\"create\",\"update\"]}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật vai trò",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"editor\",\n  \"permissions\": [{\"resource\":\"news\",\"actions\":[\"create\",\"update\",\"delete\"]}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles/{{roleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", "{{roleId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá vai trò",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roles/{{roleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", "{{roleId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Nhật ký kiểm toán (Audit Logs)",
+      "item": [
+        {
+          "name": "Danh sách audit log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audit-logs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit-logs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "user_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "method",
+                  "value": "GET",
+                  "disabled": true
+                },
+                {
+                  "key": "status_code",
+                  "value": "200",
+                  "disabled": true
+                },
+                {
+                  "key": "from_date",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "to_date",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thống kê lượt truy cập",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audit-logs/visitor-statistics?group_by=day",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit-logs", "visitor-statistics"],
+              "query": [
+                {
+                  "key": "from_date",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "to_date",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "group_by",
+                  "value": "day"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Địa lý hành chính (Geography)",
+      "item": [
+        {
+          "name": "Danh sách tỉnh/thành",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/geography/provinces",
+              "host": ["{{baseUrl}}"],
+              "path": ["geography", "provinces"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm tỉnh/thành",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/geography/provinces/search?q=ninh",
+              "host": ["{{baseUrl}}"],
+              "path": ["geography", "provinces", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "ninh"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy tỉnh theo mã",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/geography/provinces/NB",
+              "host": ["{{baseUrl}}"],
+              "path": ["geography", "provinces", "NB"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Phường/xã theo tỉnh",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/geography/provinces/NB/wards",
+              "host": ["{{baseUrl}}"],
+              "path": ["geography", "provinces", "NB", "wards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách phường/xã",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/geography/wards",
+              "host": ["{{baseUrl}}"],
+              "path": ["geography", "wards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm phường/xã",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/geography/wards/search?q=hoa",
+              "host": ["{{baseUrl}}"],
+              "path": ["geography", "wards", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "hoa"
+                },
+                {
+                  "key": "province_code",
+                  "value": "NB",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Danh mục điểm đến (Spot Categories)",
+      "item": [
+        {
+          "name": "Cây danh mục",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories/tree",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories", "tree"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách danh mục",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "parent_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy danh mục",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo danh mục",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"natural\",\n  \"name_vi\": \"Thiên nhiên\",\n  \"name_en\": \"Natural\",\n  \"icon_url\": \"https://example.com/icon.png\",\n  \"color_hex\": \"#22cc55\",\n  \"sort_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật danh mục",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Thiên nhiên (mới)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bật/tắt danh mục",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories/{{categoryId}}/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories", "{{categoryId}}", "toggle"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá danh mục",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spot-categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spot-categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Điểm đến (Spots)",
+      "item": [
+        {
+          "name": "Danh sách điểm đến",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots?page=1&category_id=50&lang=en&capacity=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category_id",
+                  "value": "50"
+                },
+                {
+                  "key": "province_code",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true
+                },
+                {
+                  "key": "is_featured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "rating_min",
+                  "value": "4",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "DESC",
+                  "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "en"
+                },
+                {
+                  "key": "capacity",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách điểm đến ở bản đồ map",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/map?page=1&lng=105.97&radius_km=10&limit=10&lat=20.25&capacity=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "map"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category_id",
+                  "value": "12",
+                  "disabled": true
+                },
+                {
+                  "key": "province_code",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true
+                },
+                {
+                  "key": "is_featured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "rating_min",
+                  "value": "4",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "DESC",
+                  "disabled": true
+                },
+                {
+                  "key": "lng",
+                  "value": "105.97"
+                },
+                {
+                  "key": "radius_km",
+                  "value": "10"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "lat",
+                  "value": "20.25"
+                },
+                {
+                  "key": "capacity",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Điểm đến gần đây",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/nearby?lat=20.25&lng=105.97&radius_km=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "20.25"
+                },
+                {
+                  "key": "lng",
+                  "value": "105.97"
+                },
+                {
+                  "key": "radius_km",
+                  "value": "10"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Điểm đến trong khung tọa độ",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/bbox?min_lat=20.0&max_lat=20.5&min_lng=105.5&max_lng=106.0&bbox=105.95,20.20,106.05,20.35",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "bbox"],
+              "query": [
+                {
+                  "key": "min_lat",
+                  "value": "20.0"
+                },
+                {
+                  "key": "max_lat",
+                  "value": "20.5"
+                },
+                {
+                  "key": "min_lng",
+                  "value": "105.5"
+                },
+                {
+                  "key": "max_lng",
+                  "value": "106.0"
+                },
+                {
+                  "key": "bbox",
+                  "value": "105.95,20.20,106.05,20.35",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dữ liệu GeoJSON",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/geojson",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "geojson"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Điểm đến nổi bật",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/featured?limit=10&category_ids=[1,2,3]",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "featured"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "category_ids",
+                  "value": "[1,2,3]"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy điểm đến theo id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/id/:id?lang=vi",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "id", ":id"],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "vi"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "b41fc495-e247-4bfd-8795-0eefa8ea70ee"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy điểm đến theo slug",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/:slug",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", ":slug"],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "co-o-hoa-lu-ninh-binh"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy media của điểm đến",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media"],
+              "query": [
+                {
+                  "key": "media_type",
+                  "value": "image",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy thuyết minh âm thanh",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/audio-guide?lang=vi",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "audio-guide"],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "vi"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo điểm đến",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Tràng An\",\n  \"name_en\": \"Trang An\",\n  \"slug\": \"trang-an\",\n  \"description_vi\": \"Khu danh thắng Tràng An\",\n  \"category_id\": 1,\n  \"province_code\": \"NB\",\n  \"address_vi\": \"Ninh Bình\",\n  \"longitude\": 105.9722,\n  \"latitude\": 20.2506,\n  \"phone\": \"02293000000\",\n  \"email\": \"contact@trangan.vn\",\n  \"website\": \"https://trangan.vn\",\n  \"ticket_price_adult\": 250000,\n  \"ticket_price_child\": 100000,\n  \"ticket_currency\": \"VND\",\n  \"max_capacity\": 5000,\n  \"alert_threshold_pct\": 80,\n  \"has_vr_360\": true,\n  \"has_audio_guide\": true,\n  \"status\": \"active\",\n  \"is_featured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật điểm đến",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Tràng An (cập nhật)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá điểm đến",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bật/tắt nổi bật",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "featured"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm media",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "media_type",
+                  "value": "image",
+                  "type": "text"
+                },
+                {
+                  "key": "caption",
+                  "value": "",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm media hàng loạt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "batch"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá media",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đặt media chính",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}/primary",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}", "primary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật thông tin media",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alt_text\": \"Ảnh Tràng An\",\n  \"caption\": \"Cảnh đẹp\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Cảnh A-Frame VR (Spots)",
+      "item": [
+        {
+          "name": "Danh sách cảnh VR",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes"],
+              "query": [
+                {
+                  "key": "include_inactive",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy cảnh VR",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Preload cảnh VR",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/preload",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}", "preload"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo cảnh VR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cảnh chính Tràng An\",\n  \"description\": \"Toàn cảnh bến thuyền\",\n  \"equirectangular_image_url\": \"https://example.com/360.jpg\",\n  \"thumbnail_url\": \"https://example.com/thumb.jpg\",\n  \"camera_position\": {\"x\":0,\"y\":1.6,\"z\":0},\n  \"camera_rotation\": {\"x\":0,\"y\":0,\"z\":0},\n  \"camera_fov\": 80,\n  \"ambient_sound_url\": \"https://example.com/sound.mp3\",\n  \"ambient_sound_loop\": true,\n  \"ambient_sound_volume\": 0.5,\n  \"narration_audio_url\": \"https://example.com/narration.mp3\",\n  \"auto_play_narration\": false,\n  \"is_main\": true,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật cảnh VR",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Đã cập nhật\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đặt làm cảnh chính",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/set-main",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}", "set-main"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kích hoạt cảnh",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}", "activate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vô hiệu hoá cảnh",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}", "deactivate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá cảnh VR",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách hotspot trong cảnh",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}", "hotspots"],
+              "query": [
+                {
+                  "key": "include_inactive",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo hotspot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Đi tới động Sáng\",\n  \"description\": \"Bấm để chuyển cảnh\",\n  \"hotspot_type\": \"navigation\",\n  \"position\": {\"x\":0,\"y\":1.6,\"z\":-3,\"pitch\":0,\"yaw\":0},\n  \"scale\": {\"x\":1,\"y\":1,\"z\":1},\n  \"target_scene_id\": \"{{sceneId}}\",\n  \"linked_spot_id\": null,\n  \"target_url\": null,\n  \"icon_type\": \"arrow\",\n  \"visible\": true,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "aframe-scenes", "{{sceneId}}", "hotspots"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật hotspot",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tên mới\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "spots",
+                "{{spotId}}",
+                "aframe-scenes",
+                "{{sceneId}}",
+                "hotspots",
+                "{{hotspotId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kích hoạt hotspot",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "spots",
+                "{{spotId}}",
+                "aframe-scenes",
+                "{{sceneId}}",
+                "hotspots",
+                "{{hotspotId}}",
+                "activate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vô hiệu hoá hotspot",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "spots",
+                "{{spotId}}",
+                "aframe-scenes",
+                "{{sceneId}}",
+                "hotspots",
+                "{{hotspotId}}",
+                "deactivate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá hotspot",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/aframe-scenes/{{sceneId}}/hotspots/{{hotspotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "spots",
+                "{{spotId}}",
+                "aframe-scenes",
+                "{{sceneId}}",
+                "hotspots",
+                "{{hotspotId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Hotspot trên Media VR (Spots)",
+      "item": [
+        {
+          "name": "Danh sách hotspot media",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}/hotspots",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}", "hotspots"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo hotspot media",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pitch\": 0,\n  \"yaw\": 45,\n  \"label_vi\": \"Đền thờ\",\n  \"label_en\": \"Temple\",\n  \"linked_spot_id\": null,\n  \"target_url\": null,\n  \"icon_type\": \"info\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}/hotspots",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}", "hotspots"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật hotspot media",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label_vi\": \"Đã sửa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}/hotspots/{{hotspotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}", "hotspots", "{{hotspotId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá hotspot media",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spots/{{spotId}}/media/{{mediaId}}/hotspots/{{hotspotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["spots", "{{spotId}}", "media", "{{mediaId}}", "hotspots", "{{hotspotId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Sức chứa điểm đến (Capacity)",
+      "item": [
+        {
+          "name": "Sức chứa hiện tại - Tất cả",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "current"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sức chứa hiện tại - GeoJSON",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/current/geojson",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "current", "geojson"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stream thời gian thực (SSE)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/stream",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "stream"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lịch sử theo điểm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/spots/{{spotId}}/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "spots", "{{spotId}}", "history"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thống kê theo điểm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/spots/{{spotId}}/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "spots", "{{spotId}}", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gợi ý điểm thay thế",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/spots/{{spotId}}/alternatives",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "spots", "{{spotId}}", "alternatives"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cấu hình lượng du khách tối đa trong 1 điểm",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"max_capacity\": 2000,\r\n  \"alert_threshold_pct\": 80    // Tuỳ chọn, mặc định 80%\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/capacity/spots/:spotId/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "spots", ":spotId", "settings"],
+              "variable": [
+                {
+                  "key": "spotId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ghi nhận lượng khách",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visitor_count\": 2222,\n  \"max_capacity\": 2000,\n  \"data_source\": \"realtime\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/capacity/spots/{{spotId}}/log",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "spots", "{{spotId}}", "log"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách cấu hình cảnh báo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capacity/configs",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "configs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lưu cấu hình cảnh báo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"spot_id\": \"{{spotId}}\",\n  \"alert_threshold_pct\": 80,\n  \"max_capacity\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/capacity/configs",
+              "host": ["{{baseUrl}}"],
+              "path": ["capacity", "configs"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "12. Tour du lịch (Tours)",
+      "item": [
+        {
+          "name": "Danh sách tour",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tours?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "disabled": true
+                },
+                {
+                  "key": "province_code",
+                  "value": "NB",
+                  "disabled": true
+                },
+                {
+                  "key": "is_featured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "duration_days",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "price_min",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "price_max",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy tour theo slug",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tours/slug/:slug",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "slug", ":slug"],
+              "variable": [
+                {
+                  "key": "slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy tour theo ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách điểm dừng",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}/stops",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}", "stops"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo tour",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Tour Tràng An 1 ngày\",\n  \"slug\": \"tour-trang-an-1-ngay\",\n  \"province_code\": \"NB\",\n  \"description_vi\": \"Khám phá Tràng An\",\n  \"duration_days\": 1,\n  \"price_from_vnd\": 850000,\n  \"max_guests\": 20,\n  \"includes\": [\"Vé tham quan\", \"Thuyền\"],\n  \"excludes\": [\"Ăn uống\"],\n  \"start_location_vi\": \"Hà Nội\",\n  \"end_location_vi\": \"Ninh Bình\",\n  \"cover_image_url\": \"https://example.com/cover.jpg\",\n  \"status\": \"draft\",\n  \"is_featured\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tours",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá tour",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm điểm dừng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_number\": 1,\n  \"stop_order\": 1,\n  \"spot_id\": \"{{spotId}}\",\n  \"title_vi\": \"Bến thuyền Tràng An\",\n  \"description_vi\": \"Bắt đầu chuyến đi\",\n  \"planned_duration_min\": 120,\n  \"lng\": 105.97,\n  \"lat\": 20.25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}/stops",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}", "stops"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật điểm dừng",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planned_duration_min\": 90\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}/stops/{{stopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}", "stops", "{{stopId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá điểm dừng",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tours/{{tourId}}/stops/{{stopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tours", "{{tourId}}", "stops", "{{stopId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "13. Lịch trình (Itineraries)",
+      "item": [
+        {
+          "name": "Lấy lịch trình chia sẻ",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/shared/:token",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "shared", ":token"],
+              "variable": [
+                {
+                  "key": "token"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo lịch trình bằng AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num_days\": 3,\n  \"preferences\": [\"nature\", \"culture\"],\n  \"budget_vnd\": 5000000,\n  \"start_location\": \"Hà Nội\",\n  \"language\": \"vi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/ai-generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "ai-generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lịch trình của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "draft",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo lịch trình",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lịch trình Ninh Bình 3N2Đ\",\n  \"description\": \"Mô tả chuyến đi\",\n  \"start_date\": \"2026-05-01\",\n  \"end_date\": \"2026-05-03\",\n  \"budget_vnd\": 5000000,\n  \"is_public\": false,\n  \"status\": \"draft\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy lịch trình",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật lịch trình",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá lịch trình",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chia sẻ lịch trình",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Huỷ chia sẻ",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xuất file PDF",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "export", "pdf"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy danh sách ngày",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/days",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "days"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm ngày",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_number\": 1,\n  \"title\": \"Ngày 1: Khám phá Tràng An\",\n  \"date_actual\": \"2026-05-01\",\n  \"notes\": \"Mang nước uống\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/days",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "days"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật ngày",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Đã cập nhật\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/days/{{dayId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "days", "{{dayId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá ngày",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/days/{{dayId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "days", "{{dayId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm điểm dừng vào ngày",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sort_order\": 1,\n  \"spot_id\": \"{{spotId}}\",\n  \"custom_name\": \"Tràng An\",\n  \"planned_arrival\": \"08:30\",\n  \"planned_duration_min\": 120,\n  \"notes\": \"\",\n  \"lng\": 105.97,\n  \"lat\": 20.25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/days/{{dayId}}/stops",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "days", "{{dayId}}", "stops"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật điểm dừng",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planned_duration_min\": 90\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/stops/{{stopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "stops", "{{stopId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá điểm dừng",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/itineraries/{{itineraryId}}/stops/{{stopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["itineraries", "{{itineraryId}}", "stops", "{{stopId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "14. Lễ hội (Festivals)",
+      "item": [
+        {
+          "name": "Lịch lễ hội",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/festivals/calendar?from=2026-01-01&to=2026-12-31&lang=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals", "calendar"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "province_code",
+                  "value": "NB",
+                  "disabled": true
+                },
+                {
+                  "key": "festival_type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "en",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Loại lễ hội",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/festivals/types",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals", "types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách lễ hội",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/festivals?page=1&limit=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "festival_type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "upcoming",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/festivals/{{festivalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals", "{{festivalId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo lễ hội",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Lễ hội Hoa Lư\",\n  \"name_en\": \"Hoa Lu Festival\",\n  \"festival_type\": \"traditional\",\n  \"description_vi\": \"Mô tả...\",\n  \"is_recurring\": true,\n  \"start_date\": \"2026-04-15\",\n  \"end_date\": \"2026-04-17\",\n  \"recurrence_rule\": \"yearly\",\n  \"lng\": 105.91,\n  \"lat\": 20.28,\n  \"cover_image_url\": \"https://example.com/cover.jpg\",\n  \"website\": \"https://example.com\",\n  \"location_name\": \"Cố đô Hoa Lư\",\n  \"province_code\": \"NB\",\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/festivals",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật lễ hội",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_published\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/festivals/{{festivalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals", "{{festivalId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá lễ hội",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/festivals/{{festivalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["festivals", "{{festivalId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "15. Ẩm thực (Culinary)",
+      "item": [
+        {
+          "name": "Danh sách món ăn",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/culinary?page=1&limit=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["culinary"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_speciality",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh mục ẩm thực",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/culinary/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["culinary", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/culinary/{{culinaryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["culinary", "{{culinaryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo món ăn",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Cơm cháy Ninh Bình\",\n  \"name_en\": \"Crispy Rice\",\n  \"category\": \"main_course\",\n  \"description_vi\": \"Đặc sản nổi tiếng\",\n  \"recipe_vi\": \"Cách làm...\",\n  \"cover_image_url\": \"https://example.com/img.jpg\",\n  \"media_urls\": [],\n  \"is_speciality\": true,\n  \"province_code\": \"NB\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/culinary",
+              "host": ["{{baseUrl}}"],
+              "path": ["culinary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật món ăn",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_speciality\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/culinary/{{culinaryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["culinary", "{{culinaryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá món ăn",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/culinary/{{culinaryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["culinary", "{{culinaryId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "16. Sản phẩm OCOP",
+      "item": [
+        {
+          "name": "Danh sách sản phẩm",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocop?page=1&limit=12&lang=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "en",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách sản phẩm của tôi(Doanh Nghiệp)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocop/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop", "me"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh mục",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocop/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocop/{{ocopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop", "{{ocopId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo sản phẩm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Sản phẩm OCOP\",\n  \"category\": \"food\",\n  \"description_vi\": \"Mô tả\",\n  \"province_code\": \"NB\",\n  \"star_rating\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocop",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật sản phẩm",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"star_rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocop/{{ocopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop", "{{ocopId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá sản phẩm",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocop/{{ocopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop", "{{ocopId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách sản phẩm Copy",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocop?page=1&limit=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocop"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "17. Tin tức (News)",
+      "item": [
+        {
+          "name": "Danh sách công khai",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["news"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_published",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "is_featured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "tag",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy tin theo slug",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news/:slug",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", ":slug"],
+              "variable": [
+                {
+                  "key": "slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bình luận của tin",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quản trị - Danh sách tất cả",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news/admin/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "admin", "all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quản trị - Lấy theo ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news/admin/{{newsId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "admin", "{{newsId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đặt trạng thái xuất bản",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/news/admin/{{newsId}}/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "admin", "{{newsId}}", "publish"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo tin tức",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tin tức mới\",\n  \"slug\": \"tin-tuc-moi\",\n  \"author_name\": \"Quản trị viên\",\n  \"summary\": \"Tóm tắt\",\n  \"content\": \"Nội dung chi tiết...\",\n  \"thumbnail_url\": \"https://example.com/thumb.jpg\",\n  \"is_published\": false,\n  \"is_featured\": false,\n  \"tags\": [\"travel\", \"ninh-binh\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/news",
+              "host": ["{{baseUrl}}"],
+              "path": ["news"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật tin tức",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_featured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá tin tức",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo bình luận",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Bài viết hay!\",\n  \"parent_comment_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật bình luận",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Đã sửa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}", "comments", "{{commentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá bình luận",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}", "comments", "{{commentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Duyệt bình luận",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_approved\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/news/{{newsId}}/comments/{{commentId}}/approval",
+              "host": ["{{baseUrl}}"],
+              "path": ["news", "{{newsId}}", "comments", "{{commentId}}", "approval"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "18. Vlog",
+      "item": [
+        {
+          "name": "Danh sách vlog",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs?page=1&limit=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "platform",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "user_id",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bình luận của vlog",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quản trị - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/admin/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "admin", "all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quản trị - Lấy theo ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/admin/{{vlogId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "admin", "{{vlogId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kiểm duyệt",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"published\",\n  \"rejection_note\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/admin/{{vlogId}}/moderate",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "admin", "{{vlogId}}", "moderate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vlog đã lưu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/user/saved",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "user", "saved"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thích",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "like"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bỏ thích",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "like"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lưu vlog",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "save"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bỏ lưu",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "save"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo vlog",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Khám phá Tràng An",
+                  "type": "text"
+                },
+                {
+                  "key": "excerpt",
+                  "value": "Trải nghiệm tuyệt vời",
+                  "type": "text"
+                },
+                {
+                  "key": "content",
+                  "value": "Nội dung",
+                  "type": "text"
+                },
+                {
+                  "key": "video_url",
+                  "value": "https://youtube.com/...",
+                  "type": "text"
+                },
+                {
+                  "key": "platform",
+                  "value": "web",
+                  "type": "text"
+                },
+                {
+                  "key": "spot_id",
+                  "value": "{{spotId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "province_code",
+                  "value": "NB",
+                  "type": "text"
+                },
+                {
+                  "key": "lng",
+                  "value": "105.97",
+                  "type": "text"
+                },
+                {
+                  "key": "lat",
+                  "value": "20.25",
+                  "type": "text"
+                },
+                {
+                  "key": "cover_image_url",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "media_urls",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vlogs",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật vlog",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Đã cập nhật",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá vlog",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo bình luận",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Vlog hay quá!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá bình luận",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vlogs/{{vlogId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vlogs", "{{vlogId}}", "comments", "{{commentId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "19. Đánh giá (Ratings)",
+      "item": [
+        {
+          "name": "Danh sách đánh giá",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ratings?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "spot_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "business_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "created_at",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đánh giá doanh nghiệp của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ratings/business/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings", "business", "my"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo đánh giá",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"spot_id\": \"{{spotId}}\",\n  \"stars\": 5,\n  \"title\": \"Tuyệt vời\",\n  \"content\": \"Trải nghiệm rất đáng nhớ tại đây\",\n  \"pros\": \"Cảnh đẹp, sạch sẽ\",\n  \"cons\": \"Đông khách\",\n  \"visit_date\": \"2026-04-01\",\n  \"photo_urls\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ratings",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật đánh giá",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stars\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ratings/{{ratingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings", "{{ratingId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá đánh giá",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ratings/{{ratingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings", "{{ratingId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trả lời đánh giá",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reply\": \"Cảm ơn bạn\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ratings/{{ratingId}}/reply",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings", "{{ratingId}}", "reply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đánh dấu hữu ích",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ratings/{{ratingId}}/helpful",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings", "{{ratingId}}", "helpful"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật trạng thái",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"hidden\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ratings/{{ratingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["ratings", "{{ratingId}}", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "20. Doanh nghiệp (Businesses)",
+      "item": [
+        {
+          "name": "Danh sách công khai",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/public?page=1&limit=10&lang=vi",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "public"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "approved",
+                  "disabled": true
+                },
+                {
+                  "key": "business_type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "province_code",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "vi",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Voucher gần đây",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/vouchers/nearby?lat=20.25&lng=105.97&radius_km=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "vouchers", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "20.25"
+                },
+                {
+                  "key": "lng",
+                  "value": "105.97"
+                },
+                {
+                  "key": "radius_km",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kiểm tra voucher",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"VOUCHER123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/vouchers/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "vouchers", "validate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng ký doanh nghiệp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_name\": \"Khách sạn ABC\",\n  \"business_type\": \"hotel\",\n  \"business_code\": \"ABC001\",\n  \"tax_id\": \"0123456789\",\n  \"description_vi\": \"Khách sạn 4 sao\",\n  \"logo_url\": \"https://example.com/logo.png\",\n  \"phone\": \"02293000000\",\n  \"email\": \"contact@abc.vn\",\n  \"website\": \"https://abc.vn\",\n  \"address_vi\": \"Ninh Bình\",\n  \"province_code\": \"NB\",\n  \"lng\": 105.97,\n  \"lat\": 20.25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doanh nghiệp của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quản trị - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy doanh nghiệp",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật doanh nghiệp",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description_vi\": \"Cập nhật\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật trạng thái",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách dịch vụ",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "services"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo dịch vụ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name_vi\": \"Phòng Deluxe\",\n  \"service_name_en\": \"Deluxe Room\",\n  \"category\": \"room\",\n  \"description_vi\": \"Mô tả\",\n  \"price_from\": 1500000,\n  \"price_to\": 2500000,\n  \"currency\": \"VND\",\n  \"unit\": \"đêm\",\n  \"booking_url\": \"https://abc.vn/booking\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "services"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật dịch vụ",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "services", "{{serviceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá dịch vụ",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "services", "{{serviceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách voucher",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/vouchers",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "vouchers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUMMER10\",\n  \"discount_pct\": 10,\n  \"valid_from\": \"2026-06-01\",\n  \"valid_to\": \"2026-08-31\",\n  \"max_uses\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/vouchers",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "vouchers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật voucher",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discount_pct\": 15\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/vouchers/{{voucherId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "vouchers", "{{voucherId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vô hiệu hoá voucher",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/businesses/{{businessId}}/vouchers/{{voucherId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["businesses", "{{businessId}}", "vouchers", "{{voucherId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "21. Phản ánh người dân (Citizen Feedbacks)",
+      "item": [
+        {
+          "name": "Danh sách công khai",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quản trị - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/admin/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "admin", "all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo phản ánh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Phản ánh rác thải\",\n  \"content\": \"Khu vực gần Tràng An có nhiều rác thải, mong cơ quan xử lý\",\n  \"latitude\": 20.25,\n  \"longitude\": 105.97,\n  \"priority\": \"normal\",\n  \"location_text\": \"Gần bến thuyền\",\n  \"images\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật phản ánh",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Cập nhật nội dung\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật trạng thái",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật kiểm duyệt",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"moderation_status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}/moderation",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}", "moderation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá phản ánh",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "22. Tìm kiếm (Search)",
+      "item": [
+        {
+          "name": "Loại đối tượng tìm kiếm",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/types",
+              "host": ["{{baseUrl}}"],
+              "path": ["search", "types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm kiếm tổng hợp",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?q=trang an",
+              "host": ["{{baseUrl}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "trang an"
+                },
+                {
+                  "key": "types",
+                  "value": "spots,businesses",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm kiếm theo loại",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/spots?q=trang an",
+              "host": ["{{baseUrl}}"],
+              "path": ["search", "spots"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "trang an"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "23. Trợ lý ảo (Chatbot)",
+      "item": [
+        {
+          "name": "Tạo phiên chat",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"vi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chatbot/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["chatbot", "sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách phiên chat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chatbot/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["chatbot", "sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy tin nhắn của phiên",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chatbot/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chatbot", "sessions", "{{sessionId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gửi tin nhắn",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Gợi ý cho tôi điểm tham quan tại Ninh Bình\",\n  \"language\": \"vi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chatbot/sessions/{{sessionId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["chatbot", "sessions", "{{sessionId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá phiên chat",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chatbot/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chatbot", "sessions", "{{sessionId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "24. Thông báo (Notifications)",
+      "item": [
+        {
+          "name": "Tạo thông báo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Thông báo mới\",\n  \"message\": \"Nội dung thông báo\",\n  \"type\": \"info\",\n  \"target_user_id\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thông báo của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/me?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "is_read",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Số lượng chưa đọc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "unread-count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đánh dấu đã đọc tất cả",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đánh dấu đã đọc",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá thông báo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá tất cả",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "25. Phiên AR (AR Sessions)",
+      "item": [
+        {
+          "name": "Tạo phiên AR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ar_type\": \"overlay\",\n  \"spot_id\": \"{{spotId}}\",\n  \"lng\": 105.97,\n  \"lat\": 20.25,\n  \"duration_sec\": 120,\n  \"qr_scanned\": false,\n  \"spots_viewed\": [],\n  \"device_os\": \"android\",\n  \"app_version\": \"1.0.0\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ar-sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["ar-sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Phiên AR của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ar-sessions/my?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["ar-sessions", "my"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "spot_id",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thống kê AR",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ar-sessions/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["ar-sessions", "stats"],
+              "query": [
+                {
+                  "key": "spot_id",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Phiên AR theo điểm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ar-sessions/spots/{{spotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ar-sessions", "spots", "{{spotId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy phiên AR theo ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ar-sessions/{{arSessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ar-sessions", "{{arSessionId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "26. GPS Tracking",
+      "item": [
+        {
+          "name": "Bắt đầu track",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"track_type\": \"walk\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/gps/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["gps", "start"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đồng bộ điểm GPS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": [\n    {\n      \"lat\": 20.25,\n      \"lng\": 105.97,\n      \"altitude_m\": 12,\n      \"speed_kmh\": 4.5,\n      \"accuracy_m\": 5,\n      \"battery_pct\": 85,\n      \"recorded_at\": \"2026-04-27T08:30:00Z\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/gps/{{trackId}}/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["gps", "{{trackId}}", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kết thúc track",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"total_distance_m\": 3500,\n  \"geom_line\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/gps/{{trackId}}/end",
+              "host": ["{{baseUrl}}"],
+              "path": ["gps", "{{trackId}}", "end"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "27. Bản đồ Offline (Offline)",
+      "item": [
+        {
+          "name": "Tải bản đồ offline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"area_name\": \"Tràng An\",\n  \"province_code\": \"NB\",\n  \"bounds\": {\n    \"minLat\": 20.20,\n    \"maxLat\": 20.30,\n    \"minLng\": 105.90,\n    \"maxLng\": 106.00\n  },\n  \"zoom_min\": 10,\n  \"zoom_max\": 16\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/offline/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["offline", "download"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách bản đồ offline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offline",
+              "host": ["{{baseUrl}}"],
+              "path": ["offline"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offline/{{offlineMapId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["offline", "{{offlineMapId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá bản đồ offline",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offline/{{offlineMapId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["offline", "{{offlineMapId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "28. Đo đạc bản đồ (Map Measure)",
+      "item": [
+        {
+          "name": "Đo khoảng cách",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coordinates\": [[105.97, 20.25], [105.98, 20.26]],\n  \"unit\": \"m\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map/measure/distance",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "measure", "distance"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đo diện tích",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coordinates\": [[105.97, 20.25], [105.98, 20.26], [105.99, 20.25]],\n  \"unit\": \"m2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map/measure/area",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "measure", "area"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "29. Quản trị bản đồ (Map Admin)",
+      "item": [
+        {
+          "name": "Danh mục - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh mục - Tạo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"transport\",\n  \"name_vi\": \"Giao thông\",\n  \"name_en\": \"Transport\",\n  \"description\": \"Lớp giao thông\",\n  \"sort_order\": 0,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh mục - Cập nhật",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Mới\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/categories/{{mapCategoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "categories", "{{mapCategoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh mục - Xoá",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/categories/{{mapCategoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "categories", "{{mapCategoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lớp bản đồ - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/layers",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "layers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lớp bản đồ - Tạo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": 1,\n  \"code\": \"osm_base\",\n  \"name_vi\": \"OSM nền\",\n  \"name_en\": \"OSM Base\",\n  \"layer_type\": \"raster\",\n  \"source_url\": \"https://tile.openstreetmap.org/{z}/{x}/{y}.png\",\n  \"style_json\": {},\n  \"min_zoom\": 0,\n  \"max_zoom\": 22,\n  \"is_default_visible\": true,\n  \"sort_order\": 0,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/layers",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "layers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lớp bản đồ - Bật/tắt",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/layers/{{mapLayerId}}/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "layers", "{{mapLayerId}}", "toggle"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lớp bản đồ - Cập nhật",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_vi\": \"Mới\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/layers/{{mapLayerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "layers", "{{mapLayerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lớp bản đồ - Xoá",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/layers/{{mapLayerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "layers", "{{mapLayerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Tạo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": 1,\n  \"map_layer_id\": 1,\n  \"name\": \"Spots GeoJSON\",\n  \"slug\": \"spots-geojson\",\n  \"description\": \"\",\n  \"endpoint_url\": \"/api/v1/spots/geojson\",\n  \"http_method\": \"GET\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Cập nhật",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"deprecated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis/{{mapApiId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis", "{{mapApiId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Xoá",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis/{{mapApiId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis", "{{mapApiId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Permission",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis/{{mapApiId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis", "{{mapApiId}}", "permissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Gán permission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal_type\": \"role\",\n  \"role_id\": 2,\n  \"can_view\": true,\n  \"can_edit\": false,\n  \"can_delete\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis/{{mapApiId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis", "{{mapApiId}}", "permissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API - Xoá permission",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/apis/{{mapApiId}}/permissions/{{permissionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "apis", "{{mapApiId}}", "permissions", "{{permissionId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Key - Danh sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/api-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "api-keys"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Key - Tạo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mobile App Key\",\n  \"expires_at\": \"2027-04-27\",\n  \"issued_to_user_id\": \"{{userId}}\",\n  \"map_layer_api_ids\": [1,2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/api-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "api-keys"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Key - Thu hồi",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-admin/api-keys/{{apiKeyId}}/revoke",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-admin", "api-keys", "{{apiKeyId}}", "revoke"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "30. Dữ liệu bản đồ (Map Data - API Key)",
+      "item": [
+        {
+          "name": "Danh sách API",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-api-key",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-data/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-data", "apis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Danh sách lớp bản đồ",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-api-key",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-data/layers",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-data", "layers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy dữ liệu API",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-api-key",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map-data/apis/:apiId/data",
+              "host": ["{{baseUrl}}"],
+              "path": ["map-data", "apis", ":apiId", "data"],
+              "variable": [
+                {
+                  "key": "apiId"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "31. Tích hợp bên thứ 3 (Integrations)",
+      "item": [
+        {
+          "name": "Danh sách tích hợp",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/integrations?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy theo ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/integrations/{{integrationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "{{integrationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo tích hợp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_code\": \"google_maps\",\n  \"provider_name\": \"Google Maps\",\n  \"integration_type\": \"map\",\n  \"base_url\": \"https://maps.googleapis.com\",\n  \"auth_type\": \"api_key\",\n  \"credentials\": {\"api_key\": \"...\"},\n  \"webhook_secret\": \"\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/integrations",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật tích hợp",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/integrations/{{integrationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "{{integrationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá tích hợp",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/integrations/{{integrationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "{{integrationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đồng bộ",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/integrations/{{integrationId}}/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "{{integrationId}}", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Nhật ký tích hợp",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/integrations/{{integrationId}}/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "{{integrationId}}", "logs"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "32. Quản trị nâng cao (Governance)",
+      "item": [
+        {
+          "name": "Bộ - Tổng quan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/ministry/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "ministry", "overview"],
+              "query": [
+                {
+                  "key": "from_date",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "to_date",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bộ - Cảnh báo sức chứa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/ministry/capacity-alerts?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "ministry", "capacity-alerts"],
+              "query": [
+                {
+                  "key": "province_code",
+                  "value": "NB",
+                  "disabled": true
+                },
+                {
+                  "key": "statuses",
+                  "value": "busy,near_full,overloaded",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bộ - Tóm tắt bảo tồn",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/ministry/conservation-summary?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "ministry", "conservation-summary"],
+              "query": [
+                {
+                  "key": "province_code",
+                  "value": "NB",
+                  "disabled": true
+                },
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Đăng ký doanh nghiệp",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/registrations/businesses",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "registrations", "businesses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Duyệt đăng ký doanh nghiệp",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"rejection_note\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/registrations/businesses/{{businessId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "registrations", "businesses", "{{businessId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Đăng ký điểm đến",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/registrations/spots",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "registrations", "spots"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Duyệt đăng ký điểm đến",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/registrations/spots/{{spotId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "registrations", "spots", "{{spotId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Phản ánh người dân",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/feedbacks",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "feedbacks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Tạo báo cáo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"report_type\": \"monthly\",\n  \"period_from\": \"2026-04-01\",\n  \"period_to\": \"2026-04-30\",\n  \"title\": \"Báo cáo tháng 4/2026\",\n  \"file_url\": \"https://example.com/report.pdf\",\n  \"file_format\": \"pdf\",\n  \"file_size_kb\": 1024,\n  \"sent_to_roles\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Danh sách báo cáo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Gửi báo cáo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_roles\": [],\n  \"title_vi\": \"Báo cáo mới\",\n  \"body_vi\": \"Nội dung\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/reports/{{reportId}}/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "reports", "{{reportId}}", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Cảnh báo sức chứa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/capacity-alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "capacity-alerts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sở - Tóm tắt bảo tồn",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/department/conservation-summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "department", "conservation-summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doanh nghiệp - Tạo báo cáo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_id\": \"{{businessId}}\",\n  \"report_period\": \"month\",\n  \"period_from\": \"2026-04-01\",\n  \"period_to\": \"2026-04-30\",\n  \"total_revenue_vnd\": 100000000,\n  \"total_bookings\": 50,\n  \"total_visitors\": 200,\n  \"avg_capacity_pct\": 70,\n  \"notes\": \"Tháng tốt\",\n  \"status\": \"submitted\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/enterprise/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "enterprise", "reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doanh nghiệp - Danh sách báo cáo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/enterprise/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "enterprise", "reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doanh nghiệp - Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/enterprise/businesses/{{businessId}}/dashboard?period=month&year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "enterprise", "businesses", "{{businessId}}", "dashboard"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doanh nghiệp - Cập nhật profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description_vi\": \"Mới\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/enterprise/businesses/{{businessId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "enterprise", "businesses", "{{businessId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doanh nghiệp - Phản ánh xung quanh",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/enterprise/businesses/{{businessId}}/feedbacks?radius_km=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "enterprise", "businesses", "{{businessId}}", "feedbacks"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "radius_km",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/admin/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "admin", "dashboard"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Lưu lượng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/admin/traffic?days=30&group_by=day",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "admin", "traffic"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                },
+                {
+                  "key": "group_by",
+                  "value": "day"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Danh sách permission",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/admin/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "admin", "permissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Tạo permission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resource\": \"news\",\n  \"action\": \"publish\",\n  \"name_vi\": \"Xuất bản tin tức\",\n  \"description\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/admin/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "admin", "permissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Permission của role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/governance/admin/roles/{{roleId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "admin", "roles", "{{roleId}}", "permissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Gán permission cho role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission_ids\": [1,2,3]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/governance/admin/roles/{{roleId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["governance", "admin", "roles", "{{roleId}}", "permissions"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "33. Thống kê & Báo cáo (Statistics)",
+      "item": [
+        {
+          "name": "Danh sách file dữ liệu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/statistics/data-files",
+              "host": ["{{baseUrl}}"],
+              "path": ["statistics", "data-files"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tải file dữ liệu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/statistics/data-files/download/:filename",
+              "host": ["{{baseUrl}}"],
+              "path": ["statistics", "data-files", "download", ":filename"],
+              "variable": [
+                {
+                  "key": "filename"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "34. Ảnh vệ tinh (Satellite)",
+      "item": [
+        {
+          "name": "Ảnh RGB composite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"geometry\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[[107.0, 12.0], [108.0, 12.0], [108.0, 13.0], [107.0, 13.0], [107.0, 12.0]]]\n  },\n  \"startDate\": \"2023-01-01\",\n  \"endDate\": \"2023-03-31\",\n  \"collection\": \"S2\",\n  \"cloudCover\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite/rgb",
+              "host": ["{{baseUrl}}"],
+              "path": ["satellite", "rgb"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ảnh NDVI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"geometry\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[[107.0, 12.0], [108.0, 12.0], [108.0, 13.0], [107.0, 13.0], [107.0, 12.0]]]\n  },\n  \"startDate\": \"2023-01-01\",\n  \"endDate\": \"2023-03-31\",\n  \"collection\": \"S2\",\n  \"cloudCover\": 30,\n  \"ndviMinThresh\": 0.2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite/ndvi",
+              "host": ["{{baseUrl}}"],
+              "path": ["satellite", "ndvi"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bản đồ nhiệt LST",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"geometry\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[[107.0, 12.0], [108.0, 12.0], [108.0, 13.0], [107.0, 13.0], [107.0, 12.0]]]\n  },\n  \"startDate\": \"2023-01-01\",\n  \"endDate\": \"2023-03-31\",\n  \"collection\": \"S2\",\n  \"cloudCover\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite/heat-map",
+              "host": ["{{baseUrl}}"],
+              "path": ["satellite", "heat-map"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Phân loại lớp phủ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"geometry\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[[107.0, 12.0], [108.0, 12.0], [108.0, 13.0], [107.0, 13.0], [107.0, 12.0]]]\n  },\n  \"startDate\": \"2023-01-01\",\n  \"endDate\": \"2023-03-31\",\n  \"collection\": \"S2\",\n  \"cloudCover\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite/classified",
+              "host": ["{{baseUrl}}"],
+              "path": ["satellite", "classified"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "So sánh RGB 2 thời điểm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"geometry\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[[107.0, 12.0], [108.0, 12.0], [108.0, 13.0], [107.0, 13.0], [107.0, 12.0]]]\n  },\n  \"startDate1\": \"2020-01-01\",\n  \"endDate1\": \"2020-06-30\",\n  \"startDate2\": \"2023-01-01\",\n  \"endDate2\": \"2023-06-30\",\n  \"collection\": \"S2\",\n  \"cloudCover\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["satellite", "compare"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Phát hiện thay đổi rừng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"geometry\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[[107.0, 12.0], [108.0, 12.0], [108.0, 13.0], [107.0, 13.0], [107.0, 12.0]]]\n  },\n  \"startDate1\": \"2020-01-01\",\n  \"endDate1\": \"2020-06-30\",\n  \"startDate2\": \"2023-01-01\",\n  \"endDate2\": \"2023-06-30\",\n  \"collection\": \"S2\",\n  \"cloudCover\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite/change",
+              "host": ["{{baseUrl}}"],
+              "path": ["satellite", "change"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "apiKey",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "spotId",
+      "value": ""
+    },
+    {
+      "key": "tourId",
+      "value": ""
+    },
+    {
+      "key": "stopId",
+      "value": ""
+    },
+    {
+      "key": "itineraryId",
+      "value": ""
+    },
+    {
+      "key": "dayId",
+      "value": ""
+    },
+    {
+      "key": "newsId",
+      "value": ""
+    },
+    {
+      "key": "commentId",
+      "value": ""
+    },
+    {
+      "key": "vlogId",
+      "value": ""
+    },
+    {
+      "key": "ratingId",
+      "value": ""
+    },
+    {
+      "key": "businessId",
+      "value": ""
+    },
+    {
+      "key": "serviceId",
+      "value": ""
+    },
+    {
+      "key": "voucherId",
+      "value": ""
+    },
+    {
+      "key": "feedbackId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "mediaId",
+      "value": ""
+    },
+    {
+      "key": "sessionId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "festivalId",
+      "value": ""
+    },
+    {
+      "key": "culinaryId",
+      "value": ""
+    },
+    {
+      "key": "ocopId",
+      "value": ""
+    },
+    {
+      "key": "roleId",
+      "value": ""
+    },
+    {
+      "key": "sceneId",
+      "value": ""
+    },
+    {
+      "key": "hotspotId",
+      "value": ""
+    },
+    {
+      "key": "arSessionId",
+      "value": ""
+    },
+    {
+      "key": "trackId",
+      "value": ""
+    },
+    {
+      "key": "integrationId",
+      "value": ""
+    },
+    {
+      "key": "mapCategoryId",
+      "value": ""
+    },
+    {
+      "key": "mapLayerId",
+      "value": ""
+    },
+    {
+      "key": "mapApiId",
+      "value": ""
+    },
+    {
+      "key": "permissionId",
+      "value": ""
+    },
+    {
+      "key": "apiKeyId",
+      "value": ""
+    },
+    {
+      "key": "reportId",
+      "value": ""
+    },
+    {
+      "key": "scheduleId",
+      "value": ""
+    },
+    {
+      "key": "offlineMapId",
+      "value": ""
+    }
+  ]
+}

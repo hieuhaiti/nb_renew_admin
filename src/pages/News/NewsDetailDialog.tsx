@@ -5,6 +5,7 @@ import type { ApiResponse, NewsData } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { UserText } from '@/components/common/UserText'
 import { formatDateTime } from '@/lib/date'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 
 interface NewsDetailDialogProps {
   open: boolean
@@ -13,6 +14,7 @@ interface NewsDetailDialogProps {
 }
 
 export default function NewsDetailDialog({ open, onOpenChange, newsId }: NewsDetailDialogProps) {
+  const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['news', newsId],
     () => newsService.getByIdAdmin(newsId!),
@@ -61,7 +63,8 @@ export default function NewsDetailDialog({ open, onOpenChange, newsId }: NewsDet
                   <img
                     src={parseLink(news.thumbnail_url)}
                     alt="Thumbnail"
-                    className="h-24 w-40 rounded border object-cover"
+                    className="h-24 w-40 cursor-zoom-in rounded border object-cover"
+                    onClick={() => openLightbox(parseLink(news.thumbnail_url!))}
                   />
                 ) : (
                   '-'

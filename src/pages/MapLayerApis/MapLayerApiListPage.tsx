@@ -46,6 +46,7 @@ import PermissionsTab from '@/components/map-layer-apis/PermissionsTab'
 import CategorySelectField from '@/components/features/CategorySelectField'
 import MapLayerApiDetailDialog from './MapLayerApiDetailDialog'
 import MapLayerApiFormDialog from './MapLayerApiFormDialog'
+import { STALE_DEFAULT } from '@/constant/queryConstant'
 
 const tabValues = ['apis', 'apikeys'] as const
 type MapLayerApiTab = (typeof tabValues)[number]
@@ -91,15 +92,15 @@ export default function MapLayerApiListPage(): JSX.Element {
   const listQuery = useApiQuery(
     ['mapLayerApis', queryParams],
     () => mapLayerApiService.getAll(queryParams),
-    {},
+    { staleTime: STALE_DEFAULT },
     false,
     false
   )
 
   const allApisQuery = useApiQuery(
     ['mapLayerApiAllForKeySelection'],
-    () => mapLayerApiService.getAll({ page: 1, limit: 100, sortBy: 'id', sortOrder: 'ASC' }),
-    {},
+    () => mapLayerApiService.getAll({ page: 1, limit: 50, sortBy: 'created_at', sortOrder: 'DESC' }),
+    { staleTime: STALE_DEFAULT },
     false,
     false
   )
@@ -256,6 +257,9 @@ export default function MapLayerApiListPage(): JSX.Element {
                 </Button>
               </div>
             }
+            dataUpdatedAt={listQuery.dataUpdatedAt}
+            onRefresh={() => listQuery.refetch()}
+            isRefreshing={listQuery.isFetching && !listQuery.isLoading}
             total={total}
             pagination={{
               currentPage,

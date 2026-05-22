@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { mapLayerService, useApiMutation, useApiQuery } from '@/service'
 import type { ApiResponse, MapLayer, MapLayerListData, Pagination } from '@/types/api'
+import type { MapLayerFormBody } from '@/service/mapLayerService'
 import {
   Select,
   SelectContent,
@@ -20,9 +21,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Eye, EyeOff } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Eye, EyeOff, Pen, Plus, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
+import { STALE_DEFAULT } from '@/constant/queryConstant'
+import MapLayerFormDialog from './MapLayerFormDialog'
+import MapLayerDetailDialog from './MapLayerDetailDialog'
 
 const ACTIVE_LABEL: Record<string, string> = {
   true: 'Hoạt động',
@@ -57,7 +71,7 @@ export default function MapLayerPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['mapLayers', queryParams],
     () => mapLayerService.getAll(queryParams),
-    {},
+    { staleTime: STALE_DEFAULT },
     false,
     false
   )
@@ -74,11 +88,62 @@ export default function MapLayerPage(): JSX.Element {
     if (currentPage > totalPages) setCurrentPage(totalPages)
   }, [currentPage, totalPages])
 
+  const [selectedLayer, setSelectedLayer] = useState<MapLayer | null>(null)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [formDialogOpen, setFormDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [layerToDelete, setLayerToDelete] = useState<MapLayer | null>(null)
+
   const toggleMutation = useApiMutation(
     (id: number) => mapLayerService.toggle(id),
     { onSuccess: () => dbQuery.refetch() },
     true
   )
+
+  const createMutation = useApiMutation(
+    (payload: MapLayerFormBody) => mapLayerService.create(payload),
+    {
+      onSuccess: () => {
+        dbQuery.refetch()
+        setFormDialogOpen(false)
+        setSelectedLayer(null)
+      },
+    },
+    true
+  )
+
+  const updateMutation = useApiMutation(
+    (payload: { id: number; data: Partial<MapLayerFormBody> }) =>
+      mapLayerService.update(payload.id, payload.data),
+    {
+      onSuccess: () => {
+        dbQuery.refetch()
+        setFormDialogOpen(false)
+        setSelectedLayer(null)
+      },
+    },
+    true
+  )
+
+  const deleteMutation = useApiMutation(
+    (id: number) => mapLayerService.delete(id),
+    {
+      onSuccess: () => {
+        dbQuery.refetch()
+        setDeleteDialogOpen(false)
+        setLayerToDelete(null)
+      },
+    },
+    true
+  )
+
+  function handleFormSubmit(payload: MapLayerFormBody) {
+    if (selectedLayer) {
+      updateMutation.mutate({ id: selectedLayer.id, data: payload })
+    } else {
+      createMutation.mutate(payload)
+    }
+  }
 
   return (
     <PageLayout title="Lớp bản đồ" description="Quản lý lớp dữ liệu bản đồ">
@@ -88,6 +153,9 @@ export default function MapLayerPage(): JSX.Element {
           setSearchValue(value)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
             <Select
@@ -141,6 +209,17 @@ export default function MapLayerPage(): JSX.Element {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button
+              variant="default"
+              onClick={() => {
+                setSelectedLayer(null)
+                setFormDialogOpen(true)
+              }}
+            >
+              <Plus className="mr-1 size-4" />
+              Thêm lớp
+            </Button>
           </div>
         }
         total={total}
@@ -159,11 +238,23 @@ export default function MapLayerPage(): JSX.Element {
               <TableHead className="w-24">Kiểu hình học</TableHead>
               <TableHead className="w-28">Trạng thái</TableHead>
               <TableHead className="w-32">Ngày tạo</TableHead>
-              <TableHead className="w-20 text-right">Hành động</TableHead>
+              <TableHead className="w-28 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {layers.length === 0 ? (
+            {dbQuery.isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
+                  Đang tải...
+                </TableCell>
+              </TableRow>
+            ) : dbQuery.isError ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-destructive py-8 text-center">
+                  Đã xảy ra lỗi, vui lòng thử lại
+                </TableCell>
+              </TableRow>
+            ) : layers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-muted-foreground text-center">
                   Không có dữ liệu
@@ -171,13 +262,24 @@ export default function MapLayerPage(): JSX.Element {
               </TableRow>
             ) : (
               layers.map((layer: MapLayer) => (
-                <TableRow key={layer.id}>
+                <TableRow
+                  key={layer.id}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedLayer(layer)
+                    setDetailDialogOpen(true)
+                  }}
+                >
                   <TableCell>{layer.id}</TableCell>
                   <TableCell className="max-w-64 font-medium">
                     <span className="line-clamp-2">{layer.name}</span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{layer.category_name || '-'}</TableCell>
-                  <TableCell className="uppercase">{layer.geometry_type || '-'}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {(layer as MapLayer & { category_name?: string }).category_name || '-'}
+                  </TableCell>
+                  <TableCell className="uppercase">
+                    {(layer as MapLayer & { geometry_type?: string }).geometry_type || '-'}
+                  </TableCell>
                   <TableCell>
                     <StatusDotBadge
                       label={ACTIVE_LABEL[String(layer.is_active)]}
@@ -189,18 +291,47 @@ export default function MapLayerPage(): JSX.Element {
                     {layer.created_at ? formatDate(layer.created_at) : '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleMutation.mutate(layer.id)}
-                      title={layer.is_active ? 'Ngừng hoạt động' : 'Kích hoạt'}
-                    >
-                      {layer.is_active ? (
-                        <EyeOff className="text-muted-foreground size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleMutation.mutate(layer.id)
+                        }}
+                        title={layer.is_active ? 'Ngừng hoạt động' : 'Kích hoạt'}
+                      >
+                        {layer.is_active ? (
+                          <EyeOff className="text-muted-foreground size-4" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedLayer(layer)
+                          setFormDialogOpen(true)
+                        }}
+                        title="Chỉnh sửa"
+                      >
+                        <Pen className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLayerToDelete(layer)
+                          setDeleteDialogOpen(true)
+                        }}
+                        title="Xóa"
+                      >
+                        <Trash2 className="text-destructive size-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -208,6 +339,42 @@ export default function MapLayerPage(): JSX.Element {
           </TableBody>
         </Table>
       </ToolTableCustom>
+
+      <MapLayerDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        layer={selectedLayer}
+      />
+
+      <MapLayerFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        layer={selectedLayer}
+        onSubmit={handleFormSubmit}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa lớp &quot;{layerToDelete?.name}&quot;? Hành động này
+              không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => layerToDelete && deleteMutation.mutate(layerToDelete.id)}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageLayout>
   )
 }

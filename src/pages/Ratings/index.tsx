@@ -1,7 +1,23 @@
-import type { JSX } from 'react'
+﻿import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
-import { useApiQuery, useApiMutation, ratingService } from '@/service'
-import type { ApiResponse, Rating, RatingListData, RatingStatus, Pagination } from '@/types/api'
+import {
+  useApiQuery,
+  useApiMutation,
+  ratingService,
+  spotService,
+  businessService,
+} from '@/service'
+import type {
+  ApiResponse,
+  Rating,
+  RatingListData,
+  RatingStatus,
+  Pagination,
+  Spot,
+  SpotListData,
+  Business,
+  BusinessListData,
+} from '@/types/api'
 import {
   Select,
   SelectTrigger,
@@ -34,6 +50,7 @@ import { Check, X, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
+import { STALE_HOT, STALE_REF } from '@/constant/queryConstant'
 
 const STATUS_LABEL: Record<RatingStatus, string> = {
   pending: 'Chờ duyệt',
@@ -53,24 +70,72 @@ const STATUS_DOT: Record<RatingStatus, string> = {
 
 const STARS = ['★', '★★', '★★★', '★★★★', '★★★★★']
 
+type RatingTargetType = 'spot' | 'business'
+
 export default function RatingPage(): JSX.Element {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [targetType, setTargetType] = useState<RatingTargetType>('spot')
+  const [targetId, setTargetId] = useState<string>('')
+
+  const spotQuery = useApiQuery(
+    ['rating-target-spots'],
+    () => spotService.getAll({ page: 1, limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
+    { enabled: targetType === 'spot', staleTime: STALE_REF },
+    false,
+    false
+  )
+
+  const businessQuery = useApiQuery(
+    ['rating-target-businesses'],
+    () =>
+      businessService.getAll({
+        page: 1,
+        limit: 50,
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
+      }),
+    { enabled: targetType === 'business', staleTime: STALE_REF },
+    false,
+    false
+  )
+
+  const spots = ((spotQuery.data as ApiResponse<SpotListData>)?.data?.spots ?? []) as Spot[]
+  const businesses = (
+    (businessQuery.data as ApiResponse<BusinessListData>)?.data?.businesses ?? []
+  ) as Business[]
+
+  const targetOptions =
+    targetType === 'spot'
+      ? spots.map((s) => ({ id: s.id, label: s.name_vi || s.slug || s.id }))
+      : businesses.map((b) => ({ id: b.id, label: b.business_name || b.id }))
+
+  useEffect(() => {
+    if (targetOptions.length === 0) {
+      if (targetId) setTargetId('')
+      return
+    }
+    const isCurrentTargetValid = targetOptions.some((opt) => opt.id === targetId)
+    if (!isCurrentTargetValid) setTargetId(targetOptions[0].id)
+  }, [targetId, targetOptions])
+
+  const hasTargetId = Boolean(targetId)
 
   const queryParams = {
     page: currentPage,
     limit,
     sortBy: 'created_at',
     sortOrder: 'DESC' as const,
+    ...(hasTargetId && (targetType === 'spot' ? { spot_id: targetId } : { business_id: targetId })),
     ...(statusFilter !== 'all' && { status: statusFilter as RatingStatus }),
   }
 
   const dbQuery = useApiQuery(
     ['ratings', queryParams],
     () => ratingService.getAll(queryParams),
-    {},
+    { enabled: hasTargetId, staleTime: STALE_HOT },
     false,
     false
   )
@@ -124,8 +189,55 @@ export default function RatingPage(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={hasTargetId ? () => dbQuery.refetch() : undefined}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
+            <Select
+              value={targetType}
+              onValueChange={(v: RatingTargetType) => {
+                setTargetType(v)
+                setTargetId('')
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="spot">Điểm du lịch</SelectItem>
+                <SelectItem value="business">Doanh nghiệp</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={targetId}
+              onValueChange={(v) => {
+                setTargetId(v)
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-64">
+                <SelectValue
+                  placeholder={`Chọn ${targetType === 'spot' ? 'điểm du lịch' : 'doanh nghiệp'}`}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {targetOptions.length === 0 ? (
+                  <SelectItem value="__empty" disabled>
+                    Không có dữ liệu
+                  </SelectItem>
+                ) : (
+                  targetOptions.map((opt) => (
+                    <SelectItem key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+
             <Select
               value={statusFilter}
               onValueChange={(v) => {
@@ -182,7 +294,13 @@ export default function RatingPage(): JSX.Element {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {ratings.length === 0 ? (
+            {!hasTargetId ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-muted-foreground text-center">
+                  Vui lòng chọn {targetType === 'spot' ? 'điểm du lịch' : 'doanh nghiệp'} để xem đánh giá
+                </TableCell>
+              </TableRow>
+            ) : ratings.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-muted-foreground text-center">
                   Không có dữ liệu

@@ -21,9 +21,9 @@ export default {
     data: { content: string; parent_comment_id?: string | null; user_name?: string; user_email?: string }
   ) => apiClient.post<ApiResponse<NewsComment>>(`${serviceNewsPath}/${newsId}/comments`, data),
 
-  /** PUT /news/:newsId/comments/:commentId */
+  /** PATCH /news/:newsId/comments/:commentId */
   update: (newsId: string, commentId: string, data: { content: string }) =>
-    apiClient.put<ApiResponse<NewsComment>>(
+    apiClient.patch<ApiResponse<NewsComment>>(
       `${serviceNewsPath}/${newsId}/comments/${commentId}`,
       data
     ),

@@ -4,7 +4,7 @@ import {
   PaginationCustom,
   type PaginationCustomProps,
 } from '@/components/features/PaginationCustom'
-import { Search, X } from 'lucide-react'
+import { RefreshCw, Search, X } from 'lucide-react'
 import { Input } from '../ui/input'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Button } from '../ui/button'
@@ -18,6 +18,12 @@ type Props = {
   total?: number
   pagination?: PaginationCustomProps
   className?: string
+  /** timestamp từ query.dataUpdatedAt — hiển thị thời điểm cache ở footer */
+  dataUpdatedAt?: number
+  /** callback khi bấm nút refresh */
+  onRefresh?: () => void
+  /** true khi query đang refetch (query.isFetching && !query.isLoading) */
+  isRefreshing?: boolean
 }
 
 export default function ToolTableCustom({
@@ -28,6 +34,9 @@ export default function ToolTableCustom({
   children,
   pagination,
   total,
+  dataUpdatedAt,
+  onRefresh,
+  isRefreshing,
 }: Props) {
   const [localSearch, setLocalSearch] = useState<string>(searchValue)
   const debounced = useDebounce<string>(localSearch, 400)
@@ -69,7 +78,20 @@ export default function ToolTableCustom({
               </Button>
             )}
           </div>
-          <div className="flex items-center gap-2">{filter}</div>
+          <div className="flex items-center gap-2">
+            {onRefresh && (
+              <Button
+                variant="secondary"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="gap-1.5 px-3"
+              >
+                <RefreshCw className={`h-6 w-6 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Đang tải...' : 'Tải lại'}
+              </Button>
+            )}
+            {filter}
+          </div>
         </div>
       </div>
 
@@ -79,26 +101,35 @@ export default function ToolTableCustom({
       {/* Footer sticky section */}
       <div className="bg-card sticky bottom-0 z-10 pt-4">
         <hr className="mb-4" />
-        {pagination && pagination.totalPages > 1 ? (
-          <div className="flex flex-nowrap items-center justify-between gap-4">
-            <div className="text-muted-foreground text-sm whitespace-nowrap">
-              Hiển thị trang <span className="font-semibold">{pagination.currentPage}</span> /{' '}
-              {pagination.totalPages}
-            </div>
+        <div className="flex flex-nowrap items-center justify-between gap-4">
+          {/* Left: total count */}
+          <span className="text-muted-foreground text-sm whitespace-nowrap">
+            Tổng {total ?? ''} mục
+          </span>
 
+          {/* Center: pagination */}
+          {pagination && pagination.totalPages > 1 && (
             <div className="flex min-w-0 flex-1 items-center justify-center">
               <div className="min-w-0 overflow-auto">
                 <PaginationCustom {...pagination} />
               </div>
             </div>
+          )}
 
-            <span className="text-muted-foreground text-sm whitespace-nowrap">
-              Tổng {total ?? ''} mục
+          {/* Right: cache timestamp */}
+          {dataUpdatedAt && dataUpdatedAt > 0 ? (
+            <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
+              Cập nhật lúc{' '}
+              {new Date(dataUpdatedAt).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
             </span>
-          </div>
-        ) : (
-          <span className="text-muted-foreground text-sm">Tổng {total ?? ''} mục</span>
-        )}
+          ) : (
+            <span />
+          )}
+        </div>
       </div>
     </Card>
   )

@@ -27,11 +27,12 @@ const defaultParams: NotificationListParams = {
 }
 
 function getPrimaryText(n: Notification) {
-  return n.title || n.message || 'Thông báo'
+  return n.title_vi || n.title || 'Thông báo'
 }
 
 function getSecondaryText(n: Notification) {
-  if (n.title && n.message) return n.message
+  const primary = n.title_vi || n.title
+  if (primary) return n.body_vi || n.body || ''
   return ''
 }
 
@@ -65,10 +66,10 @@ export function NotificationMenu() {
   const unreadCount = Number.isFinite(Number(unreadCountRaw))
     ? Math.max(0, Number(unreadCountRaw))
     : Math.max(0, notifications.filter((n) => !n.is_read).length)
-  const showBadge = true
+  const showBadge = unreadCount > 0
 
   const markAsReadMutation = useApiMutation(
-    (id: number) => notificationService.markAsRead(id),
+    (id: string) => notificationService.markAsRead(id),
     {
       onSuccess: () => {
         query.refetch()

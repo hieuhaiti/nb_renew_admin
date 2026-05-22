@@ -1,9 +1,14 @@
 export interface Role {
+  [key: string]: unknown
   id: number
   name: string
   description?: string | null
   is_system?: boolean
-  permissions?: RolePermission[]
+  permissions?:
+    | RolePermission[]
+    | (Record<string, string[]> & {
+        map_layer_apis?: string[]
+      })
   created_at?: string
   updated_at?: string
 }

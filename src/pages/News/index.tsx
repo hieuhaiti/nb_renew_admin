@@ -35,6 +35,7 @@ import PageLayout from '@/layout/pageLayout'
 import NewsDetailDialog from './NewsDetailDialog'
 import NewsFormDialog from './NewsFormDialog'
 import { formatDate } from '@/lib/date'
+import { STALE_DEFAULT } from '@/constant/queryConstant'
 
 const PUBLISHED_LABEL: Record<string, string> = {
   true: 'Đã xuất bản',
@@ -67,7 +68,7 @@ export default function News(): JSX.Element {
   const dbQuery = useApiQuery(
     ['news', queryParams],
     () => newsService.getAllAdmin(queryParams),
-    {},
+    { staleTime: STALE_DEFAULT },
     false,
     false
   )
@@ -141,6 +142,9 @@ export default function News(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
             <Select

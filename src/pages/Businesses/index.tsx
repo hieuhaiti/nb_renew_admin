@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, businessService } from '@/service'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import type {
   ApiResponse,
   Business,
@@ -30,25 +31,16 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Check, X, Trash2, Ban } from 'lucide-react'
+import { Check, X, Ban } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { parseLink } from '@/lib/utils'
+import { STALE_DEFAULT } from '@/constant/queryConstant'
 
 const STATUS_LABEL: Record<BusinessStatus, string> = {
   pending: 'Chờ duyệt',
@@ -70,6 +62,7 @@ const STATUS_DOT: Record<BusinessStatus, string> = {
 }
 
 export default function BusinessPage(): JSX.Element {
+  const openLightbox = useLightboxStore((s) => s.open)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -78,8 +71,6 @@ export default function BusinessPage(): JSX.Element {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [bizToReject, setBizToReject] = useState<Business | null>(null)
   const [rejectionNote, setRejectionNote] = useState('')
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [bizToDelete, setBizToDelete] = useState<Business | null>(null)
 
   const queryParams = {
     page: currentPage,
@@ -93,7 +84,7 @@ export default function BusinessPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['businesses', queryParams],
     () => businessService.getAll(queryParams),
-    {},
+    { staleTime: STALE_DEFAULT },
     false,
     false
   )
@@ -114,18 +105,6 @@ export default function BusinessPage(): JSX.Element {
     (payload: { id: string; data: BusinessApprovalBody }) =>
       businessService.setApproval(payload.id, payload.data),
     { onSuccess: () => dbQuery.refetch() },
-    true
-  )
-
-  const deleteMutation = useApiMutation(
-    (id: string) => businessService.delete(id),
-    {
-      onSuccess: () => {
-        dbQuery.refetch()
-        setDeleteDialogOpen(false)
-        setBizToDelete(null)
-      },
-    },
     true
   )
 
@@ -161,6 +140,9 @@ export default function BusinessPage(): JSX.Element {
           setSearchValue(v)
           setCurrentPage(1)
         }}
+        dataUpdatedAt={dbQuery.dataUpdatedAt}
+        onRefresh={() => dbQuery.refetch()}
+        isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
             <Select
@@ -233,7 +215,8 @@ export default function BusinessPage(): JSX.Element {
                       <img
                         src={parseLink(biz.logo_url)}
                         alt={biz.business_name}
-                        className="h-10 w-10 rounded border object-contain"
+                        className="h-10 w-10 cursor-zoom-in rounded border object-contain"
+                        onClick={(e) => { e.stopPropagation(); openLightbox(parseLink(biz.logo_url!)) }}
                       />
                     ) : (
                       <div className="bg-muted h-10 w-10 rounded border" />
@@ -306,17 +289,6 @@ export default function BusinessPage(): JSX.Element {
                           <Ban className="text-warning size-4" />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setBizToDelete(biz)
-                          setDeleteDialogOpen(true)
-                        }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -351,27 +323,6 @@ export default function BusinessPage(): JSX.Element {
           </div>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa doanh nghiệp &quot;{bizToDelete?.business_name}&quot;? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => bizToDelete && deleteMutation.mutate(bizToDelete.id)}
-              disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </PageLayout>
   )
 }

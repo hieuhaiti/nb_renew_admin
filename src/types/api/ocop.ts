@@ -1,29 +1,30 @@
 export interface OcopProduct {
   id: string
-  name_vi: string
-  name_en: string | null
+  name: string
   category: string | null
-  description_vi: string | null
+  description: string | null
   star_rating: number | null
   certification_no: string | null
-  certified_at: string | null
   cover_image_url: string | null
   media_urls: string[]
-  price_vnd: number | null
+  price_vnd: string | null
   unit: string | null
   shop_url: string | null
-  latitude: number | null
-  longitude: number | null
   producer_name: string | null
   province_code: string | null
+  province_name: string | null
   business_id: string | null
+  business_name: string | null
   is_active: boolean
   created_at: string
   updated_at: string
+  certified_at: string | null
+  lat: number | null
+  lng: number | null
 }
 
 export interface OcopListData {
-  products: OcopProduct[]
+  items: OcopProduct[]
   pagination: import('./index').Pagination
 }
 
@@ -39,13 +40,11 @@ export interface OcopListParams {
 }
 
 export interface OcopFormBody {
-  name_vi: string
-  name_en?: string
+  name: string
   category?: string
-  description_vi?: string
+  description?: string
   star_rating?: number
   certification_no?: string
-  certified_at?: string
   cover_image_url?: string
   media_urls?: string[]
   price_vnd?: number
