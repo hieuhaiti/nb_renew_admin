@@ -299,6 +299,7 @@ export default function News(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         newsId={selectedNewsId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <NewsFormDialog

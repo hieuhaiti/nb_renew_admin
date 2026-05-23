@@ -28,6 +28,7 @@ import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { STALE_REF } from '@/constant/queryConstant'
 import RoleFormDialog from './RoleFormDialog'
+import RoleDetailDialog from './RoleDetailDialog'
 
 function normalizeRoleItem(item: unknown): Role | null {
   if (!item || typeof item !== 'object') return null
@@ -91,6 +92,7 @@ export default function RolePage(): JSX.Element {
     : roles
 
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null)
@@ -156,7 +158,11 @@ export default function RolePage(): JSX.Element {
               </TableRow>
             ) : (
               filtered.map((role: Role) => (
-                <TableRow key={role.id}>
+                <TableRow
+                  key={role.id}
+                  className="hover:cursor-pointer"
+                  onClick={() => { setSelectedRole(role); setDetailDialogOpen(true) }}
+                >
                   <TableCell>{role.id}</TableCell>
                   <TableCell className="font-medium">{role.name}</TableCell>
                   <TableCell className="text-muted-foreground max-w-64">
@@ -175,7 +181,7 @@ export default function RolePage(): JSX.Element {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => { setSelectedRole(role); setFormDialogOpen(true) }}
+                        onClick={(e) => { e.stopPropagation(); setSelectedRole(role); setFormDialogOpen(true) }}
                         title="Chỉnh sửa"
                         disabled={role.is_system}
                       >
@@ -184,7 +190,7 @@ export default function RolePage(): JSX.Element {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => { setRoleToDelete(role); setDeleteDialogOpen(true) }}
+                        onClick={(e) => { e.stopPropagation(); setRoleToDelete(role); setDeleteDialogOpen(true) }}
                         title="Xóa"
                         disabled={role.is_system}
                       >
@@ -198,6 +204,13 @@ export default function RolePage(): JSX.Element {
           </TableBody>
         </Table>
       </ToolTableCustom>
+
+      <RoleDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        role={selectedRole}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
+      />
 
       <RoleFormDialog
         open={formDialogOpen}

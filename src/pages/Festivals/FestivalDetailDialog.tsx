@@ -5,14 +5,16 @@ import type { ApiResponse, Festival } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { formatDate, formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { Pen } from 'lucide-react'
 
 interface FestivalDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   festivalId: string | null
+  onEdit?: () => void
 }
 
-export default function FestivalDetailDialog({ open, onOpenChange, festivalId }: FestivalDetailDialogProps) {
+export default function FestivalDetailDialog({ open, onOpenChange, festivalId, onEdit }: FestivalDetailDialogProps) {
   const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['festival', festivalId],
@@ -25,7 +27,17 @@ export default function FestivalDetailDialog({ open, onOpenChange, festivalId }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+      <DialogContent
+        className="max-h-[85vh] max-w-lg overflow-y-auto"
+        actions={
+          onEdit && (
+            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết lễ hội</DialogTitle>
         <DialogDescription>Thông tin chi tiết lễ hội / sự kiện</DialogDescription>
 

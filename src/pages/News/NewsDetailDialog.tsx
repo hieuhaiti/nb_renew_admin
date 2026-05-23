@@ -6,14 +6,16 @@ import { parseLink } from '@/lib/utils'
 import { UserText } from '@/components/common/UserText'
 import { formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { Pen } from 'lucide-react'
 
 interface NewsDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   newsId: string | null
+  onEdit?: () => void
 }
 
-export default function NewsDetailDialog({ open, onOpenChange, newsId }: NewsDetailDialogProps) {
+export default function NewsDetailDialog({ open, onOpenChange, newsId, onEdit }: NewsDetailDialogProps) {
   const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['news', newsId],
@@ -26,7 +28,17 @@ export default function NewsDetailDialog({ open, onOpenChange, newsId }: NewsDet
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+      <DialogContent
+        className="max-h-[80vh] max-w-3xl overflow-y-auto"
+        actions={
+          onEdit && (
+            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết tin tức</DialogTitle>
         <DialogDescription>Thông tin chi tiết bài viết đã chọn</DialogDescription>
 

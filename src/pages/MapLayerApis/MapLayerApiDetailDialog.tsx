@@ -5,17 +5,20 @@ import { formatDateTime } from '@/lib/date'
 import { getMappedErrorMessage } from '@/validators/mapLayerApiValidators'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import { STATUS_LABEL, STATUS_CLASS, STATUS_DOT } from '@/constant/mapLayerApiConstant'
+import { Pen } from 'lucide-react'
 
 interface MapLayerApiDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   apiId: number | null
+  onEdit?: () => void
 }
 
 export default function MapLayerApiDetailDialog({
   open,
   onOpenChange,
   apiId,
+  onEdit,
 }: MapLayerApiDetailDialogProps) {
   const detailQuery = useApiQuery(
     ['mapLayerApiDetailDialog', apiId],
@@ -34,7 +37,17 @@ export default function MapLayerApiDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
+      <DialogContent
+        className="max-h-[80vh] max-w-4xl overflow-y-auto"
+        actions={
+          onEdit && (
+            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết API lớp bản đồ</DialogTitle>
         <DialogDescription>Thông tin chi tiết API đã chọn</DialogDescription>
 

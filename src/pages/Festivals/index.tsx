@@ -329,6 +329,7 @@ export default function FestivalPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         festivalId={selectedId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <FestivalFormDialog

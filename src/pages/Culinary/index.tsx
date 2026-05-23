@@ -307,6 +307,7 @@ export default function CulinaryPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         culinaryId={selectedId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <CulinaryFormDialog

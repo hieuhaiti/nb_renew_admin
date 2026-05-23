@@ -444,6 +444,10 @@ export default function SpotPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         spotId={selectedSpotId}
+        onEdit={() => {
+          setDetailDialogOpen(false)
+          setFormDialogOpen(true)
+        }}
       />
 
       <SpotFormDialog

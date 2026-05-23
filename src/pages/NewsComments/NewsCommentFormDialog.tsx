@@ -18,19 +18,19 @@ const replySchema = z.object({
 })
 type ReplyForm = z.infer<typeof replySchema>
 
-interface Props {
+interface NewsCommentFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   parentComment: NewsComment | null
   onSuccess: () => void
 }
 
-export default function NewsCommentReplyDialog({
+export default function NewsCommentFormDialog({
   open,
   onOpenChange,
   parentComment,
   onSuccess,
-}: Props) {
+}: NewsCommentFormDialogProps) {
   const {
     register,
     handleSubmit,

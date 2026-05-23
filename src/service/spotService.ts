@@ -80,14 +80,21 @@ export interface AFrameHotspotFormBody {
 }
 
 export interface SpotMedia {
-  id: number
+  id: string
   spot_id: string
   media_type: string
   url: string
+  thumbnail_url?: string | null
+  title_vi?: string | null
+  title_en?: string | null
   alt_text?: string | null
   caption?: string | null
+  duration_sec?: number | null
+  file_size_kb?: number | null
+  resolution?: string | null
   is_primary: boolean
   sort_order: number
+  language?: string | null
   created_at: string
 }
 
@@ -186,15 +193,15 @@ export default {
     apiClient.post<ApiResponse<SpotMedia[]>>(`${serviceSpotPath}/${spotId}/media/batch`, data),
 
   /** DELETE /spots/:spotId/media/:mediaId */
-  deleteMedia: (spotId: string, mediaId: number) =>
+  deleteMedia: (spotId: string, mediaId: string) =>
     apiClient.del<ApiResponse<{}>>(`${serviceSpotPath}/${spotId}/media/${mediaId}`),
 
   /** PATCH /spots/:spotId/media/:mediaId/primary */
-  setPrimaryMedia: (spotId: string, mediaId: number) =>
+  setPrimaryMedia: (spotId: string, mediaId: string) =>
     apiClient.patch<ApiResponse<SpotMedia>>(`${serviceSpotPath}/${spotId}/media/${mediaId}/primary`),
 
   /** PATCH /spots/:spotId/media/:mediaId */
-  updateMedia: (spotId: string, mediaId: number, data: { alt_text?: string; caption?: string }) =>
+  updateMedia: (spotId: string, mediaId: string, data: { alt_text?: string; caption?: string }) =>
     apiClient.patch<ApiResponse<SpotMedia>>(`${serviceSpotPath}/${spotId}/media/${mediaId}`, data),
 
   // ─── A-Frame VR Scenes ────────────────────────────────────────────────────

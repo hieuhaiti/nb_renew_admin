@@ -346,6 +346,7 @@ export default function OcopPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         ocopId={selectedId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <OcopFormDialog

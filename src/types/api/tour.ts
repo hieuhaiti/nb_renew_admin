@@ -3,18 +3,20 @@ import type { Pagination } from './index'
 export type TourStatus = 'draft' | 'active' | 'inactive' | 'archived' | 'published'
 
 export interface TourStop {
-  id: number
-  tour_id: string
+  id: string
+  tour_id?: string
   day_number: number
   stop_order: number
   spot_id: string | null
+  business_id?: string | null
   title_vi: string | null
   description_vi: string | null
   planned_duration_min: number | null
-  lng: number | null
-  lat: number | null
-  created_at: string
-  updated_at: string
+  geom?: { type: string; coordinates: [number, number] } | null
+  lng?: number | null
+  lat?: number | null
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Tour {

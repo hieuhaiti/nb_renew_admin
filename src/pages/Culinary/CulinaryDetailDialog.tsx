@@ -5,17 +5,20 @@ import type { ApiResponse, Culinary } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { Pen } from 'lucide-react'
 
 interface CulinaryDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   culinaryId: string | null
+  onEdit?: () => void
 }
 
 export default function CulinaryDetailDialog({
   open,
   onOpenChange,
   culinaryId,
+  onEdit,
 }: CulinaryDetailDialogProps) {
   const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
@@ -29,7 +32,17 @@ export default function CulinaryDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+      <DialogContent
+        className="max-h-[85vh] max-w-lg overflow-y-auto"
+        actions={
+          onEdit && (
+            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết ẩm thực</DialogTitle>
         <DialogDescription>Thông tin chi tiết món ẩm thực đã chọn</DialogDescription>
 

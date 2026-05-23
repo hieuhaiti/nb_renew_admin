@@ -37,18 +37,18 @@ export default {
   // ─── Stops ────────────────────────────────────────────────────────────────
 
   /** GET /tours/:id/stops */
-  getStops: (tourId: string) =>
-    apiClient.get<ApiResponse<TourStop[]>>(`${serviceTourPath}/${tourId}/stops`),
+  getStops: (tourId: string, params?: { sortBy?: string; sortOrder?: 'ASC' | 'DESC' }) =>
+    apiClient.get<ApiResponse<TourStop[]>>(`${serviceTourPath}/${tourId}/stops`, params),
 
   /** POST /tours/:id/stops */
   addStop: (tourId: string, data: TourStopFormBody) =>
     apiClient.post<ApiResponse<TourStop>>(`${serviceTourPath}/${tourId}/stops`, data),
 
   /** PATCH /tours/:tourId/stops/:stopId */
-  updateStop: (tourId: string, stopId: number, data: Partial<TourStopFormBody>) =>
+  updateStop: (tourId: string, stopId: string, data: Partial<TourStopFormBody>) =>
     apiClient.patch<ApiResponse<TourStop>>(`${serviceTourPath}/${tourId}/stops/${stopId}`, data),
 
   /** DELETE /tours/:tourId/stops/:stopId */
-  deleteStop: (tourId: string, stopId: number) =>
+  deleteStop: (tourId: string, stopId: string) =>
     apiClient.del<ApiResponse<{}>>(`${serviceTourPath}/${tourId}/stops/${stopId}`),
 }

@@ -370,6 +370,7 @@ export default function MapLayerApiListPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         apiId={selectedApiId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <MapLayerApiFormDialog

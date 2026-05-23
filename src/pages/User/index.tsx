@@ -290,6 +290,7 @@ export default function User(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         userId={selectedUserId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <UserFormDialog

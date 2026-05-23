@@ -50,7 +50,7 @@ const moderationSchema = z.object({
 })
 type ModerationFormValues = z.infer<typeof moderationSchema>
 
-interface FeedbackUpdateDialogProps {
+interface FeedbackFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   feedback: CitizenFeedback | null
@@ -72,14 +72,14 @@ const MOD_LABELS: { value: ModerationStatus; label: string }[] = [
   { value: 'rejected', label: 'Từ chối' },
 ]
 
-export default function FeedbackUpdateDialog({
+export default function FeedbackFormDialog({
   open,
   onOpenChange,
   feedback,
   onUpdateStatus,
   onUpdateModeration,
   isLoading = false,
-}: FeedbackUpdateDialogProps) {
+}: FeedbackFormDialogProps) {
   // Status form
   const statusForm = useForm<StatusFormValues>({
     resolver: zodResolver(statusSchema) as any,

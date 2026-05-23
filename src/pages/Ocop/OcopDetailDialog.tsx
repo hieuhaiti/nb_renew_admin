@@ -5,6 +5,7 @@ import type { ApiResponse, OcopProduct } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { Pen } from 'lucide-react'
 
 const STAR_LABELS: Record<number, string> = { 1: '⭐', 2: '⭐⭐', 3: '⭐⭐⭐', 4: '⭐⭐⭐⭐', 5: '⭐⭐⭐⭐⭐' }
 
@@ -12,9 +13,10 @@ interface OcopDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   ocopId: string | null
+  onEdit?: () => void
 }
 
-export default function OcopDetailDialog({ open, onOpenChange, ocopId }: OcopDetailDialogProps) {
+export default function OcopDetailDialog({ open, onOpenChange, ocopId, onEdit }: OcopDetailDialogProps) {
   const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['ocop', ocopId],
@@ -27,7 +29,17 @@ export default function OcopDetailDialog({ open, onOpenChange, ocopId }: OcopDet
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+      <DialogContent
+        className="max-h-[85vh] max-w-lg overflow-y-auto"
+        actions={
+          onEdit && (
+            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết sản phẩm OCOP</DialogTitle>
         <DialogDescription>Thông tin chi tiết sản phẩm OCOP</DialogDescription>
 

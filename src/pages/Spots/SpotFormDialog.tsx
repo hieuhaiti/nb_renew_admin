@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { spotService, spotCategoryService, useApiQuery } from '@/service'
+import { spotService, spotCategoryService, useApiQuery, useApiMutation } from '@/service'
 import type {
   ApiResponse,
   Spot,
@@ -11,11 +11,13 @@ import type {
   SpotCategory,
   SpotCategoryListData,
 } from '@/types/api'
+import type { SpotMedia } from '@/service/spotService'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectTrigger,
@@ -23,6 +25,9 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { Crown, Trash2, Upload } from 'lucide-react'
+import { parseLink } from '@/lib/utils'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 
 const spotSchema = z.object({
   name_vi: z.string().min(1, 'Tên tiếng Việt không được để trống').max(255),
@@ -92,6 +97,9 @@ export default function SpotFormDialog({
   onSubmit,
   isLoading = false,
 }: SpotFormDialogProps) {
+  const openLightbox = useLightboxStore((s) => s.open)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const dbQuery = useApiQuery(
     ['spot', spotId],
     () => spotService.getById(spotId!),
@@ -104,13 +112,54 @@ export default function SpotFormDialog({
 
   const categoryQuery = useApiQuery(
     ['spot-categories-form'],
-    () => spotCategoryService.getAll({ page: 1, limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
+    () =>
+      spotCategoryService.getAll({ page: 1, limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
     { staleTime: 5 * 60 * 1000 },
     false,
     false
   )
   const categories = ((categoryQuery.data as { data?: SpotCategoryListData })?.data?.items ??
     []) as SpotCategory[]
+
+  const mediaQuery = useApiQuery(
+    ['spot-media', spotId],
+    () => spotService.getMedia(spotId!),
+    { enabled: !!spotId && open, staleTime: 0 },
+    false,
+    false
+  )
+  const media: SpotMedia[] = (mediaQuery.data as any)?.data?.media ?? []
+
+  const uploadMutation = useApiMutation(
+    (fd: FormData) => spotService.uploadMediaBatch(spotId!, fd),
+    { onSuccess: () => mediaQuery.refetch() },
+    true
+  )
+
+  const deleteMutation = useApiMutation(
+    (mediaId: string) => spotService.deleteMedia(spotId!, mediaId),
+    { onSuccess: () => mediaQuery.refetch() },
+    true
+  )
+
+  const setPrimaryMutation = useApiMutation(
+    (mediaId: string) => spotService.setPrimaryMedia(spotId!, mediaId),
+    { onSuccess: () => mediaQuery.refetch() },
+    true
+  )
+
+  const mediaPending =
+    (uploadMutation as any).isPending ||
+    (deleteMutation as any).isPending ||
+    (setPrimaryMutation as any).isPending
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length || !spotId) return
+    const fd = new FormData()
+    Array.from(e.target.files).forEach((f) => fd.append('files', f))
+    uploadMutation.mutate(fd)
+    e.target.value = ''
+  }
 
   const {
     register,
@@ -174,7 +223,9 @@ export default function SpotFormDialog({
         ticket_price_child: formData.ticket_price_child,
       }),
       ...(formData.max_capacity != null && { max_capacity: formData.max_capacity }),
-      ...(formData.alert_threshold_pct != null && { alert_threshold_pct: formData.alert_threshold_pct }),
+      ...(formData.alert_threshold_pct != null && {
+        alert_threshold_pct: formData.alert_threshold_pct,
+      }),
       status: formData.status,
       is_featured: formData.is_featured,
       has_vr_360: formData.has_vr_360,
@@ -413,6 +464,82 @@ export default function SpotFormDialog({
             </Button>
           </div>
         </form>
+
+        {isEdit && spotId && (
+          <div className="space-y-2 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">
+                Hình ảnh {mediaQuery.isLoading ? '' : `(${media.length})`}
+              </span>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  hidden
+                  onChange={handleUpload}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={mediaPending}
+                >
+                  <Upload className="mr-1 size-3" />
+                  Tải lên
+                </Button>
+              </div>
+            </div>
+
+            {mediaQuery.isLoading ? (
+              <div className="text-muted-foreground text-sm">Đang tải...</div>
+            ) : media.length === 0 ? (
+              <div className="text-muted-foreground text-sm">Chưa có hình ảnh</div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {media.map((m) => (
+                  <div key={m.id} className="group relative overflow-hidden rounded border">
+                    <img
+                      src={parseLink(m.url)}
+                      alt={m.title_vi ?? ''}
+                      className="aspect-video w-full cursor-zoom-in object-cover"
+                      onClick={() => openLightbox(parseLink(m.url))}
+                    />
+                    {m.is_primary && (
+                      <Badge className="absolute top-1 left-1 text-xs">Ảnh chính</Badge>
+                    )}
+                    <div className="absolute right-0 bottom-0 left-0 flex justify-end gap-1 bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      {!m.is_primary && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6 text-white hover:bg-white/20"
+                          onClick={() => setPrimaryMutation.mutate(m.id)}
+                          disabled={mediaPending}
+                          title="Đặt làm ảnh chính"
+                        >
+                          <Crown className="size-3" />
+                        </Button>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="hover:bg-destructive/80 size-6 text-white"
+                        onClick={() => deleteMutation.mutate(m.id)}
+                        disabled={mediaPending}
+                        title="Xóa"
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </div>
+                    {m.title_vi && <div className="truncate p-1 text-xs">{m.title_vi}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

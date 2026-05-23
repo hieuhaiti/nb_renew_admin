@@ -54,7 +54,7 @@ import {
 import { ClipboardEdit, Trash2, MapPin } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import FeedbackDetailDialog from './FeedbackDetailDialog'
-import FeedbackUpdateDialog from './FeedbackUpdateDialog'
+import FeedbackFormDialog from './FeedbackFormDialog'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import { formatDate } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
@@ -102,7 +102,7 @@ export default function FeedbackPage(): JSX.Element {
   // Dialog states
   const [selectedFeedback, setSelectedFeedback] = useState<CitizenFeedback | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
-  const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
+  const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<CitizenFeedback | null>(null)
 
@@ -112,7 +112,7 @@ export default function FeedbackPage(): JSX.Element {
     {
       onSuccess: () => {
         dbQuery.refetch()
-        setUpdateDialogOpen(false)
+        setFormDialogOpen(false)
         setSelectedFeedback(null)
       },
     },
@@ -125,7 +125,7 @@ export default function FeedbackPage(): JSX.Element {
     {
       onSuccess: () => {
         dbQuery.refetch()
-        setUpdateDialogOpen(false)
+        setFormDialogOpen(false)
         setSelectedFeedback(null)
       },
     },
@@ -151,7 +151,7 @@ export default function FeedbackPage(): JSX.Element {
 
   function openUpdateDialog(item: CitizenFeedback) {
     setSelectedFeedback(item)
-    setUpdateDialogOpen(true)
+    setFormDialogOpen(true)
   }
 
   function openDeleteDialog(item: CitizenFeedback) {
@@ -367,9 +367,9 @@ export default function FeedbackPage(): JSX.Element {
         feedbackId={selectedFeedback?.id ?? null}
       />
 
-      <FeedbackUpdateDialog
-        open={updateDialogOpen}
-        onOpenChange={setUpdateDialogOpen}
+      <FeedbackFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
         feedback={selectedFeedback}
         onUpdateStatus={(data) => {
           if (selectedFeedback) {

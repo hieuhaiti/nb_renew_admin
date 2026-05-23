@@ -352,6 +352,7 @@ export default function SpotCategoryPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         categoryId={selectedCategoryId}
+        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
       />
 
       <CategoryFormDialog

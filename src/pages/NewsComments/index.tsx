@@ -35,7 +35,7 @@ import { MessagesSquare, Search, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import NewsCommentDetailDialog from './NewsCommentDetailDialog'
-import NewsCommentReplyDialog from './NewsCommentReplyDialog'
+import NewsCommentFormDialog from './NewsCommentFormDialog'
 import { formatDate } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
 
@@ -98,7 +98,7 @@ export default function NewsComments(): JSX.Element {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [commentToDelete, setCommentToDelete] = useState<NewsComment | null>(null)
-  const [replyDialogOpen, setReplyDialogOpen] = useState(false)
+  const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [commentToReply, setCommentToReply] = useState<NewsComment | null>(null)
 
   const setApprovalMutation = useApiMutation(
@@ -282,7 +282,7 @@ export default function NewsComments(): JSX.Element {
                           onClick={(e) => {
                             e.stopPropagation()
                             setCommentToReply(c)
-                            setReplyDialogOpen(true)
+                            setFormDialogOpen(true)
                           }}
                           title="Trả lời bình luận"
                         >
@@ -310,9 +310,9 @@ export default function NewsComments(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
-      <NewsCommentReplyDialog
-        open={replyDialogOpen}
-        onOpenChange={setReplyDialogOpen}
+      <NewsCommentFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
         parentComment={commentToReply}
         onSuccess={() => {
           dbQuery.refetch()

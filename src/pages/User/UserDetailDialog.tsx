@@ -5,14 +5,16 @@ import type { ApiResponse, User } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { Pen } from 'lucide-react'
 
 interface UserDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   userId: string | null
+  onEdit?: () => void
 }
 
-export default function UserDetailDialog({ open, onOpenChange, userId }: UserDetailDialogProps) {
+export default function UserDetailDialog({ open, onOpenChange, userId, onEdit }: UserDetailDialogProps) {
   const openLightbox = useLightboxStore((s) => s.open)
   const dbQuery = useApiQuery(
     ['user', userId],
@@ -29,7 +31,17 @@ export default function UserDetailDialog({ open, onOpenChange, userId }: UserDet
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+      <DialogContent
+        className="max-h-[80vh] max-w-3xl overflow-y-auto"
+        actions={
+          onEdit && (
+            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết người dùng</DialogTitle>
         <DialogDescription>Thông tin chi tiết người dùng đã chọn</DialogDescription>
 

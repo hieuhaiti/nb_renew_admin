@@ -2,7 +2,14 @@ import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, tourService } from '@/service'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
-import type { ApiResponse, Tour, TourListData, TourStatus, TourFormBody, Pagination } from '@/types/api'
+import type {
+  ApiResponse,
+  Tour,
+  TourListData,
+  TourStatus,
+  TourFormBody,
+  Pagination,
+} from '@/types/api'
 import {
   Select,
   SelectTrigger,
@@ -153,13 +160,22 @@ export default function TourPage(): JSX.Element {
     <PageLayout title="Tour du lịch" description="Quản lý tour du lịch trong hệ thống">
       <ToolTableCustom
         searchValue={searchValue}
-        setSearchValue={(v) => { setSearchValue(v); setCurrentPage(1) }}
+        setSearchValue={(v) => {
+          setSearchValue(v)
+          setCurrentPage(1)
+        }}
         dataUpdatedAt={dbQuery.dataUpdatedAt}
         onRefresh={() => dbQuery.refetch()}
         isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
-            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1) }}>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v)
+                setCurrentPage(1)
+              }}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
@@ -172,7 +188,13 @@ export default function TourPage(): JSX.Element {
                 <SelectItem value="published">Đã xuất bản</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={featuredFilter} onValueChange={(v) => { setFeaturedFilter(v); setCurrentPage(1) }}>
+            <Select
+              value={featuredFilter}
+              onValueChange={(v) => {
+                setFeaturedFilter(v)
+                setCurrentPage(1)
+              }}
+            >
               <SelectTrigger className="w-36">
                 <SelectValue />
               </SelectTrigger>
@@ -184,7 +206,10 @@ export default function TourPage(): JSX.Element {
             </Select>
             <Select
               value={`${limit}`}
-              onValueChange={(v) => { setLimit(parseInt(v, 10)); setCurrentPage(1) }}
+              onValueChange={(v) => {
+                setLimit(parseInt(v, 10))
+                setCurrentPage(1)
+              }}
             >
               <SelectTrigger className="w-24">
                 <SelectValue />
@@ -195,7 +220,13 @@ export default function TourPage(): JSX.Element {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
-            <Button size="sm" onClick={() => { setSelectedTourId(null); setFormDialogOpen(true) }}>
+            <Button
+              size="sm"
+              onClick={() => {
+                setSelectedTourId(null)
+                setFormDialogOpen(true)
+              }}
+            >
               <Plus className="mr-1 size-4" />
               Thêm tour
             </Button>
@@ -207,26 +238,26 @@ export default function TourPage(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-16">Ảnh</TableHead>
+              <TableHead>Ảnh</TableHead>
               <TableHead>Tên tour</TableHead>
-              <TableHead className="w-20">Ngày</TableHead>
-              <TableHead className="w-36">Giá từ</TableHead>
-              <TableHead className="w-28">Trạng thái</TableHead>
-              <TableHead className="w-12 text-center">Nổi bật</TableHead>
-              <TableHead className="w-28">Ngày tạo</TableHead>
+              <TableHead>Ngày</TableHead>
+              <TableHead>Giá từ</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead className="text-center">Nổi bật</TableHead>
+              <TableHead>Ngày tạo</TableHead>
               <TableHead className="w-24 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {dbQuery.isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
                   Đang tải...
                 </TableCell>
               </TableRow>
             ) : dbQuery.isError ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-destructive">
+                <TableCell colSpan={8} className="text-destructive py-8 text-center">
                   Đã xảy ra lỗi, vui lòng thử lại
                 </TableCell>
               </TableRow>
@@ -241,7 +272,10 @@ export default function TourPage(): JSX.Element {
                 <TableRow
                   key={tour.id}
                   className="cursor-pointer"
-                  onClick={() => { setSelectedTourId(tour.id); setDetailDialogOpen(true) }}
+                  onClick={() => {
+                    setSelectedTourId(tour.id)
+                    setDetailDialogOpen(true)
+                  }}
                 >
                   <TableCell>
                     {tour.cover_image_url ? (
@@ -249,7 +283,10 @@ export default function TourPage(): JSX.Element {
                         src={parseLink(tour.cover_image_url)}
                         alt={tour.name}
                         className="h-10 w-10 cursor-zoom-in rounded border object-cover"
-                        onClick={(e) => { e.stopPropagation(); openLightbox(parseLink(tour.cover_image_url!)) }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openLightbox(parseLink(tour.cover_image_url!))
+                        }}
                       />
                     ) : (
                       <div className="bg-muted h-10 w-10 rounded border" />
@@ -320,6 +357,10 @@ export default function TourPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         tourId={selectedTourId}
+        onEdit={() => {
+          setDetailDialogOpen(false)
+          setFormDialogOpen(true)
+        }}
       />
 
       <TourFormDialog
@@ -341,7 +382,8 @@ export default function TourPage(): JSX.Element {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa tour &quot;{itemToDelete?.name}&quot;? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa tour &quot;{itemToDelete?.name}&quot;? Hành động này không
+              thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
