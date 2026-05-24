@@ -10,8 +10,8 @@ import type {
   CapacityState,
   CapacityStatus,
   CapacityHistoryData,
-  CapacityStats,
-  CapacityAlternative,
+  CapacityStatsData,
+  CapacityAlternativesData,
 } from '@/types/api'
 import { formatDateTime } from '@/lib/date'
 import { ClipboardList, Settings, Loader2 } from 'lucide-react'
@@ -74,6 +74,28 @@ function statusBadge(status: string | null) {
   )
 }
 
+function CapacityBar({ pct }: { pct: number }) {
+  const color =
+    pct >= 100
+      ? 'hsl(var(--destructive))'
+      : pct >= 85
+        ? '#f97316'
+        : pct >= 70
+          ? 'hsl(var(--warning))'
+          : 'hsl(var(--success))'
+  return (
+    <div className="flex items-center gap-2">
+      <div className="bg-muted h-2 w-20 overflow-hidden rounded-full">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }}
+        />
+      </div>
+      <span className="tabular-nums">{pct.toFixed(1)}%</span>
+    </div>
+  )
+}
+
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -120,10 +142,11 @@ export default function CapacityDetailDialog({
     false
   )
 
-  const history = (historyQuery.data as ApiResponse<CapacityHistoryData>)?.data?.history ?? []
-  const stats = (statsQuery.data as ApiResponse<CapacityStats>)?.data ?? null
-  const alternatives = (alternativesQuery.data as ApiResponse<CapacityAlternative[]>)?.data
-  const altList = Array.isArray(alternatives) ? alternatives : []
+  const logs = (historyQuery.data as ApiResponse<CapacityHistoryData>)?.data?.logs ?? []
+  const statsPeriods = (statsQuery.data as ApiResponse<CapacityStatsData>)?.data?.stats ?? []
+  const altList =
+    (alternativesQuery.data as unknown as ApiResponse<CapacityAlternativesData>)?.data
+      ?.alternatives ?? []
 
   return (
     <Dialog
@@ -164,27 +187,7 @@ export default function CapacityDetailDialog({
                 <Row label="Khách hiện tại">{item.visitor_count ?? '-'}</Row>
                 <Row label="Sức chứa tối đa">{item.max_capacity ?? '-'}</Row>
                 <Row label="Tỷ lệ lấp đầy">
-                  {pct != null ? (
-                    <div className="flex items-center gap-2">
-                      <div className="bg-muted h-2 w-16 overflow-hidden rounded-full">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${Math.min(pct, 100)}%`,
-                            backgroundColor:
-                              pct >= 100
-                                ? 'var(--destructive)'
-                                : pct >= 80
-                                  ? 'var(--warning)'
-                                  : 'var(--success)',
-                          }}
-                        />
-                      </div>
-                      <span className="tabular-nums">{item.capacity_pct}%</span>
-                    </div>
-                  ) : (
-                    '-'
-                  )}
+                  {pct != null ? <CapacityBar pct={pct} /> : '-'}
                 </Row>
                 <Row label="Trạng thái">{statusBadge(item.status)}</Row>
                 <Row label="Ngưỡng cảnh báo">
@@ -201,7 +204,7 @@ export default function CapacityDetailDialog({
           <TabsContent value="history">
             {historyQuery.isLoading ? (
               <TabLoading />
-            ) : history.length === 0 ? (
+            ) : logs.length === 0 ? (
               <TabEmpty text="Chưa có lịch sử ghi nhận" />
             ) : (
               <div className="max-h-72 overflow-y-auto">
@@ -210,29 +213,36 @@ export default function CapacityDetailDialog({
                     <tr>
                       <th className="pb-1 text-left font-medium">Thời gian</th>
                       <th className="pb-1 text-right font-medium">Khách</th>
-                      <th className="pb-1 text-right font-medium">Tỷ lệ</th>
+                      <th className="pb-1 font-medium">Tỷ lệ</th>
                       <th className="pb-1 text-left font-medium">Trạng thái</th>
                       <th className="pb-1 text-left font-medium">Nguồn</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {history.map((h) => (
-                      <tr key={h.id}>
-                        <td className="text-muted-foreground py-1.5 text-xs">
-                          {formatDateTime(h.recorded_at)}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums">
-                          {h.visitor_count ?? '-'}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums">
-                          {h.capacity_pct != null ? `${h.capacity_pct}%` : '-'}
-                        </td>
-                        <td className="py-1.5">{statusBadge(h.status)}</td>
-                        <td className="text-muted-foreground py-1.5 text-xs">
-                          {h.data_source ?? '-'}
-                        </td>
-                      </tr>
-                    ))}
+                    {logs.map((h) => {
+                      const logPct = h.capacity_pct != null ? parseFloat(h.capacity_pct) : null
+                      return (
+                        <tr key={h.id}>
+                          <td className="text-muted-foreground py-1.5 text-xs">
+                            {formatDateTime(h.recorded_at)}
+                          </td>
+                          <td className="py-1.5 text-right tabular-nums">
+                            {h.visitor_count ?? '-'}
+                          </td>
+                          <td className="py-1.5">
+                            {logPct != null ? (
+                              <CapacityBar pct={logPct} />
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="py-1.5">{statusBadge(h.status)}</td>
+                          <td className="text-muted-foreground py-1.5 text-xs">
+                            {h.data_source ?? '-'}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -243,16 +253,41 @@ export default function CapacityDetailDialog({
           <TabsContent value="stats">
             {statsQuery.isLoading ? (
               <TabLoading />
-            ) : !stats ? (
+            ) : statsPeriods.length === 0 ? (
               <TabEmpty text="Chưa có dữ liệu thống kê" />
             ) : (
-              <div className="divide-y">
-                <Row label="Tổng bản ghi">{stats.total_records}</Row>
-                <Row label="Số khách tối đa">{stats.max_visitor_count}</Row>
-                <Row label="Tỷ lệ TB">
-                  {parseFloat(stats.avg_capacity_pct).toFixed(1)}%
-                </Row>
-                <Row label="Giờ cao điểm">{stats.peak_hour ?? '-'}</Row>
+              <div className="max-h-72 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-muted-foreground sticky top-0 bg-background text-xs">
+                    <tr>
+                      <th className="pb-1 text-left font-medium">Ngày</th>
+                      <th className="pb-1 text-right font-medium">TB khách</th>
+                      <th className="pb-1 text-right font-medium">Max</th>
+                      <th className="pb-1 font-medium">TB tỷ lệ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {statsPeriods.map((s) => {
+                      const avgPct = parseFloat(s.avg_capacity_pct)
+                      return (
+                        <tr key={s.period}>
+                          <td className="text-muted-foreground py-1.5 text-xs">
+                            {new Date(s.period).toLocaleDateString('vi-VN')}
+                          </td>
+                          <td className="py-1.5 text-right tabular-nums">{s.avg_visitors}</td>
+                          <td className="py-1.5 text-right tabular-nums">{s.max_visitors}</td>
+                          <td className="py-1.5">
+                            {!isNaN(avgPct) ? (
+                              <CapacityBar pct={avgPct} />
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </TabsContent>
@@ -265,27 +300,36 @@ export default function CapacityDetailDialog({
               <TabEmpty text="Không có điểm thay thế phù hợp" />
             ) : (
               <div className="max-h-72 space-y-2 overflow-y-auto">
-                {altList.map((alt) => (
-                  <div
-                    key={alt.spot_id}
-                    className="flex items-center justify-between rounded-md border px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{alt.name_vi}</p>
-                      {alt.distance_km != null && (
-                        <p className="text-muted-foreground text-xs">
-                          {alt.distance_km.toFixed(1)} km
-                        </p>
-                      )}
+                {altList.map((alt) => {
+                  const altPct =
+                    alt.capacity_pct != null ? parseFloat(alt.capacity_pct) : null
+                  return (
+                    <div
+                      key={alt.id}
+                      className="rounded-md border px-3 py-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">{alt.name_vi}</p>
+                          {alt.address_vi && (
+                            <p className="text-muted-foreground truncate text-xs">
+                              {alt.address_vi}
+                            </p>
+                          )}
+                          {alt.distance_km != null && (
+                            <p className="text-muted-foreground text-xs">
+                              {parseFloat(alt.distance_km).toFixed(1)} km
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          {statusBadge(alt.capacity_status)}
+                          {altPct != null && <CapacityBar pct={altPct} />}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {alt.capacity_pct != null && (
-                        <span className="text-sm tabular-nums">{alt.capacity_pct}%</span>
-                      )}
-                      {statusBadge(alt.status)}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </TabsContent>

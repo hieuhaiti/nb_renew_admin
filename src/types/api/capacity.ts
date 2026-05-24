@@ -35,10 +35,9 @@ export interface CapacityGeoJSON {
 }
 
 export interface CapacityHistoryEntry {
-  id: number
+  id: string
   spot_id: string
   visitor_count: number | null
-  max_capacity: number | null
   capacity_pct: string | null
   status: CapacityStatus | null
   data_source: string | null
@@ -46,33 +45,57 @@ export interface CapacityHistoryEntry {
 }
 
 export interface CapacityHistoryData {
-  history: CapacityHistoryEntry[]
+  logs: CapacityHistoryEntry[]
   pagination: Pagination
 }
 
-export interface CapacityStats {
-  spot_id: string
+export interface CapacityStatsPeriod {
+  period: string
+  avg_visitors: number
+  max_visitors: number
   avg_capacity_pct: string
-  max_visitor_count: number
-  total_records: number
-  peak_hour?: string | null
+  max_capacity_pct: string
+  record_count: string
+}
+
+export interface CapacityStatsData {
+  stats: CapacityStatsPeriod[]
 }
 
 export interface CapacityAlternative {
-  spot_id: string
+  id: string
   name_vi: string
-  capacity_pct: string
-  status: CapacityStatus
-  distance_km?: number | null
+  address_vi: string | null
+  max_capacity: number | null
+  rating_avg: string | null
+  ticket_price_adult: string | null
+  distance_km: string | null
+  visitor_count: number | null
+  capacity_pct: string | null
+  capacity_status: CapacityStatus | null
+  geojson: { type: string; coordinates: [number, number] } | null
+}
+
+export interface CapacityAlternativesData {
+  alternatives: CapacityAlternative[]
+  total: number
 }
 
 export interface CapacityConfig {
   id: number
   spot_id: string
-  max_capacity: number
-  alert_threshold_pct: number
-  created_at: string
+  province_code: string | null
+  threshold_busy: number
+  threshold_near: number
+  threshold_over: number
+  notify_roles: string[] | null
+  is_active: boolean
+  updated_by: string
   updated_at: string
+}
+
+export interface CapacityConfigsData {
+  configs: CapacityConfig[]
 }
 
 export interface CapacityLogBody {
@@ -88,8 +111,9 @@ export interface CapacitySettingsBody {
 
 export interface CapacityConfigBody {
   spot_id: string
-  alert_threshold_pct: number
-  max_capacity: number
+  threshold_busy: number
+  threshold_near: number
+  threshold_over: number
 }
 
 // Realtime event payloads from SSE / WebSocket

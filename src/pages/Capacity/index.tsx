@@ -8,6 +8,7 @@ import type {
   CapacityStatus,
   CapacityCurrentData,
   CapacityConfig,
+  CapacityConfigsData,
 } from '@/types/api'
 import { Button } from '@/components/ui/button'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
@@ -51,6 +52,48 @@ const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500',
   overloaded: 'bg-destructive',
   closed: 'bg-muted-foreground',
+}
+
+function ThresholdBar({
+  busy,
+  near,
+  over,
+}: {
+  busy: number
+  near: number
+  over: number
+}) {
+  const cap = over > 0 ? over : 100
+  return (
+    <div className="space-y-1">
+      <div className="bg-muted relative h-3 w-40 overflow-hidden rounded-full">
+        {/* normal zone */}
+        <div
+          className="absolute inset-y-0 left-0 bg-success/70"
+          style={{ width: `${(busy / cap) * 100}%` }}
+        />
+        {/* busy zone */}
+        <div
+          className="absolute inset-y-0 bg-warning/70"
+          style={{
+            left: `${(busy / cap) * 100}%`,
+            width: `${((near - busy) / cap) * 100}%`,
+          }}
+        />
+        {/* near-full zone */}
+        <div
+          className="absolute inset-y-0 bg-orange-500/70"
+          style={{
+            left: `${(near / cap) * 100}%`,
+            width: `${((over - near) / cap) * 100}%`,
+          }}
+        />
+      </div>
+      <p className="text-muted-foreground text-xs tabular-nums">
+        Đông: {busy}% · Gần đầy: {near}% · Quá tải: {over}%
+      </p>
+    </div>
+  )
 }
 
 export default function CapacityPage(): JSX.Element {
@@ -98,8 +141,8 @@ export default function CapacityPage(): JSX.Element {
     return live ? { ...item, ...live } : item
   })
 
-  const rawConfigs = (configsQuery.data as ApiResponse<CapacityConfig[]>)?.data
-  const configs: CapacityConfig[] = Array.isArray(rawConfigs) ? rawConfigs : []
+  const configs: CapacityConfig[] =
+    (configsQuery.data as unknown as ApiResponse<CapacityConfigsData>)?.data?.configs ?? []
 
   function getSpotName(item: CapacityState) {
     return item.name_vi ?? item.spot_id
@@ -233,10 +276,12 @@ export default function CapacityPage(): JSX.Element {
                                 width: `${Math.min(pct, 100)}%`,
                                 backgroundColor:
                                   pct >= 100
-                                    ? 'var(--destructive)'
-                                    : pct >= 80
-                                      ? 'var(--warning)'
-                                      : 'var(--success)',
+                                    ? 'hsl(var(--destructive))'
+                                    : pct >= 85
+                                      ? '#f97316'
+                                      : pct >= 70
+                                        ? 'hsl(var(--warning))'
+                                        : 'hsl(var(--success))',
                               }}
                             />
                           </div>
@@ -314,22 +359,21 @@ export default function CapacityPage(): JSX.Element {
             <TableHeader>
               <TableRow>
                 <TableHead>Điểm tham quan</TableHead>
-                <TableHead className="w-36 text-right">Sức chứa tối đa</TableHead>
-                <TableHead className="w-36 text-right">Ngưỡng cảnh báo (%)</TableHead>
-                <TableHead className="w-36">Tạo lúc</TableHead>
+                <TableHead>Ngưỡng sức chứa</TableHead>
+                <TableHead className="w-36">Cập nhật lúc</TableHead>
                 <TableHead className="w-20 text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {configsQuery.isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
+                  <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
                     Đang tải...
                   </TableCell>
                 </TableRow>
               ) : configs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
+                  <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
                     Chưa có cấu hình cảnh báo nào
                   </TableCell>
                 </TableRow>
@@ -343,12 +387,15 @@ export default function CapacityPage(): JSX.Element {
                       </p>
                       <p className="text-muted-foreground text-xs">{cfg.spot_id}</p>
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">{cfg.max_capacity}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {cfg.alert_threshold_pct}%
+                    <TableCell>
+                      <ThresholdBar
+                        busy={cfg.threshold_busy}
+                        near={cfg.threshold_near}
+                        over={cfg.threshold_over}
+                      />
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {formatDateTime(cfg.created_at)}
+                      {formatDateTime(cfg.updated_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
