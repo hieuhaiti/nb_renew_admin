@@ -84,7 +84,7 @@ export default {
 
   /** GET /businesses/:id */
   getById: (id: string) =>
-    apiClient.get<ApiResponse<Business>>(`${serviceBusinessPath}/${id}`),
+    apiClient.get<ApiResponse<{ business: Business }>>(`${serviceBusinessPath}/${id}`),
 
   /** PATCH /businesses/:id */
   update: (id: string, data: Partial<BusinessFormBody>) =>

@@ -285,22 +285,42 @@ export default function TourFormDialog({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  function handleDragEndForDay(day: number, event: DragEndEvent) {
+  async function handleDragEndForDay(day: number, event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
+
+    const dayItems = stops
+      .filter((s) => s.day_number === day)
+      .sort((a, b) => a.stop_order - b.stop_order)
+    const oldIdx = dayItems.findIndex((s) => s.id === active.id)
+    const newIdx = dayItems.findIndex((s) => s.id === over.id)
+    const reordered = arrayMove(dayItems, oldIdx, newIdx)
+    const newIds = reordered.map((s) => s.id)
+
+    // Snapshot để rollback nếu API fail
+    const prevStops = [...stops]
+    const prevServerRef = [...serverOrderRef.current]
+
+    // Optimistic update UI + ref
     setStops((items) => {
-      const dayItems = items
-        .filter((s) => s.day_number === day)
-        .sort((a, b) => a.stop_order - b.stop_order)
       const rest = items.filter((s) => s.day_number !== day)
-      const oldIdx = dayItems.findIndex((s) => s.id === active.id)
-      const newIdx = dayItems.findIndex((s) => s.id === over.id)
-      const reordered = arrayMove(dayItems, oldIdx, newIdx).map((s, i) => ({
-        ...s,
-        stop_order: i + 1,
-      }))
-      return [...rest, ...reordered]
+      return [...rest, ...reordered.map((s, i) => ({ ...s, stop_order: i + 1 }))]
     })
+    serverOrderRef.current = serverOrderRef.current.map((s) => {
+      if (s.day_number !== day) return s
+      const rank = newIds.indexOf(s.id)
+      return rank >= 0 ? { ...s, stop_order: rank + 1 } : s
+    })
+
+    if (!tourId) return
+    try {
+      await tourService.reorderStops(tourId, { day_number: day, stop_ids: newIds })
+    } catch {
+      // Revert cả UI lẫn ref về trạng thái trước khi kéo
+      setStops(prevStops)
+      serverOrderRef.current = prevServerRef
+      toast.error('Sắp xếp thất bại, đã khôi phục thứ tự cũ')
+    }
   }
 
   // ── Delete stop ───────────────────────────────────────────────────────────
@@ -457,8 +477,8 @@ export default function TourFormDialog({
       duration_days: values.duration_days,
       ...(values.price_from_vnd != null && { price_from_vnd: values.price_from_vnd }),
       ...(values.max_guests != null && { max_guests: values.max_guests }),
-      ...(values.start_location_vi && { start_location_vi: values.start_location_vi }),
-      ...(values.end_location_vi && { end_location_vi: values.end_location_vi }),
+      start_location_vi: values.start_location_vi || undefined,
+      end_location_vi: values.end_location_vi || undefined,
       ...(values.cover_image_url &&
         (!isEdit || values.cover_image_url !== (tour?.cover_image_url ?? '')) && {
           cover_image_url: values.cover_image_url,
@@ -470,15 +490,16 @@ export default function TourFormDialog({
     }
     onSubmit(body)
 
-    // Fire-and-forget stop reorder for stops whose position changed since last server sync
+    // Fire-and-forget: reorder each day whose stop sequence changed
     if (isEdit && tourId && stops.length > 0) {
-      stops.forEach((stop) => {
-        const server = serverOrderRef.current.find((s) => s.id === stop.id)
-        if (!server || server.stop_order !== stop.stop_order || server.day_number !== stop.day_number) {
-          tourService.updateStop(tourId, stop.id, {
-            stop_order: stop.stop_order,
-            day_number: stop.day_number,
-          })
+      days.forEach((day) => {
+        const currentIds = (stopsByDay[day] ?? []).map((s) => s.id)
+        const serverIds = serverOrderRef.current
+          .filter((s) => s.day_number === day)
+          .sort((a, b) => a.stop_order - b.stop_order)
+          .map((s) => s.id)
+        if (!isEqual(currentIds, serverIds)) {
+          tourService.reorderStops(tourId, { day_number: day, stop_ids: currentIds })
         }
       })
     }

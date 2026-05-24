@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,7 +32,7 @@ const schema = z.object({
   code: z.string().min(1, 'Mã lớp không được rỗng'),
   name_vi: z.string().min(1, 'Tên tiếng Việt không được rỗng'),
   name_en: z.string().optional(),
-  category_id: z.coerce.number({ invalid_type_error: 'Phải chọn danh mục' }).int().positive('Phải chọn danh mục'),
+  category_id: z.coerce.number().int().positive('Phải chọn danh mục'),
   layer_type: z.string().min(1, 'Phải chọn loại lớp'),
   source_url: z.string().min(1, 'URL nguồn không được rỗng'),
   min_zoom: z.coerce.number().int().min(0).max(22).optional().nullable(),
@@ -92,7 +93,7 @@ export default function MapLayerFormDialog({
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues,
   })
 
@@ -197,21 +198,13 @@ export default function MapLayerFormDialog({
               <Label>
                 Danh mục <span className="text-destructive">*</span>
               </Label>
-              <Select
+              <SearchSelect
+                options={categories.map((cat) => ({ value: String(cat.id), label: cat.name }))}
                 value={categoryIdStr}
                 onValueChange={(v) => setValue('category_id', parseInt(v, 10))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn danh mục" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Chọn danh mục"
+                className="w-full"
+              />
               {errors.category_id && (
                 <p className="text-destructive text-xs">{errors.category_id.message}</p>
               )}

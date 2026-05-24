@@ -15,13 +15,15 @@ export interface NewsComment {
   user_email?: string
   is_approved: boolean
   parent_comment_id?: string | null
+  author_full_name?: string | null
+  author_avatar?: string | null
   replies?: NewsComment[]
   created_at: string
   updated_at?: string
 }
 
 export interface NewsCommentListData {
-  comments: NewsComment[]
+  items: NewsComment[]
   pagination: import('./index').Pagination
 }
 
@@ -31,4 +33,5 @@ export interface NewsCommentListParams {
   is_approved?: boolean
   sortBy?: string
   sortOrder?: 'ASC' | 'DESC'
+  news_id?: string
 }

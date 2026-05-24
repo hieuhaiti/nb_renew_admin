@@ -33,6 +33,25 @@ Use codegraph for **structural** questions — what calls what, what would break
 The MCP server returns "not initialized." Ask the user: *"I notice this project doesn't have CodeGraph initialized. Want me to run `codegraph init -i` to build the index?"*
 <!-- CODEGRAPH_END -->
 
+## SearchSelect — select kèm search bắt buộc
+
+Mọi `<Select>` được populate từ API hoặc có thể có **nhiều hơn ~10 options** phải dùng component `SearchSelect` từ `@/components/common/SearchSelect`.
+
+```tsx
+import { SearchSelect } from '@/components/common/SearchSelect'
+
+<SearchSelect
+  options={items.map((item) => ({ value: item.id, label: item.name }))}
+  value={selectedId}
+  onValueChange={(v) => { setSelectedId(v); setCurrentPage(1) }}
+  placeholder="Chọn..."
+  className="w-64"
+/>
+```
+
+Các trường hợp áp dụng: `spot_id`, `business_id`, `category_id`, `user_id`, `tour_id`, `role_id` khi list > ~10 phần tử, mọi select fetch từ API.  
+**Không áp dụng** cho: status enum (3–4 giá trị cố định), limit selector, boolean filter.
+
 ## Module CRUD structure
 
 Mỗi module CRUD quản trị **bắt buộc** có đủ 3 file:

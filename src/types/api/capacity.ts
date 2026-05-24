@@ -1,15 +1,20 @@
 import type { Pagination } from './index'
 
-export type CapacityStatus = 'normal' | 'busy' | 'near_full' | 'overloaded' | 'closed'
+export type CapacityStatus = 'normal' | 'busy' | 'near_full' | 'overloaded' | 'closed' | 'moderate'
 
 export interface CapacityState {
   spot_id: string
-  visitor_count: number
+  name_vi?: string | null
+  visitor_count: number | null
   max_capacity: number | null
-  capacity_pct: string
-  status: CapacityStatus
+  capacity_pct: string | null
+  status: CapacityStatus | null
   recorded_at: string | null
   alert_threshold_pct: number | null
+}
+
+export interface CapacityCurrentData {
+  capacity: CapacityState[]
 }
 
 export interface CapacityGeoJSONFeature {
@@ -32,10 +37,10 @@ export interface CapacityGeoJSON {
 export interface CapacityHistoryEntry {
   id: number
   spot_id: string
-  visitor_count: number
+  visitor_count: number | null
   max_capacity: number | null
-  capacity_pct: string
-  status: CapacityStatus
+  capacity_pct: string | null
+  status: CapacityStatus | null
   data_source: string | null
   recorded_at: string
 }

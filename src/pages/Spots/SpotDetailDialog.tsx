@@ -9,6 +9,7 @@ import { parseLink } from '@/lib/utils'
 import { formatDateTime } from '@/lib/date'
 import { Star, Trash2, Crown, Upload, Pen } from 'lucide-react'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import RatingsSection from '@/components/common/RatingsSection'
 
 interface SpotDetailDialogProps {
   open: boolean
@@ -248,6 +249,9 @@ export default function SpotDetailDialog({
             )}
             <Row label="Ngày tạo">{formatDateTime(spot.created_at)}</Row>
             <Row label="Cập nhật">{formatDateTime(spot.updated_at)}</Row>
+
+            {/* Ratings */}
+            <RatingsSection targetType="spot" targetId={spotId!} enabled={open} />
 
             {/* Media gallery */}
             <div className="space-y-2 border-t pt-3">

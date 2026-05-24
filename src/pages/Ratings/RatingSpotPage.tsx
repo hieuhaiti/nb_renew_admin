@@ -1,12 +1,6 @@
 import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
-import {
-  useApiQuery,
-  useApiMutation,
-  ratingService,
-  spotService,
-  businessService,
-} from '@/service'
+import { useApiQuery, useApiMutation, ratingService, spotService } from '@/service'
 import { SearchSelect } from '@/components/common/SearchSelect'
 import type {
   ApiResponse,
@@ -16,8 +10,6 @@ import type {
   Pagination,
   Spot,
   SpotListData,
-  Business,
-  BusinessListData,
 } from '@/types/api'
 import {
   Select,
@@ -73,81 +65,53 @@ const STATUS_DOT: Record<RatingStatus, string> = {
 
 const STARS = ['★', '★★', '★★★', '★★★★', '★★★★★']
 
-type RatingTargetType = 'spot' | 'business'
-
-export default function RatingPage(): JSX.Element {
+export default function RatingSpotPage(): JSX.Element {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [targetType, setTargetType] = useState<RatingTargetType>('spot')
-  const [targetId, setTargetId] = useState<string>('')
+  const [spotId, setSpotId] = useState<string>('')
 
-  // ── Detail / Form dialogs ────────────────────────────────────────────────
   const [selectedRating, setSelectedRating] = useState<Rating | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
-
-  // ── Delete dialog ────────────────────────────────────────────────────────
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ratingToDelete, setRatingToDelete] = useState<Rating | null>(null)
 
   const spotQuery = useApiQuery(
-    ['rating-target-spots'],
+    ['rating-spot-targets'],
     () => spotService.getAll({ page: 1, limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
-    { enabled: targetType === 'spot', staleTime: STALE_REF },
-    false,
-    false
-  )
-
-  const businessQuery = useApiQuery(
-    ['rating-target-businesses'],
-    () =>
-      businessService.getAll({
-        page: 1,
-        limit: 50,
-        sortBy: 'created_at',
-        sortOrder: 'DESC',
-      }),
-    { enabled: targetType === 'business', staleTime: STALE_REF },
+    { staleTime: STALE_REF },
     false,
     false
   )
 
   const spots = ((spotQuery.data as ApiResponse<SpotListData>)?.data?.spots ?? []) as Spot[]
-  const businesses = (
-    (businessQuery.data as ApiResponse<BusinessListData>)?.data?.items ?? []
-  ) as Business[]
-
-  const targetOptions =
-    targetType === 'spot'
-      ? spots.map((s) => ({ id: s.id, label: s.name_vi || s.slug || s.id }))
-      : businesses.map((b) => ({ id: b.id, label: b.business_name || b.id }))
+  const spotOptions = spots.map((s) => ({ id: s.id, label: s.name_vi || s.slug || s.id }))
 
   useEffect(() => {
-    if (targetOptions.length === 0) {
-      if (targetId) setTargetId('')
+    if (spotOptions.length === 0) {
+      if (spotId) setSpotId('')
       return
     }
-    const isCurrentTargetValid = targetOptions.some((opt) => opt.id === targetId)
-    if (!isCurrentTargetValid) setTargetId(targetOptions[0].id)
-  }, [targetId, targetOptions])
+    if (!spotOptions.some((opt) => opt.id === spotId)) setSpotId(spotOptions[0].id)
+  }, [spotId, spotOptions])
 
-  const hasTargetId = Boolean(targetId)
+  const hasSpotId = Boolean(spotId)
 
   const queryParams = {
     page: currentPage,
     limit,
     sortBy: 'created_at',
     sortOrder: 'DESC' as const,
-    ...(hasTargetId && (targetType === 'spot' ? { spot_id: targetId } : { business_id: targetId })),
+    ...(hasSpotId && { spot_id: spotId }),
     ...(statusFilter !== 'all' && { status: statusFilter as RatingStatus }),
   }
 
   const dbQuery = useApiQuery(
-    ['ratings', queryParams],
+    ['ratings-spots', queryParams],
     () => ratingService.getAll(queryParams),
-    { enabled: hasTargetId, staleTime: STALE_HOT },
+    { enabled: hasSpotId, staleTime: STALE_HOT },
     false,
     false
   )
@@ -174,24 +138,13 @@ export default function RatingPage(): JSX.Element {
   const statusMutation = useApiMutation(
     (payload: { id: string; status: RatingStatus }) =>
       ratingService.setStatus(payload.id, { status: payload.status }),
-    {
-      onSuccess: () => {
-        setFormOpen(false)
-        dbQuery.refetch()
-      },
-    },
+    { onSuccess: () => { setFormOpen(false); dbQuery.refetch() } },
     true
   )
 
   const replyMutation = useApiMutation(
-    (payload: { id: string; reply: string }) =>
-      ratingService.reply(payload.id, payload.reply),
-    {
-      onSuccess: () => {
-        setFormOpen(false)
-        dbQuery.refetch()
-      },
-    },
+    (payload: { id: string; reply: string }) => ratingService.reply(payload.id, payload.reply),
+    { onSuccess: () => { setFormOpen(false); dbQuery.refetch() } },
     true
   )
 
@@ -218,49 +171,26 @@ export default function RatingPage(): JSX.Element {
   }
 
   return (
-    <PageLayout title="Đánh giá" description="Quản lý đánh giá điểm du lịch và doanh nghiệp">
+    <PageLayout title="Đánh giá điểm du lịch" description="Quản lý đánh giá các điểm tham quan">
       <ToolTableCustom
         searchValue={searchValue}
-        setSearchValue={(v) => {
-          setSearchValue(v)
-          setCurrentPage(1)
-        }}
+        setSearchValue={(v) => { setSearchValue(v); setCurrentPage(1) }}
         dataUpdatedAt={dbQuery.dataUpdatedAt}
-        onRefresh={hasTargetId ? () => dbQuery.refetch() : undefined}
+        onRefresh={hasSpotId ? () => dbQuery.refetch() : undefined}
         isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
-            <Select
-              value={targetType}
-              onValueChange={(v: RatingTargetType) => {
-                setTargetType(v)
-                setTargetId('')
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="spot">Điểm du lịch</SelectItem>
-                <SelectItem value="business">Doanh nghiệp</SelectItem>
-              </SelectContent>
-            </Select>
-
             <SearchSelect
-              options={targetOptions.map((o) => ({ value: o.id, label: o.label }))}
-              value={targetId}
-              onValueChange={(v) => { setTargetId(v); setCurrentPage(1) }}
-              placeholder={`Chọn ${targetType === 'spot' ? 'điểm du lịch' : 'doanh nghiệp'}`}
+              options={spotOptions.map((o) => ({ value: o.id, label: o.label }))}
+              value={spotId}
+              onValueChange={(v) => { setSpotId(v); setCurrentPage(1) }}
+              placeholder="Chọn điểm du lịch"
               className="w-64"
             />
 
             <Select
               value={statusFilter}
-              onValueChange={(v) => {
-                setStatusFilter(v)
-                setCurrentPage(1)
-              }}
+              onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1) }}
             >
               <SelectTrigger className="w-36">
                 <SelectValue />
@@ -275,10 +205,7 @@ export default function RatingPage(): JSX.Element {
 
             <Select
               value={`${limit}`}
-              onValueChange={(v) => {
-                setLimit(parseInt(v, 10))
-                setCurrentPage(1)
-              }}
+              onValueChange={(v) => { setLimit(parseInt(v, 10)); setCurrentPage(1) }}
             >
               <SelectTrigger className="w-24">
                 <SelectValue />
@@ -311,10 +238,10 @@ export default function RatingPage(): JSX.Element {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!hasTargetId ? (
+            {!hasSpotId ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-muted-foreground text-center">
-                  Vui lòng chọn {targetType === 'spot' ? 'điểm du lịch' : 'doanh nghiệp'} để xem đánh giá
+                  Vui lòng chọn điểm du lịch để xem đánh giá
                 </TableCell>
               </TableRow>
             ) : ratings.length === 0 ? (
@@ -325,11 +252,7 @@ export default function RatingPage(): JSX.Element {
               </TableRow>
             ) : (
               ratings.map((r: Rating) => (
-                <TableRow
-                  key={r.id}
-                  className="cursor-pointer"
-                  onClick={() => openDetail(r)}
-                >
+                <TableRow key={r.id} className="cursor-pointer" onClick={() => openDetail(r)}>
                   <TableCell>
                     <span className="text-muted-foreground font-mono text-xs">{r.id}</span>
                   </TableCell>
@@ -356,12 +279,8 @@ export default function RatingPage(): JSX.Element {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openForm(r)
-                        }}
+                        variant="ghost" size="sm"
+                        onClick={(e) => { e.stopPropagation(); openForm(r) }}
                         title="Kiểm duyệt / Phản hồi"
                       >
                         <Pen className="size-4" />
@@ -369,8 +288,7 @@ export default function RatingPage(): JSX.Element {
                       {r.status === 'pending' && (
                         <>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant="ghost" size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               statusMutation.mutate({ id: r.id, status: 'published' })
@@ -380,8 +298,7 @@ export default function RatingPage(): JSX.Element {
                             <Check className="text-success size-4" />
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant="ghost" size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               statusMutation.mutate({ id: r.id, status: 'rejected' })
@@ -393,8 +310,7 @@ export default function RatingPage(): JSX.Element {
                         </>
                       )}
                       <Button
-                        variant="ghost"
-                        size="sm"
+                        variant="ghost" size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
                           setRatingToDelete(r)
@@ -413,18 +329,13 @@ export default function RatingPage(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
-      {/* ── Detail dialog ── */}
       <RatingDetailDialog
         open={detailOpen}
         onOpenChange={setDetailOpen}
         rating={selectedRating}
-        onEdit={() => {
-          setDetailOpen(false)
-          setFormOpen(true)
-        }}
+        onEdit={() => { setDetailOpen(false); setFormOpen(true) }}
       />
 
-      {/* ── Form dialog (moderation + reply) ── */}
       <RatingFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
@@ -438,7 +349,6 @@ export default function RatingPage(): JSX.Element {
         isLoading={statusMutation.isPending || replyMutation.isPending}
       />
 
-      {/* ── Delete confirmation ── */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

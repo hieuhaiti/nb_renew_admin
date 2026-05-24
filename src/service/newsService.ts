@@ -1,5 +1,14 @@
 import apiClient from './common/apiClient'
-import type { ApiResponse, News, NewsData, NewsListData, NewsListParams, NewsFormBody } from '@/types/api'
+import type {
+  ApiResponse,
+  News,
+  NewsData,
+  NewsListData,
+  NewsListParams,
+  NewsFormBody,
+  NewsCommentListData,
+  NewsCommentListParams,
+} from '@/types/api'
 import { serviceNewsPath } from '@/constant/serviceConstant'
 
 export default {
@@ -34,4 +43,8 @@ export default {
 
   /** DELETE /news/:id */
   delete: (id: string) => apiClient.del<ApiResponse<{}>>(`${serviceNewsPath}/${id}`),
+
+  /** GET /news/:newsId/comments */
+  getComments: (newsId: string, params?: NewsCommentListParams) =>
+    apiClient.get<ApiResponse<NewsCommentListData>>(`${serviceNewsPath}/${newsId}/comments`, params),
 }

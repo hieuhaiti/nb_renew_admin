@@ -10,6 +10,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -30,11 +31,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Eye, EyeOff, Pen, Plus, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Pen, Plus, Star, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import NewsDetailDialog from './NewsDetailDialog'
 import NewsFormDialog from './NewsFormDialog'
 import { formatDate } from '@/lib/date'
+import { parseLink } from '@/lib/utils'
+import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
 
 const PUBLISHED_LABEL: Record<string, string> = {
@@ -51,10 +54,12 @@ const PUBLISHED_DOT: Record<string, string> = {
 }
 
 export default function News(): JSX.Element {
+  const openLightbox = useLightboxStore((s) => s.open)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
   const [isPublishedFilter, setIsPublishedFilter] = useState<string>('all')
+  const [featuredFilter, setFeaturedFilter] = useState<string>('all')
 
   const queryParams = {
     page: currentPage,
@@ -63,6 +68,7 @@ export default function News(): JSX.Element {
     sortOrder: 'DESC' as const,
     ...(searchValue && { search: searchValue }),
     ...(isPublishedFilter !== 'all' && { is_published: isPublishedFilter === 'true' }),
+    ...(featuredFilter !== 'all' && { is_featured: featuredFilter === 'true' }),
   }
 
   const dbQuery = useApiQuery(
@@ -74,7 +80,7 @@ export default function News(): JSX.Element {
   )
 
   const data = (dbQuery.data as ApiResponse<NewsListData>)?.data
-  const newsList = data?.news ?? []
+  const newsList = data?.items ?? []
   const pagination = (data?.pagination ?? {}) as Partial<Pagination>
   const lastTotalPagesRef = useRef<number | null>(null)
   if (pagination?.totalPages) lastTotalPagesRef.current = pagination.totalPages
@@ -158,9 +164,26 @@ export default function News(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value="true">Đã xuất bản</SelectItem>
                 <SelectItem value="false">Bản nháp</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={featuredFilter}
+              onValueChange={(v) => {
+                setFeaturedFilter(v)
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="true">Nổi bật</SelectItem>
+                <SelectItem value="false">Không nổi bật</SelectItem>
               </SelectContent>
             </Select>
 
@@ -182,7 +205,7 @@ export default function News(): JSX.Element {
             </Select>
 
             <Button
-              variant="default"
+              size="sm"
               onClick={() => {
                 setSelectedNewsId(null)
                 setFormDialogOpen(true)
@@ -203,25 +226,37 @@ export default function News(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-48">ID</TableHead>
+              <TableHead className="w-16">Ảnh</TableHead>
               <TableHead>Tiêu đề</TableHead>
-              <TableHead className="w-28">Trạng thái</TableHead>
+              <TableHead className="w-32">Trạng thái</TableHead>
               <TableHead className="w-20">Lượt xem</TableHead>
-              <TableHead className="w-32">Ngày tạo</TableHead>
+              <TableHead className="w-32">Ngày xuất bản</TableHead>
               <TableHead className="w-28 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {newsList.length === 0 ? (
+            {dbQuery.isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-muted-foreground text-center">
+                <TableCell colSpan={6} className="text-muted-foreground py-8 text-center">
+                  Đang tải...
+                </TableCell>
+              </TableRow>
+            ) : dbQuery.isError ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-destructive py-8 text-center">
+                  Đã xảy ra lỗi, vui lòng thử lại
+                </TableCell>
+              </TableRow>
+            ) : newsList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-muted-foreground py-8 text-center">
                   Không có dữ liệu
                 </TableCell>
               </TableRow>
             ) : (
               newsList.map((n: News) => (
                 <TableRow
-                  className="hover:cursor-pointer"
+                  className="cursor-pointer"
                   key={n.id}
                   onClick={() => {
                     setSelectedNewsId(n.id)
@@ -229,10 +264,40 @@ export default function News(): JSX.Element {
                   }}
                 >
                   <TableCell>
-                    <span className="text-muted-foreground font-mono text-xs">{n.id}</span>
+                    {n.thumbnail_url ? (
+                      <img
+                        src={parseLink(n.thumbnail_url)}
+                        alt={n.title}
+                        className="h-10 w-14 cursor-zoom-in rounded border object-cover"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openLightbox(parseLink(n.thumbnail_url!))
+                        }}
+                      />
+                    ) : (
+                      <div className="bg-muted h-10 w-14 rounded border" />
+                    )}
                   </TableCell>
-                  <TableCell className="max-w-64 font-medium">
-                    <span className="line-clamp-2">{n.title}</span>
+                  <TableCell>
+                    <p className="line-clamp-1 font-medium">{n.title}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                      {n.is_featured && (
+                        <Star className="text-warning size-3 shrink-0 fill-current" />
+                      )}
+                      {n.author_name && (
+                        <span className="text-muted-foreground text-xs">{n.author_name}</span>
+                      )}
+                      {n.tags?.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="outline" className="h-4 px-1 text-[10px]">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {n.tags?.length > 3 && (
+                        <span className="text-muted-foreground text-[10px]">
+                          +{n.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <StatusDotBadge
@@ -241,9 +306,9 @@ export default function News(): JSX.Element {
                       dotClass={PUBLISHED_DOT[String(n.is_published)]}
                     />
                   </TableCell>
-                  <TableCell>{n.view_count ?? 0}</TableCell>
+                  <TableCell className="text-sm">{n.view_count ?? 0}</TableCell>
                   <TableCell className="text-sm">
-                    {n.created_at ? formatDate(n.created_at) : '-'}
+                    {n.published_at ? formatDate(n.published_at) : '-'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
@@ -267,6 +332,7 @@ export default function News(): JSX.Element {
                           setPublishedMutation.mutate({ id: n.id, is_published: !n.is_published })
                         }}
                         title={n.is_published ? 'Hủy xuất bản' : 'Xuất bản'}
+                        disabled={setPublishedMutation.isPending}
                       >
                         {n.is_published ? (
                           <EyeOff className="text-muted-foreground size-4" />
@@ -299,7 +365,10 @@ export default function News(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         newsId={selectedNewsId}
-        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
+        onEdit={() => {
+          setDetailDialogOpen(false)
+          setFormDialogOpen(true)
+        }}
       />
 
       <NewsFormDialog

@@ -25,6 +25,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import { Crown, Trash2, Upload } from 'lucide-react'
 import { parseLink } from '@/lib/utils'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
@@ -244,21 +245,16 @@ export default function SpotFormDialog({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-2 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="spot_category">Danh mục</Label>
-            <Select
+            <SearchSelect
+              options={categories.map((cat) => ({
+                value: cat.id.toString(),
+                label: cat.parent_name_vi ? `${cat.parent_name_vi} › ${cat.name_vi}` : cat.name_vi,
+              }))}
               value={watch('category_id')?.toString() ?? ''}
               onValueChange={(v) => setValue('category_id', v ? parseInt(v, 10) : undefined)}
-            >
-              <SelectTrigger id="spot_category" className="w-full">
-                <SelectValue placeholder="Chọn danh mục" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id.toString()}>
-                    {cat.parent_name_vi ? `${cat.parent_name_vi} › ${cat.name_vi}` : cat.name_vi}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Chọn danh mục"
+              className="w-full"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="spot_name_vi">

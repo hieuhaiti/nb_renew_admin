@@ -110,7 +110,7 @@ export default function VisitorStatisticsPage(): JSX.Element {
     false
   )
 
-  const stats = (dbQuery.data as ApiResponse<StatsData>)?.data
+  const stats = (dbQuery.data as unknown as ApiResponse<StatsData>)?.data
   const overview = stats?.overview
   const timeSeries: TimeSeriesItem[] = stats?.time_series ?? []
   const topActions: TopActionItem[] = stats?.top_actions ?? []

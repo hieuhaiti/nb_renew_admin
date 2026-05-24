@@ -7,26 +7,30 @@ export interface Business {
   business_code: string | null
   tax_id: string | null
   license_number: string | null
-  description_vi: string | null
-  description_en: string | null
+  description: string | null
   logo_url: string | null
   phone: string | null
   email: string | null
   website: string | null
   address_vi: string | null
   province_code: string | null
-  latitude: number | null
-  longitude: number | null
+  ward_code: string | null
+  geom: { type: string; coordinates: [number, number] } | null
   status: BusinessStatus
   rejection_note: string | null
   owner_id: string | null
+  owner_name: string | null
+  owner_email: string | null
+  approved_at: string | null
+  approved_by_name: string | null
+  rating_avg: string | null
+  rating_count: number
   created_at: string
   updated_at: string
-  owner?: { id: string; full_name: string; email: string }
 }
 
 export interface BusinessListData {
-  businesses: Business[]
+  items: Business[]
   pagination: import('./index').Pagination
 }
 
@@ -52,8 +56,7 @@ export interface BusinessFormBody {
   business_code?: string
   tax_id?: string
   license_number?: string
-  description_vi?: string
-  description_en?: string
+  description?: string
   logo_url?: string
   phone?: string
   email?: string

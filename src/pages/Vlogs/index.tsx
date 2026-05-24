@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -33,18 +32,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Check, X, Trash2 } from 'lucide-react'
+import { Check, Pen, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
 import { parseLink } from '@/lib/utils'
 import { STALE_HOT } from '@/constant/queryConstant'
+import VlogDetailDialog from './VlogDetailDialog'
+import VlogFormDialog from './VlogFormDialog'
 
 const STATUS_LABEL: Record<VlogStatus, string> = {
   pending: 'Chờ duyệt',
@@ -74,9 +69,13 @@ export default function VlogPage(): JSX.Element {
   const [platformFilter, setPlatformFilter] = useState<string>('')
   const [userIdFilter, setUserIdFilter] = useState<string>('')
 
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
-  const [vlogToReject, setVlogToReject] = useState<Vlog | null>(null)
-  const [rejectionNote, setRejectionNote] = useState('')
+  // ── Detail / Form dialogs ────────────────────────────────────────────────
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedVlog, setSelectedVlog] = useState<Vlog | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+
+  // ── Delete dialog ────────────────────────────────────────────────────────
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [vlogToDelete, setVlogToDelete] = useState<Vlog | null>(null)
 
@@ -114,7 +113,12 @@ export default function VlogPage(): JSX.Element {
   const moderateMutation = useApiMutation(
     (payload: { id: string; data: VlogModerationBody }) =>
       vlogService.moderate(payload.id, payload.data),
-    { onSuccess: () => dbQuery.refetch() },
+    {
+      onSuccess: () => {
+        setFormOpen(false)
+        dbQuery.refetch()
+      },
+    },
     true
   )
 
@@ -134,20 +138,16 @@ export default function VlogPage(): JSX.Element {
     moderateMutation.mutate({ id, data: { status: 'published' } })
   }
 
-  function openReject(vlog: Vlog) {
-    setVlogToReject(vlog)
-    setRejectionNote('')
-    setRejectDialogOpen(true)
+  function openDetail(vlog: Vlog) {
+    setSelectedId(vlog.id)
+    setSelectedVlog(vlog)
+    setDetailOpen(true)
   }
 
-  function handleRejectConfirm() {
-    if (!vlogToReject) return
-    moderateMutation.mutate({
-      id: vlogToReject.id,
-      data: { status: 'rejected', rejection_note: rejectionNote || null },
-    })
-    setRejectDialogOpen(false)
-    setVlogToReject(null)
+  function openForm(vlog: Vlog) {
+    setSelectedId(vlog.id)
+    setSelectedVlog(vlog)
+    setFormOpen(true)
   }
 
   return (
@@ -245,14 +245,21 @@ export default function VlogPage(): JSX.Element {
               </TableRow>
             ) : (
               items.map((vlog: Vlog) => (
-                <TableRow key={vlog.id}>
+                <TableRow
+                  key={vlog.id}
+                  className="cursor-pointer"
+                  onClick={() => openDetail(vlog)}
+                >
                   <TableCell>
                     {vlog.cover_image_url ? (
                       <img
                         src={parseLink(vlog.cover_image_url)}
                         alt={vlog.title}
                         className="h-10 w-10 cursor-zoom-in rounded border object-cover"
-                        onClick={(e) => { e.stopPropagation(); openLightbox(parseLink(vlog.cover_image_url!)) }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openLightbox(parseLink(vlog.cover_image_url!))
+                        }}
                       />
                     ) : (
                       <div className="bg-muted h-10 w-10 rounded border" />
@@ -285,32 +292,36 @@ export default function VlogPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openForm(vlog)
+                        }}
+                        title="Kiểm duyệt"
+                      >
+                        <Pen className="size-4" />
+                      </Button>
                       {vlog.status === 'pending' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleApprove(vlog.id)}
-                            title="Xuất bản"
-                            disabled={moderateMutation.isPending}
-                          >
-                            <Check className="text-success size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openReject(vlog)}
-                            title="Từ chối"
-                            disabled={moderateMutation.isPending}
-                          >
-                            <X className="text-destructive size-4" />
-                          </Button>
-                        </>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleApprove(vlog.id)
+                          }}
+                          title="Xuất bản ngay"
+                          disabled={moderateMutation.isPending}
+                        >
+                          <Check className="text-success size-4" />
+                        </Button>
                       )}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           setVlogToDelete(vlog)
                           setDeleteDialogOpen(true)
                         }}
@@ -327,32 +338,29 @@ export default function VlogPage(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogTitle>Từ chối vlog</DialogTitle>
-          <DialogDescription>Nhập lý do từ chối (không bắt buộc)</DialogDescription>
-          <div className="mt-2 space-y-2">
-            <Label htmlFor="rejection_note">Lý do từ chối</Label>
-            <Input
-              id="rejection_note"
-              value={rejectionNote}
-              onChange={(e) => setRejectionNote(e.target.value)}
-              placeholder="Nội dung không phù hợp..."
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Hủy</Button>
-            <Button
-              variant="destructive"
-              onClick={handleRejectConfirm}
-              disabled={moderateMutation.isPending}
-            >
-              {moderateMutation.isPending ? 'Đang xử lý...' : 'Từ chối'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* ── Detail dialog ── */}
+      <VlogDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        vlogId={selectedId}
+        onEdit={() => {
+          setDetailOpen(false)
+          setFormOpen(true)
+        }}
+      />
 
+      {/* ── Form dialog (moderation) ── */}
+      <VlogFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        vlog={selectedVlog}
+        onSubmit={(data) =>
+          selectedId && moderateMutation.mutate({ id: selectedId, data })
+        }
+        isLoading={moderateMutation.isPending}
+      />
+
+      {/* ── Delete confirmation ── */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -2,6 +2,7 @@ import apiClient from './common/apiClient'
 import type {
   ApiResponse,
   CapacityState,
+  CapacityCurrentData,
   CapacityGeoJSON,
   CapacityHistoryData,
   CapacityStats,
@@ -18,7 +19,7 @@ export default {
 
   /** GET /capacity/current — all spots' current capacity */
   getCurrent: () =>
-    apiClient.get<ApiResponse<CapacityState[]>>(`${serviceCapacityPath}/current`),
+    apiClient.get<ApiResponse<CapacityCurrentData>>(`${serviceCapacityPath}/current`),
 
   /** GET /capacity/current/geojson — GeoJSON for map rendering */
   getCurrentGeoJSON: () =>

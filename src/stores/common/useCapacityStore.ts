@@ -50,7 +50,7 @@ export const useCapacityStore = create<CapacityStoreState>((set, get) => ({
     set({ isLoading: true })
     try {
       const res = await capacityService.getCurrent()
-      const items: CapacityState[] = res?.data ?? []
+      const items: CapacityState[] = Array.isArray(res?.data?.capacity) ? res.data!.capacity : []
       const byId: Record<string, CapacityState> = {}
       for (const item of items) byId[item.spot_id] = item
       set({ capacityBySpotId: byId })

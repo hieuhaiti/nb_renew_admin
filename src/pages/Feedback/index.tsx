@@ -12,7 +12,7 @@ import type {
   UpdateModerationBody,
   Pagination,
 } from '@/types/api'
-import { UserCell } from '@/components/common/UserCell'
+import { parseLink } from '@/lib/utils'
 import {
   PRIORITY_LABEL,
   PRIORITY_CLASS,
@@ -51,7 +51,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ClipboardEdit, Trash2, MapPin } from 'lucide-react'
+import { ClipboardEdit, Trash2, MapPin, User } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import FeedbackDetailDialog from './FeedbackDetailDialog'
 import FeedbackFormDialog from './FeedbackFormDialog'
@@ -258,13 +258,13 @@ export default function FeedbackPage(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-80">ID</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Tiêu đề</TableHead>
-              <TableHead className="w-24">Ưu tiên</TableHead>
-              <TableHead className="w-28">Trạng thái</TableHead>
-              <TableHead className="w-24">Kiểm duyệt</TableHead>
-              <TableHead className="w-36">Người gửi</TableHead>
-              <TableHead className="w-32">Ngày tạo</TableHead>
+              <TableHead>Ưu tiên</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Kiểm duyệt</TableHead>
+              <TableHead>Người gửi</TableHead>
+              <TableHead>Ngày tạo</TableHead>
               <TableHead className="w-24 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -286,10 +286,12 @@ export default function FeedbackPage(): JSX.Element {
                   <TableCell>
                     <div className="max-w-64">
                       <p className="line-clamp-2 font-medium">{item.title}</p>
-                      {item.location_text && (
+                      {(item.location_text || (item.latitude && item.longitude)) && (
                         <p className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
                           <MapPin className="size-3" />
-                          <span className="line-clamp-1">{item.location_text}</span>
+                          <span className="line-clamp-1">
+                            {item.location_text ?? `${item.latitude}, ${item.longitude}`}
+                          </span>
                         </p>
                       )}
                     </div>
@@ -323,7 +325,20 @@ export default function FeedbackPage(): JSX.Element {
                     />
                   </TableCell>
                   <TableCell>
-                    <UserCell inlineUser={item.user_name} />
+                    <div className="flex items-center gap-2">
+                      {item.user_avatar ? (
+                        <img
+                          src={parseLink(item.user_avatar)}
+                          alt=""
+                          className="size-7 rounded-full border object-cover"
+                        />
+                      ) : (
+                        <div className="bg-muted flex size-7 shrink-0 items-center justify-center rounded-full">
+                          <User className="size-3.5" />
+                        </div>
+                      )}
+                      <span className="text-sm">{item.user_name ?? 'Ẩn danh'}</span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm">
                     {item.created_at ? formatDate(item.created_at) : '-'}

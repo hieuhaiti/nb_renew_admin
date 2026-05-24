@@ -8,6 +8,7 @@ import type {
   BusinessListData,
   BusinessStatus,
   BusinessApprovalBody,
+  BusinessFormBody,
   Pagination,
 } from '@/types/api'
 import {
@@ -30,17 +31,14 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Check, X, Ban } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Check, X, Ban, Pen, Plus } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { parseLink } from '@/lib/utils'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
+import BusinessDetailDialog from './BusinessDetailDialog'
+import BusinessFormDialog from './BusinessFormDialog'
 
 const STATUS_LABEL: Record<BusinessStatus, string> = {
   pending: 'Chờ duyệt',
@@ -67,7 +65,14 @@ export default function BusinessPage(): JSX.Element {
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [businessTypeFilter, setBusinessTypeFilter] = useState<string>('all')
 
+  // ── Detail / Form dialogs ────────────────────────────────────────────────
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+
+  // ── Reject dialog ────────────────────────────────────────────────────────
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [bizToReject, setBizToReject] = useState<Business | null>(null)
   const [rejectionNote, setRejectionNote] = useState('')
@@ -78,6 +83,7 @@ export default function BusinessPage(): JSX.Element {
     sortBy: 'created_at',
     sortOrder: 'DESC' as const,
     ...(statusFilter !== 'all' && { status: statusFilter as BusinessStatus }),
+    ...(businessTypeFilter !== 'all' && { business_type: businessTypeFilter }),
     ...(searchValue && { search: searchValue }),
   }
 
@@ -90,7 +96,7 @@ export default function BusinessPage(): JSX.Element {
   )
 
   const data = (dbQuery.data as ApiResponse<BusinessListData>)?.data
-  const items = data?.businesses ?? []
+  const items = data?.items ?? []
   const pagination = (data?.pagination ?? {}) as Partial<Pagination>
   const lastTotalPagesRef = useRef<number | null>(null)
   if (pagination?.totalPages) lastTotalPagesRef.current = pagination.totalPages
@@ -101,10 +107,26 @@ export default function BusinessPage(): JSX.Element {
     if (currentPage > totalPages) setCurrentPage(totalPages)
   }, [currentPage, totalPages])
 
+  // ── Approval mutation ────────────────────────────────────────────────────
   const approvalMutation = useApiMutation(
     (payload: { id: string; data: BusinessApprovalBody }) =>
       businessService.setApproval(payload.id, payload.data),
     { onSuccess: () => dbQuery.refetch() },
+    true
+  )
+
+  // ── Create / Update mutation ─────────────────────────────────────────────
+  const saveMutation = useApiMutation(
+    (payload: { id: string | null; data: BusinessFormBody | Partial<BusinessFormBody> }) =>
+      payload.id
+        ? businessService.update(payload.id, payload.data as Partial<BusinessFormBody>)
+        : businessService.create(payload.data as BusinessFormBody),
+    {
+      onSuccess: () => {
+        setFormOpen(false)
+        dbQuery.refetch()
+      },
+    },
     true
   )
 
@@ -132,6 +154,16 @@ export default function BusinessPage(): JSX.Element {
     setBizToReject(null)
   }
 
+  function openDetail(id: string) {
+    setSelectedId(id)
+    setDetailOpen(true)
+  }
+
+  function openForm(id: string | null = null) {
+    setSelectedId(id)
+    setFormOpen(true)
+  }
+
   return (
     <PageLayout title="Doanh nghiệp" description="Quản lý doanh nghiệp du lịch">
       <ToolTableCustom
@@ -156,11 +188,31 @@ export default function BusinessPage(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả TT</SelectItem>
                 <SelectItem value="pending">Chờ duyệt</SelectItem>
                 <SelectItem value="approved">Đã duyệt</SelectItem>
                 <SelectItem value="rejected">Từ chối</SelectItem>
                 <SelectItem value="suspended">Tạm khóa</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={businessTypeFilter}
+              onValueChange={(v) => {
+                setBusinessTypeFilter(v)
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả loại</SelectItem>
+                <SelectItem value="san_xuat">Sản xuất</SelectItem>
+                <SelectItem value="nha_hang">Nhà hàng</SelectItem>
+                <SelectItem value="lu_hanh">Lữ hành</SelectItem>
+                <SelectItem value="khu_du_lich">Khu du lịch</SelectItem>
+                <SelectItem value="ban_le">Bán lẻ</SelectItem>
+                <SelectItem value="hotel">Khách sạn</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -179,6 +231,10 @@ export default function BusinessPage(): JSX.Element {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
+            <Button size="sm" onClick={() => openForm(null)}>
+              <Plus className="mr-1 size-4" />
+              Thêm mới
+            </Button>
           </div>
         }
         total={total}
@@ -191,13 +247,13 @@ export default function BusinessPage(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-12">Logo</TableHead>
+              <TableHead>Logo</TableHead>
               <TableHead>Tên doanh nghiệp</TableHead>
-              <TableHead className="w-28">Loại hình</TableHead>
-              <TableHead className="w-36">Chủ sở hữu</TableHead>
-              <TableHead className="w-28">Trạng thái</TableHead>
-              <TableHead className="w-32">Ngày tạo</TableHead>
-              <TableHead className="w-32 text-right">Hành động</TableHead>
+              <TableHead>Loại hình</TableHead>
+              <TableHead>Chủ sở hữu</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Ngày tạo</TableHead>
+              <TableHead className="w-36 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -209,14 +265,21 @@ export default function BusinessPage(): JSX.Element {
               </TableRow>
             ) : (
               items.map((biz: Business) => (
-                <TableRow key={biz.id}>
+                <TableRow
+                  key={biz.id}
+                  className="cursor-pointer"
+                  onClick={() => openDetail(biz.id)}
+                >
                   <TableCell>
                     {biz.logo_url ? (
                       <img
                         src={parseLink(biz.logo_url)}
                         alt={biz.business_name}
                         className="h-10 w-10 cursor-zoom-in rounded border object-contain"
-                        onClick={(e) => { e.stopPropagation(); openLightbox(parseLink(biz.logo_url!)) }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openLightbox(parseLink(biz.logo_url!))
+                        }}
                       />
                     ) : (
                       <div className="bg-muted h-10 w-10 rounded border" />
@@ -227,19 +290,14 @@ export default function BusinessPage(): JSX.Element {
                     {biz.address_vi && (
                       <p className="text-muted-foreground text-xs">{biz.address_vi}</p>
                     )}
-                    {biz.phone && (
-                      <p className="text-muted-foreground text-xs">{biz.phone}</p>
-                    )}
+                    {biz.phone && <p className="text-muted-foreground text-xs">{biz.phone}</p>}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {biz.business_type || '-'}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {biz.owner ? (
-                      <div>
-                        <p className="font-medium">{biz.owner.full_name}</p>
-                        <p className="text-muted-foreground text-xs">{biz.owner.email}</p>
-                      </div>
+                    {biz.owner_name ? (
+                      <p className="font-medium">{biz.owner_name}</p>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
@@ -256,12 +314,26 @@ export default function BusinessPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openForm(biz.id)
+                        }}
+                        title="Chỉnh sửa"
+                      >
+                        <Pen className="size-4" />
+                      </Button>
                       {biz.status === 'pending' && (
                         <>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleApprove(biz.id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleApprove(biz.id)
+                            }}
                             title="Duyệt"
                             disabled={approvalMutation.isPending}
                           >
@@ -270,7 +342,10 @@ export default function BusinessPage(): JSX.Element {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => openReject(biz)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openReject(biz)
+                            }}
                             title="Từ chối"
                             disabled={approvalMutation.isPending}
                           >
@@ -282,7 +357,10 @@ export default function BusinessPage(): JSX.Element {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleSuspend(biz.id)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleSuspend(biz.id)
+                          }}
                           title="Tạm khóa"
                           disabled={approvalMutation.isPending}
                         >
@@ -298,6 +376,27 @@ export default function BusinessPage(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
+      {/* ── Detail dialog ── */}
+      <BusinessDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        businessId={selectedId}
+        onEdit={() => {
+          setDetailOpen(false)
+          setFormOpen(true)
+        }}
+      />
+
+      {/* ── Form dialog (create / edit) ── */}
+      <BusinessFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        businessId={selectedId}
+        onSubmit={(data) => saveMutation.mutate({ id: selectedId, data })}
+        isLoading={saveMutation.isPending}
+      />
+
+      {/* ── Reject confirmation dialog ── */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogTitle>Từ chối doanh nghiệp</DialogTitle>
@@ -312,7 +411,9 @@ export default function BusinessPage(): JSX.Element {
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Hủy</Button>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Hủy
+            </Button>
             <Button
               variant="destructive"
               onClick={handleRejectConfirm}

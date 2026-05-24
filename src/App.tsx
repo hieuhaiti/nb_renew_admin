@@ -30,7 +30,9 @@ const VlogPage = lazy(() => import('@/pages/Vlogs'))
 const BusinessPage = lazy(() => import('@/pages/Businesses'))
 const NewsPage = lazy(() => import('@/pages/News'))
 const NewsCommentsPage = lazy(() => import('@/pages/NewsComments'))
-const RatingPage = lazy(() => import('@/pages/Ratings'))
+const RatingSpotPage = lazy(() => import('@/pages/Ratings/RatingSpotPage'))
+const RatingBusinessPage = lazy(() => import('@/pages/Ratings/RatingBusinessPage'))
+const RatingMyBusinessPage = lazy(() => import('@/pages/Ratings/RatingMyBusinessPage'))
 const MapLayerPage = lazy(() => import('@/pages/MapLayers'))
 const MapLayerApisPage = lazyWithRetry(
   () => import('@/pages/MapLayerApis'),
@@ -98,10 +100,14 @@ function App() {
                 <Route path="/businesses" element={<BusinessPage />} />
                 <Route path="/integrations" element={<IntegrationPage />} />
 
-                {/* Tin tức & đánh giá */}
+                {/* Tin tức */}
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/news-comments" element={<NewsCommentsPage />} />
-                <Route path="/ratings" element={<RatingPage />} />
+
+                {/* Đánh giá */}
+                <Route path="/ratings/spots" element={<RatingSpotPage />} />
+                <Route path="/ratings/businesses" element={<RatingBusinessPage />} />
+                <Route path="/ratings/businesses/my" element={<RatingMyBusinessPage />} />
 
                 {/* Bản đồ */}
                 <Route path="/map-layers" element={<MapLayerPage />} />

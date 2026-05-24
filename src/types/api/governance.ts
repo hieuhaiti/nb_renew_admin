@@ -3,25 +3,28 @@
 export interface GovernanceAdminDashboard {
   total_users?: number
   active_users?: number
-  new_users_today?: number
-  total_spots?: number
-  total_businesses?: number
-  pending_businesses?: number
-  total_feedbacks?: number
-  pending_feedbacks?: number
-  total_roles?: number
+  total_news?: number
+  total_map_categories?: number
+  total_map_layers?: number
+  total_map_apis?: number
+  total_permissions?: number
+  audit_logs_in_range?: number
+  visits_in_range?: number
+  total_cuisine_items?: number
+  total_festivals?: number
+  total_ocop_products?: number
   [key: string]: any
 }
 
-export interface GovernanceTrafficItem {
-  date?: string
-  day?: string
-  week?: string
-  month?: string
-  visitors?: number
-  sessions?: number
-  pageviews?: number
-  [key: string]: any
+export interface GovernanceTrafficAction {
+  action: string
+  count: string | number
+}
+
+export interface GovernanceTrafficData {
+  time_series: Record<string, unknown>[]
+  top_sources: Record<string, unknown>[]
+  top_actions: GovernanceTrafficAction[]
 }
 
 export interface GovernancePermission {

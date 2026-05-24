@@ -1,12 +1,23 @@
+import type { ReactNode } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { newsService, useApiQuery } from '@/service'
-import type { ApiResponse, NewsData } from '@/types/api'
+import type { ApiResponse, News } from '@/types/api'
 import { parseLink } from '@/lib/utils'
 import { UserText } from '@/components/common/UserText'
 import { formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
-import { Pen } from 'lucide-react'
+import { StatusDotBadge } from '@/components/common/StatusDotBadge'
+import { Eye, Pen, Star } from 'lucide-react'
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <span className="text-sm font-semibold">{label}:</span>
+      <span className="col-span-2 text-sm">{children}</span>
+    </div>
+  )
+}
 
 interface NewsDetailDialogProps {
   open: boolean
@@ -24,15 +35,19 @@ export default function NewsDetailDialog({ open, onOpenChange, newsId, onEdit }:
     false,
     false
   )
-  const news = (dbQuery.data as ApiResponse<NewsData>)?.data?.news ?? null
+  const news = (dbQuery.data as unknown as ApiResponse<News>)?.data ?? null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[80vh] max-w-3xl overflow-y-auto"
+        className="max-h-[85vh] max-w-3xl overflow-y-auto"
         actions={
           onEdit && (
-            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
+            <button
+              onClick={onEdit}
+              title="Chỉnh sửa"
+              className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+            >
               <Pen className="h-5 w-5" />
               <span className="sr-only">Chỉnh sửa</span>
             </button>
@@ -42,123 +57,113 @@ export default function NewsDetailDialog({ open, onOpenChange, newsId, onEdit }:
         <DialogTitle>Chi tiết tin tức</DialogTitle>
         <DialogDescription>Thông tin chi tiết bài viết đã chọn</DialogDescription>
 
-        {news ? (
-          <div className="mt-4 space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">ID:</span>
-              <span className="col-span-2 font-mono text-sm">{news.id}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Tiêu đề:</span>
-              <span className="col-span-2">{news.title}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Slug:</span>
-              <span className="col-span-2 font-mono text-sm">{news.slug}</span>
-            </div>
-            {news.author_name && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Tác giả:</span>
-                <span className="col-span-2">{news.author_name}</span>
-              </div>
+        {dbQuery.isLoading ? (
+          <div className="text-muted-foreground py-8 text-center">Đang tải...</div>
+        ) : !news ? (
+          <div className="text-muted-foreground py-8 text-center">Không có dữ liệu</div>
+        ) : (
+          <div className="mt-2 space-y-3">
+            {news.thumbnail_url && (
+              <img
+                src={parseLink(news.thumbnail_url)}
+                alt={news.title}
+                className="h-40 w-full cursor-zoom-in rounded-md border object-cover"
+                onClick={() => openLightbox(parseLink(news.thumbnail_url!))}
+              />
             )}
+
+            {/* Core info */}
+            <Row label="ID">
+              <span className="font-mono text-xs">{news.id}</span>
+            </Row>
+            <Row label="Tiêu đề">
+              <span className="font-medium">{news.title}</span>
+            </Row>
+            <Row label="Slug">
+              <span className="font-mono text-xs">{news.slug || '-'}</span>
+            </Row>
+            {news.author_name && <Row label="Tác giả">{news.author_name}</Row>}
             {news.summary && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Tóm tắt:</span>
-                <span className="col-span-2">{news.summary}</span>
-              </div>
+              <Row label="Tóm tắt">
+                <span className="text-muted-foreground">{news.summary}</span>
+              </Row>
             )}
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Ảnh đại diện:</span>
-              <span className="col-span-2">
-                {news.thumbnail_url ? (
-                  <img
-                    src={parseLink(news.thumbnail_url)}
-                    alt="Thumbnail"
-                    className="h-24 w-40 cursor-zoom-in rounded border object-cover"
-                    onClick={() => openLightbox(parseLink(news.thumbnail_url!))}
-                  />
-                ) : (
-                  '-'
-                )}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Trạng thái:</span>
-              <span className="col-span-2">
-                {news.is_published ? (
-                  <Badge variant="default">Đã xuất bản</Badge>
-                ) : (
-                  <Badge variant="secondary">Bản nháp</Badge>
-                )}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Nổi bật:</span>
-              <span className="col-span-2">
+
+            {/* Status & settings */}
+            <div className="border-t pt-3 space-y-3">
+              <Row label="Trạng thái">
+                <StatusDotBadge
+                  label={news.is_published ? 'Đã xuất bản' : 'Bản nháp'}
+                  badgeClass={
+                    news.is_published
+                      ? 'bg-success/10 text-success border-success/20'
+                      : 'bg-muted text-muted-foreground border-border'
+                  }
+                  dotClass={news.is_published ? 'bg-success' : 'bg-muted-foreground'}
+                />
+              </Row>
+              <Row label="Nổi bật">
                 {news.is_featured ? (
-                  <Badge variant="default">Nổi bật</Badge>
+                  <span className="flex items-center gap-1">
+                    <Star className="text-warning size-4 fill-current" />
+                    <span>Nổi bật</span>
+                  </span>
                 ) : (
                   <Badge variant="outline">Không</Badge>
                 )}
-              </span>
+              </Row>
+              {news.published_at && (
+                <Row label="Ngày xuất bản">{formatDateTime(news.published_at)}</Row>
+              )}
+              <Row label="Lượt xem">
+                <span className="flex items-center gap-1">
+                  <Eye className="text-muted-foreground size-4" />
+                  <span>{news.view_count ?? 0}</span>
+                </span>
+              </Row>
             </div>
-            {news.published_at && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Ngày xuất bản:</span>
-                <span className="col-span-2">{formatDateTime(news.published_at)}</span>
-              </div>
-            )}
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Lượt xem:</span>
-              <span className="col-span-2">{news.view_count}</span>
-            </div>
+
+            {/* Tags */}
             {news.tags && news.tags.length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Tags:</span>
-                <div className="col-span-2 flex flex-wrap gap-1">
-                  {news.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+              <div className="border-t pt-3">
+                <Row label="Tags">
+                  <div className="flex flex-wrap gap-1">
+                    {news.tags.map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </Row>
               </div>
             )}
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Nội dung:</span>
-              <div
-                className="col-span-2 max-h-48 overflow-y-auto rounded border p-2 text-sm"
-                dangerouslySetInnerHTML={{ __html: news.content }}
-              />
+
+            {/* Content */}
+            <div className="border-t pt-3">
+              <Row label="Nội dung">
+                <div
+                  className="prose prose-sm max-h-56 overflow-y-auto rounded border p-3 text-sm"
+                  dangerouslySetInnerHTML={{ __html: news.content }}
+                />
+              </Row>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Ngày tạo:</span>
-              <span className="col-span-2">
-                {news.created_at ? formatDateTime(news.created_at) : '-'}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Tạo bởi:</span>
-              <span className="col-span-2">
-                <UserText userId={news.created_by} />
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Cập nhật bởi:</span>
-              <span className="col-span-2">
-                <UserText userId={news.updated_by} />
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Cập nhật:</span>
-              <span className="col-span-2">
-                {news.updated_at ? formatDateTime(news.updated_at) : '-'}
-              </span>
+
+            {/* Timestamps */}
+            <div className="border-t pt-3 space-y-3">
+              <Row label="Ngày tạo">{news.created_at ? formatDateTime(news.created_at) : '-'}</Row>
+              {news.created_by && (
+                <Row label="Tạo bởi">
+                  <UserText userId={news.created_by} />
+                </Row>
+              )}
+              <Row label="Cập nhật">{news.updated_at ? formatDateTime(news.updated_at) : '-'}</Row>
+              {news.updated_by && (
+                <Row label="Cập nhật bởi">
+                  <UserText userId={news.updated_by} />
+                </Row>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="text-muted-foreground py-8 text-center">Không có dữ liệu</div>
         )}
       </DialogContent>
     </Dialog>

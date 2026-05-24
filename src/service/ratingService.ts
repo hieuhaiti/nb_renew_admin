@@ -14,19 +14,16 @@ export default {
     apiClient.get<ApiResponse<RatingListData>>(serviceRatingPath, params),
 
   /** POST /ratings */
-  // TODO: Available in Postman but not used by admin UI yet
   create: (data: Partial<Rating>) =>
     apiClient.post<ApiResponse<Rating>>(serviceRatingPath, data),
 
   /** PATCH /ratings/:id */
-  // TODO: Available in Postman but not used by admin UI yet
   update: (id: string, data: Partial<Rating>) =>
     apiClient.patch<ApiResponse<Rating>>(`${serviceRatingPath}/${id}`, data),
 
   /** GET /ratings/business/my */
-  // TODO: Available in Postman but not used by admin UI yet
-  getMyBusiness: () =>
-    apiClient.get<ApiResponse<RatingListData>>(`${serviceRatingPath}/business/my`),
+  getMyBusiness: (params?: Omit<RatingListParams, 'spot_id' | 'business_id'>) =>
+    apiClient.get<ApiResponse<RatingListData>>(`${serviceRatingPath}/business/my`, params),
 
   /** PATCH /ratings/:id/status */
   setStatus: (id: string, data: RatingModerationBody) =>
@@ -37,7 +34,6 @@ export default {
     apiClient.post<ApiResponse<Rating>>(`${serviceRatingPath}/${id}/reply`, { reply }),
 
   /** POST /ratings/:id/helpful */
-  // TODO: Available in Postman but not used by admin UI yet
   markHelpful: (id: string) =>
     apiClient.post<ApiResponse<Rating>>(`${serviceRatingPath}/${id}/helpful`, {}),
 

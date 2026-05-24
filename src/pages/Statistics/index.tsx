@@ -38,8 +38,8 @@ export default function StatisticsPage(): JSX.Element {
     false
   )
 
-  const items: StatisticsDataFile[] =
-    (dbQuery.data as ApiResponse<StatisticsDataFile[]>)?.data ?? []
+  const raw = (dbQuery.data as ApiResponse<StatisticsDataFile[]>)?.data
+  const items: StatisticsDataFile[] = Array.isArray(raw) ? raw : []
 
   async function handleDownload(item: StatisticsDataFile) {
     if (item.download_url) {

@@ -1,68 +1,93 @@
+import type { ReactNode } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import type { NewsComment } from '@/types/api'
 import { UserText } from '@/components/common/UserText'
 import { formatDateTime } from '@/lib/date'
+import { Pen } from 'lucide-react'
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <span className="text-muted-foreground text-sm">{label}</span>
+      <span className="col-span-2 text-sm">{children}</span>
+    </div>
+  )
+}
 
 interface NewsCommentDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   comment: NewsComment | null
+  onEdit?: () => void
 }
 
 export default function NewsCommentDetailDialog({
   open,
   onOpenChange,
   comment,
+  onEdit,
 }: NewsCommentDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+      <DialogContent
+        className="max-h-[85vh] max-w-2xl overflow-y-auto"
+        actions={
+          onEdit && (
+            <button
+              onClick={onEdit}
+              title="Chỉnh sửa"
+              className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+            >
+              <Pen className="h-5 w-5" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </button>
+          )
+        }
+      >
         <DialogTitle>Chi tiết bình luận</DialogTitle>
         <DialogDescription>Thông tin chi tiết bình luận đã chọn</DialogDescription>
 
-        {comment ? (
-          <div className="mt-4 space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">ID:</span>
-              <span className="col-span-2 font-mono text-xs">{comment.id}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Bài viết ID:</span>
-              <span className="col-span-2 font-mono text-xs">{comment.news_id}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Người bình luận:</span>
-              <span className="col-span-2">
-                {comment.user_id ? (
-                  <UserText userId={comment.user_id} />
-                ) : (
-                  comment.user_name || '-'
-                )}
-              </span>
-            </div>
+        {!comment ? (
+          <div className="text-muted-foreground py-8 text-center">Không có dữ liệu</div>
+        ) : (
+          <div className="mt-2 space-y-2.5">
+            <Row label="ID">
+              <span className="font-mono">{comment.id}</span>
+            </Row>
+            <Row label="Bài viết ID">
+              <span className="font-mono">{comment.news_id}</span>
+            </Row>
+            <Row label="Người bình luận">
+              {comment.user_id ? (
+                <UserText userId={comment.user_id} />
+              ) : (
+                comment.user_name || '-'
+              )}
+            </Row>
             {!comment.user_id && comment.user_email && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Email:</span>
-                <span className="col-span-2">{comment.user_email}</span>
-              </div>
+              <Row label="Email">{comment.user_email}</Row>
             )}
             {comment.parent_comment_id && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Trả lời:</span>
-                <span className="col-span-2 font-mono text-xs">{comment.parent_comment_id}</span>
-              </div>
+              <Row label="Trả lời comment">
+                <span className="font-mono text-xs">{comment.parent_comment_id}</span>
+              </Row>
             )}
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Nội dung:</span>
-              <div className="col-span-2 rounded border p-2 text-sm whitespace-pre-wrap">
+            <Row label="Nội dung">
+              <div className="rounded border p-2 text-sm whitespace-pre-wrap">
                 {comment.content}
               </div>
-            </div>
+            </Row>
+            <Row label="Trạng thái">
+              {comment.is_approved ? (
+                <Badge variant="default">Đã duyệt</Badge>
+              ) : (
+                <Badge variant="secondary">Chờ duyệt</Badge>
+              )}
+            </Row>
             {comment.replies && comment.replies.length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Trả lời ({comment.replies.length}):</span>
-                <div className="col-span-2 space-y-2">
+              <Row label={`Trả lời (${comment.replies.length})`}>
+                <div className="space-y-2">
                   {comment.replies.map((r) => (
                     <div key={r.id} className="rounded border p-2 text-sm">
                       <p className="text-muted-foreground text-xs">
@@ -73,33 +98,13 @@ export default function NewsCommentDetailDialog({
                     </div>
                   ))}
                 </div>
-              </div>
+              </Row>
             )}
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Trạng thái:</span>
-              <span className="col-span-2">
-                {comment.is_approved ? (
-                  <Badge variant="default">Đã duyệt</Badge>
-                ) : (
-                  <Badge variant="secondary">Chờ duyệt</Badge>
-                )}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Ngày tạo:</span>
-              <span className="col-span-2">
-                {comment.created_at ? formatDateTime(comment.created_at) : '-'}
-              </span>
-            </div>
+            <Row label="Ngày tạo">{comment.created_at ? formatDateTime(comment.created_at) : '-'}</Row>
             {comment.updated_at && (
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold">Cập nhật:</span>
-                <span className="col-span-2">{formatDateTime(comment.updated_at)}</span>
-              </div>
+              <Row label="Cập nhật">{formatDateTime(comment.updated_at)}</Row>
             )}
           </div>
-        ) : (
-          <div className="text-muted-foreground py-8 text-center">Không có dữ liệu</div>
         )}
       </DialogContent>
     </Dialog>

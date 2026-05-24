@@ -30,18 +30,24 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import PageLayout from '@/layout/pageLayout'
 import AuditLogDetailDialog from './AuditLogDetailDialog'
 import { formatDateTime } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
+import { CalendarIcon, MonitorSmartphone, Download, RotateCcw } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-/** Parse YYYY-MM-DD string to local Date (tránh timezone issue) */
 const parseLocalDate = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number)
   return new Date(year, month - 1, day)
 }
 
-/** Format Date to YYYY-MM-DD (local date, không qua UTC) */
 const formatToYYYYMMDD = (date: Date): string => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -49,10 +55,33 @@ const formatToYYYYMMDD = (date: Date): string => {
   return `${year}-${month}-${day}`
 }
 
-/** Display date as DD/MM/YYYY (local) */
 const formatDisplayDate = (dateStr: string): string => {
   const date = parseLocalDate(dateStr)
   return format(date, 'dd/MM/yyyy', { locale: vi })
+}
+
+const ACTION_VERB_CLASS: Record<string, string> = {
+  create: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800',
+  update: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800',
+  delete: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800',
+  login:  'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-800',
+  logout: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800',
+}
+
+function ActionBadge({ action }: { action: string }) {
+  const parts = action.split('.')
+  const verb = parts[parts.length - 1]
+  const module = parts.slice(0, -1).join('.')
+  const cls = ACTION_VERB_CLASS[verb] ?? 'bg-muted text-muted-foreground border'
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {module && (
+        <span className="text-muted-foreground font-mono text-xs">{module}</span>
+      )}
+      <Badge className={cn('border font-mono text-xs', cls)}>{verb}</Badge>
+    </div>
+  )
 }
 
 export default function AuditLogPage(): JSX.Element {
@@ -104,10 +133,6 @@ export default function AuditLogPage(): JSX.Element {
     setCurrentPage(1)
   }
 
-  const handleDateChange = () => {
-    setCurrentPage(1)
-  }
-
   const handleResetFilters = () => {
     setSearchValue('')
     setFromDate('')
@@ -124,17 +149,7 @@ export default function AuditLogPage(): JSX.Element {
       return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped
     }
 
-    const headers = [
-      'ID',
-      'Nguoi dung',
-      'Email',
-      'Hanh dong',
-      'Loai thuc the',
-      'ID thuc the',
-      'IP',
-      'Thoi gian',
-    ]
-
+    const headers = ['ID', 'Nguoi dung', 'Email', 'Hanh dong', 'Loai thuc the', 'ID thuc the', 'IP', 'Thoi gian']
     const rows = logs.map((log) =>
       [
         log.id,
@@ -176,7 +191,6 @@ export default function AuditLogPage(): JSX.Element {
         total={total}
         filter={
           <div className="flex flex-wrap items-center gap-2">
-            {/* Rows per page */}
             <Select
               value={String(limit)}
               onValueChange={(v) => {
@@ -184,14 +198,14 @@ export default function AuditLogPage(): JSX.Element {
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-9 w-32">
+              <SelectTrigger className="h-9 w-28">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="10">10 / trang</SelectItem>
+                <SelectItem value="20">20 / trang</SelectItem>
+                <SelectItem value="50">50 / trang</SelectItem>
+                <SelectItem value="100">100 / trang</SelectItem>
               </SelectContent>
             </Select>
 
@@ -200,8 +214,12 @@ export default function AuditLogPage(): JSX.Element {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-9 w-40 justify-start text-left font-normal"
+                  className={cn(
+                    'h-9 w-40 justify-start gap-2 text-left font-normal',
+                    !fromDate && 'text-muted-foreground'
+                  )}
                 >
+                  <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
                   {fromDate ? formatDisplayDate(fromDate) : 'Từ ngày'}
                 </Button>
               </PopoverTrigger>
@@ -212,11 +230,23 @@ export default function AuditLogPage(): JSX.Element {
                   onSelect={(date) => {
                     if (date) {
                       setFromDate(formatToYYYYMMDD(date))
-                      handleDateChange()
+                      setCurrentPage(1)
                     }
                   }}
                   disabled={(date) => (toDate ? date > parseLocalDate(toDate) : false)}
                 />
+                {fromDate && (
+                  <div className="border-t p-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs"
+                      onClick={() => { setFromDate(''); setCurrentPage(1) }}
+                    >
+                      Xóa
+                    </Button>
+                  </div>
+                )}
               </PopoverContent>
             </Popover>
 
@@ -225,8 +255,12 @@ export default function AuditLogPage(): JSX.Element {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-9 w-40 justify-start text-left font-normal"
+                  className={cn(
+                    'h-9 w-40 justify-start gap-2 text-left font-normal',
+                    !toDate && 'text-muted-foreground'
+                  )}
                 >
+                  <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
                   {toDate ? formatDisplayDate(toDate) : 'Đến ngày'}
                 </Button>
               </PopoverTrigger>
@@ -237,35 +271,50 @@ export default function AuditLogPage(): JSX.Element {
                   onSelect={(date) => {
                     if (date) {
                       setToDate(formatToYYYYMMDD(date))
-                      handleDateChange()
+                      setCurrentPage(1)
                     }
                   }}
                   disabled={(date) => (fromDate ? date < parseLocalDate(fromDate) : false)}
                 />
+                {toDate && (
+                  <div className="border-t p-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs"
+                      onClick={() => { setToDate(''); setCurrentPage(1) }}
+                    >
+                      Xóa
+                    </Button>
+                  </div>
+                )}
               </PopoverContent>
             </Popover>
 
-            {/* Export CSV */}
             <Button
               type="button"
               variant="outline"
-              className="h-9"
+              size="sm"
+              className="h-9 gap-1.5"
               onClick={handleExportCsv}
               disabled={!logs.length}
             >
+              <Download className="h-3.5 w-3.5" />
               Xuất CSV
             </Button>
 
-            {/* Reset filters */}
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9"
-              onClick={handleResetFilters}
-              disabled={!hasActiveFilters}
-            >
-              Xóa lọc
-            </Button>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground h-9 gap-1.5"
+                onClick={handleResetFilters}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Xóa lọc
+              </Button>
+            )}
           </div>
         }
         pagination={{
@@ -277,13 +326,13 @@ export default function AuditLogPage(): JSX.Element {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-14">ID</TableHead>
-              <TableHead className="w-48">Người dùng</TableHead>
-              <TableHead className="w-40">Hành động</TableHead>
-              <TableHead className="w-36">Loại thực thể</TableHead>
-              <TableHead className="w-36">ID thực thể</TableHead>
-              <TableHead className="w-36">IP</TableHead>
-              <TableHead className="w-40">Thời gian</TableHead>
+              <TableHead className="w-16">ID</TableHead>
+              <TableHead>Người dùng</TableHead>
+              <TableHead>Hành động</TableHead>
+              <TableHead className="hidden md:table-cell">Thực thể</TableHead>
+              <TableHead className="hidden lg:table-cell">IP</TableHead>
+              <TableHead className="hidden lg:table-cell">Trình duyệt</TableHead>
+              <TableHead>Thời gian</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -318,7 +367,10 @@ export default function AuditLogPage(): JSX.Element {
                   className="hover:bg-muted/40 cursor-pointer"
                   onClick={() => handleViewDetail(log)}
                 >
-                  <TableCell className="text-muted-foreground text-xs">{log.id}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-xs">
+                    #{log.id}
+                  </TableCell>
+
                   <TableCell>
                     {log.user ? (
                       <div>
@@ -329,15 +381,53 @@ export default function AuditLogPage(): JSX.Element {
                       <span className="text-muted-foreground text-xs italic">Khách</span>
                     )}
                   </TableCell>
+
                   <TableCell>
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {log.action}
-                    </Badge>
+                    <ActionBadge action={log.action} />
                   </TableCell>
-                  <TableCell className="text-xs">{log.entity_type ?? '-'}</TableCell>
-                  <TableCell className="font-mono text-xs">{log.entity_id ?? '-'}</TableCell>
-                  <TableCell className="font-mono text-xs">{log.ip_address || '-'}</TableCell>
-                  <TableCell className="text-xs">{formatDateTime(log.created_at)}</TableCell>
+
+                  <TableCell className="hidden md:table-cell">
+                    {log.entity_type || log.entity_id ? (
+                      <div className="text-xs">
+                        {log.entity_type && (
+                          <p className="text-muted-foreground">{log.entity_type}</p>
+                        )}
+                        {log.entity_id && (
+                          <p className="font-mono">{log.entity_id}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
+
+                  <TableCell className="hidden lg:table-cell font-mono text-xs">
+                    {log.ip_address || <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+
+                  <TableCell className="hidden lg:table-cell">
+                    {log.user_agent ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-muted-foreground flex cursor-default items-center gap-1 text-xs">
+                              <MonitorSmartphone className="h-3.5 w-3.5 shrink-0" />
+                              <span className="max-w-45 truncate">{log.user_agent}</span>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="left" className="max-w-xs break-all text-xs">
+                            {log.user_agent}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
+
+                  <TableCell className="text-xs">
+                    {formatDateTime(log.created_at)}
+                  </TableCell>
                 </TableRow>
               ))
             )}

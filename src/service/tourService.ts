@@ -16,16 +16,13 @@ export default {
     apiClient.get<ApiResponse<TourListData>>(serviceTourPath, params),
 
   /** GET /tours/:id */
-  getById: (id: string) =>
-    apiClient.get<ApiResponse<Tour>>(`${serviceTourPath}/${id}`),
+  getById: (id: string) => apiClient.get<ApiResponse<Tour>>(`${serviceTourPath}/${id}`),
 
   /** GET /tours/slug/:slug */
-  getBySlug: (slug: string) =>
-    apiClient.get<ApiResponse<Tour>>(`${serviceTourPath}/slug/${slug}`),
+  getBySlug: (slug: string) => apiClient.get<ApiResponse<Tour>>(`${serviceTourPath}/slug/${slug}`),
 
   /** POST /tours */
-  create: (data: TourFormBody) =>
-    apiClient.post<ApiResponse<Tour>>(serviceTourPath, data),
+  create: (data: TourFormBody) => apiClient.post<ApiResponse<Tour>>(serviceTourPath, data),
 
   /** PATCH /tours/:id */
   update: (id: string, data: Partial<TourFormBody>) =>
@@ -51,4 +48,17 @@ export default {
   /** DELETE /tours/:tourId/stops/:stopId */
   deleteStop: (tourId: string, stopId: string) =>
     apiClient.del<ApiResponse<{}>>(`${serviceTourPath}/${tourId}/stops/${stopId}`),
+
+  /**
+   * PATCH /tours/:tourId/stops/reorder
+   * Same-day:   { day_number, stop_ids }
+   * Cross-day:  { stops: [{ id, day_number, stop_order }] }
+   */
+  reorderStops: (
+    tourId: string,
+    payload:
+      | { day_number: number; stop_ids: string[] }
+      | { stops: { id: string; day_number: number; stop_order: number }[] }
+  ) =>
+    apiClient.patch<ApiResponse<TourStop[]>>(`${serviceTourPath}/${tourId}/stops/reorder`, payload),
 }

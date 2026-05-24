@@ -22,7 +22,7 @@ export interface NewsData {
 }
 
 export interface NewsListData {
-  news: News[]
+  items: News[]
   pagination: import('./index').Pagination
 }
 

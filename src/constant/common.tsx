@@ -12,7 +12,6 @@ import {
   BarChart2,
   Navigation,
   Gauge,
-  Star,
   Plug,
   Database,
 } from 'lucide-react'
@@ -55,8 +54,8 @@ export const navConfig: NavItem[] = [
       { name: 'Điểm tham quan', path: '/spots', authen: [1, 2, 3, 4] },
       { name: 'Ẩm thực', path: '/culinary', authen: [1, 2, 3, 4] },
       { name: 'Lễ hội & sự kiện', path: '/festivals', authen: [1, 2, 3, 4] },
-      // ocop/me → doanh nghiệp quản lý sản phẩm của mình
       { name: 'Sản phẩm OCOP', path: '/ocop', authen: [1, 2, 3, 4, 5, 6] },
+      { name: 'Đánh giá', path: '/ratings/spots', authen: [1, 2, 3, 4] },
     ],
   },
 
@@ -76,13 +75,18 @@ export const navConfig: NavItem[] = [
     authen: [1, 2, 3, 4],
   },
 
-  // businesses + businesses/me (enterprise)
   {
     icon: <Building2 />,
     name: 'Doanh nghiệp',
     path: '/businesses',
     authen: [1, 2, 3, 4, 5, 6],
+    subItems: [
+      { name: 'Doanh nghiệp', path: '/businesses', authen: [1, 2, 3] },
+      { name: 'Đánh giá', path: '/ratings/businesses', authen: [1, 2, 3, 4] },
+      { name: 'Đánh giá của tôi', path: '/ratings/businesses/my', authen: [5, 6] },
+    ],
   },
+
 
   {
     icon: <Video />,
@@ -100,14 +104,6 @@ export const navConfig: NavItem[] = [
       { name: 'Bài viết', path: '/news', authen: [1, 2, 3] },
       { name: 'Bình luận', path: '/news-comments', authen: [1, 2, 3] },
     ],
-  },
-
-  // ratings/business/my → enterprise xem đánh giá doanh nghiệp của mình
-  {
-    icon: <Star />,
-    name: 'Đánh giá',
-    path: '/ratings',
-    authen: [1, 2, 3, 4, 5, 6],
   },
 
   {

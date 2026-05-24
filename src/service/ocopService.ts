@@ -18,6 +18,10 @@ export default {
   getMe: (params?: { search?: string; category?: string }) =>
     apiClient.get<ApiResponse<OcopListData>>(`${serviceOcopPath}/me`, params),
 
+  /** GET /ocop/geojson */
+  getGeoJSON: () =>
+    apiClient.get<ApiResponse<object>>(`${serviceOcopPath}/geojson`),
+
   /** GET /ocop/categories */
   getCategories: () =>
     apiClient.get<ApiResponse<string[]>>(`${serviceOcopPath}/categories`),

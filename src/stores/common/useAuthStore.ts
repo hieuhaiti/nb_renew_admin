@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const res = await authService.getProfile()
       const user = res?.data?.user ?? null
       // Roles 1–6 được phép vào admin panel; role 7 (Khách du lịch) bị chặn
-      const isAdmin = !!user && user.role_id >= 1 && user.role_id <= 6
+      const isAdmin = !!user && user.role_id != null && user.role_id >= 1 && user.role_id <= 6
 
       if (!isAdmin) {
         tokenManager.clearAll()

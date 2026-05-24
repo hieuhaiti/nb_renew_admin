@@ -36,7 +36,7 @@ function getAccessToken() {
   }
 }
 
-async function handleResponse<T>(res: Response, isAuthEndpoint = false): Promise<T> {
+async function handleResponse<T>(res: Response, isAuthEndpoint = false, isGet = false): Promise<T> {
   const contentType = res.headers.get('content-type') || ''
   const isJson = contentType.includes('application/json')
   const body = isJson ? await res.json() : undefined
@@ -58,12 +58,17 @@ async function handleResponse<T>(res: Response, isAuthEndpoint = false): Promise
         toast.error(body?.message ? `${body.message}\n${detail}` : detail, {
           autoClose: 8000,
         })
-      } else {
+      } else if (!isGet) {
         toast.error(body?.message || `Lỗi ${res.status}`, { autoClose: 5000 })
       }
     }
 
     throw err
+  }
+
+  // Hiện success toast cho non-GET (bỏ qua auth endpoints và GET)
+  if (!isAuthEndpoint && !isGet && body?.message) {
+    toast.success(body.message)
   }
 
   return body as T
@@ -142,10 +147,7 @@ async function requestWithRefresh(
   }
 }
 
-export async function get<T = any>(
-  url: string,
-  params?: Record<string, any>
-): Promise<T> {
+export async function get<T = any>(url: string, params?: Record<string, any>): Promise<T> {
   guardRole()
   const normalizedParams = normalizeQueryParams(params)
   const qs = normalizedParams
@@ -164,14 +166,10 @@ export async function get<T = any>(
     },
   }
   const res = await requestWithRefresh(`${url}${qs}`, opts)
-  return handleResponse(res, isAuthUrl(url))
+  return handleResponse(res, isAuthUrl(url), true)
 }
 
-export async function post<T = any>(
-  url: string,
-  data?: any,
-  useForm = false
-): Promise<T> {
+export async function post<T = any>(url: string, data?: any, useForm = false): Promise<T> {
   guardRole()
   const headers: Record<string, string> = { ...authHeaders() }
   let body: any
@@ -191,11 +189,7 @@ export async function post<T = any>(
   return handleResponse(res, isAuthUrl(url))
 }
 
-export async function put<T = any>(
-  url: string,
-  data?: any,
-  useForm = false
-): Promise<T> {
+export async function put<T = any>(url: string, data?: any, useForm = false): Promise<T> {
   guardRole()
   const headers: Record<string, string> = { ...authHeaders() }
   let body: any

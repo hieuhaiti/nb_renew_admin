@@ -17,7 +17,7 @@ export function useApiQuery<T = any>(
   const navigate = useNavigate()
   const setLoading = useLoadingStore((s: any) => s.setLoading)
 
-  const query = useQuery({
+  const query = useQuery<T>({
     queryKey: Array.isArray(key) ? key : [key],
     queryFn,
     retry: false,

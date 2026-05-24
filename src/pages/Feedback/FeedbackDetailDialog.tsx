@@ -3,8 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { citizenFeedbackService, useApiQuery } from '@/service'
 import type { ApiResponse, CitizenFeedback } from '@/types/api'
 import { parseLink } from '@/lib/utils'
-import { MapPin, Paperclip, User } from 'lucide-react'
-import { UserText } from '@/components/common/UserText'
+import { MapPin, User } from 'lucide-react'
 import { formatDateTime } from '@/lib/date'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import {
@@ -86,50 +85,37 @@ export default function FeedbackDetailDialog({
                 {feedback.is_location_verified ? 'Đã xác minh thực địa' : 'Chưa xác minh'}
               </Badge>
             </Row>
-            {feedback.location_verified_at && (
-              <Row label="Thời gian xác minh">{formatDateTime(feedback.location_verified_at)}</Row>
-            )}
-
             {/* Người gửi */}
-            {feedback.user ? (
+            {(feedback.user_name || feedback.user_avatar) && (
               <Row label="Người gửi">
                 <div className="flex items-center gap-2">
-                  {feedback.user.avatar_url ? (
+                  {feedback.user_avatar ? (
                     <img
-                      src={parseLink(feedback.user.avatar_url)}
+                      src={parseLink(feedback.user_avatar)}
                       alt=""
                       className="size-8 cursor-zoom-in rounded-full border object-cover"
-                      onClick={() => openLightbox(parseLink(feedback.user.avatar_url!))}
+                      onClick={() => openLightbox(parseLink(feedback.user_avatar!))}
                     />
                   ) : (
                     <div className="bg-muted flex size-8 items-center justify-center rounded-full">
                       <User className="size-4" />
                     </div>
                   )}
-                  <div>
-                    <p className="text-sm font-medium">{feedback.user.full_name}</p>
-                    {feedback.user.username && (
-                      <p className="text-muted-foreground text-xs">@{feedback.user.username}</p>
-                    )}
-                  </div>
+                  <p className="text-sm font-medium">{feedback.user_name}</p>
                 </div>
               </Row>
-            ) : feedback.user_id ? (
-              <Row label="Người gửi">
-                <UserText userId={feedback.user_id} />
-              </Row>
-            ) : null}
+            )}
 
             {/* Vị trí */}
-            {(feedback.location_text || feedback.location_coordinates) && (
+            {(feedback.location_text || feedback.latitude || feedback.longitude) && (
               <Row label="Vị trí">
                 <div className="flex items-start gap-1">
                   <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" />
                   <div>
                     {feedback.location_text && <p className="text-sm">{feedback.location_text}</p>}
-                    {feedback.location_coordinates && (
+                    {(feedback.latitude || feedback.longitude) && (
                       <p className="text-muted-foreground text-xs">
-                        {feedback.location_coordinates}
+                        {feedback.latitude}, {feedback.longitude}
                       </p>
                     )}
                   </div>
@@ -157,33 +143,19 @@ export default function FeedbackDetailDialog({
             {feedback.responded_at && (
               <Row label="Phản hồi lúc">{formatDateTime(feedback.responded_at)}</Row>
             )}
-            {feedback.responder && <Row label="Người phản hồi">{feedback.responder.full_name}</Row>}
 
-            {/* Attachments */}
-            {feedback.attachments && feedback.attachments.length > 0 && (
+            {/* Images */}
+            {feedback.images && feedback.images.length > 0 && (
               <Row label="Ảnh đính kèm">
                 <div className="grid grid-cols-3 gap-2">
-                  {feedback.attachments.map((att) => (
-                    <a
-                      key={att.id}
-                      href={parseLink(att.file_path)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group relative"
-                    >
-                      {att.mime_type.startsWith('image/') ? (
-                        <img
-                          src={parseLink(att.file_url || att.file_path)}
-                          alt={att.file_name}
-                          className="h-24 w-full cursor-zoom-in rounded border object-cover transition group-hover:opacity-80"
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); openLightbox(parseLink(att.file_url || att.file_path)) }}
-                        />
-                      ) : (
-                        <div className="bg-muted flex h-24 items-center justify-center rounded border">
-                          <Paperclip className="text-muted-foreground size-6" />
-                        </div>
-                      )}
-                    </a>
+                  {feedback.images.map((url, idx) => (
+                    <img
+                      key={idx}
+                      src={parseLink(url)}
+                      alt=""
+                      className="h-24 w-full cursor-zoom-in rounded border object-cover transition hover:opacity-80"
+                      onClick={() => openLightbox(parseLink(url))}
+                    />
                   ))}
                 </div>
               </Row>

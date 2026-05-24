@@ -29,9 +29,9 @@ export default {
   lock: (id: string | number, data?: { reason?: string }) =>
     apiClient.put<ApiResponse<User>>(`${serviceUserPath}/${id}/lock`, data),
 
-  /** DELETE /users/:id/lock */
+  /** PATCH /users/:id/lock */
   unlock: (id: string | number) =>
-    apiClient.del<ApiResponse<User>>(`${serviceUserPath}/${id}/lock`),
+    apiClient.patch<ApiResponse<User>>(`${serviceUserPath}/${id}/lock`),
 
   /** DELETE /users/batch */
   batchDelete: (userIds: Array<string | number>) =>

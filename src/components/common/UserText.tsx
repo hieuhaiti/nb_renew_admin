@@ -26,7 +26,7 @@ export function UserText({ userId, inlineUser, fallback = '-' }: UserTextProps) 
   // 1. userId fetch
   if (userId) {
     if (q.isLoading) return <span className="text-muted-foreground text-xs">...</span>
-    const user = (q.data as ApiResponse<{ user: User }>)?.data?.user
+    const user = (q.data as unknown as ApiResponse<{ user: User }>)?.data?.user
     if (user) {
       const display = user.full_name || user.username || user.email || user.phone || String(user.id)
       return (

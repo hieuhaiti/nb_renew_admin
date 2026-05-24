@@ -18,6 +18,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -215,25 +216,16 @@ export default function SpotPage(): JSX.Element {
                 <SelectItem value="pending">Chờ duyệt</SelectItem>
               </SelectContent>
             </Select>
-            <Select
+            <SearchSelect
+              options={[
+                { value: 'all', label: 'Tất cả danh mục' },
+                ...filterCategories.map((c) => ({ value: `${c.id}`, label: c.name_vi })),
+              ]}
               value={categoryFilter}
-              onValueChange={(v) => {
-                setCategoryFilter(v)
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Danh mục" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả danh mục</SelectItem>
-                {filterCategories.map((category) => (
-                  <SelectItem key={category.id} value={`${category.id}`}>
-                    {category.name_vi}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onValueChange={(v) => { setCategoryFilter(v); setCurrentPage(1) }}
+              placeholder="Danh mục"
+              className="w-48"
+            />
             <Input
               value={provinceCodeFilter}
               onChange={(e) => {

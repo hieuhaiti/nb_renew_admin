@@ -52,4 +52,5 @@ export interface MapLayerListParams {
   sortOrder?: 'ASC' | 'DESC'
   category_id?: number
   geometry_type?: string
+  slug?: string
 }

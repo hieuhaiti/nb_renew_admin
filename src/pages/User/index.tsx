@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Lock, Pen, Plus, Trash2 } from 'lucide-react'
+import { Lock, LockOpen, Pen, Plus, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { toast } from 'react-toastify'
 import { STALE_HOT } from '@/constant/queryConstant'
@@ -78,6 +78,8 @@ export default function User(): JSX.Element {
   const [lockDialogOpen, setLockDialogOpen] = useState(false)
   const [userToLock, setUserToLock] = useState<User | null>(null)
   const [lockReason, setLockReason] = useState('')
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false)
+  const [userToUnlock, setUserToUnlock] = useState<User | null>(null)
 
   const currentUserQuery = useApiQuery(
     ['currentUser'],
@@ -107,6 +109,18 @@ export default function User(): JSX.Element {
         dbQuery.refetch()
         setFormDialogOpen(false)
         setSelectedUserId(null)
+      },
+    },
+    true
+  )
+
+  const unlockMutation = useApiMutation(
+    (id: string) => userService.unlock(id),
+    {
+      onSuccess: () => {
+        dbQuery.refetch()
+        setUnlockDialogOpen(false)
+        setUserToUnlock(null)
       },
     },
     true
@@ -146,6 +160,11 @@ export default function User(): JSX.Element {
     setLockReason('')
     setUserToLock(u)
     setLockDialogOpen(true)
+  }
+
+  function openUnlockDialog(u: User) {
+    setUserToUnlock(u)
+    setUnlockDialogOpen(true)
   }
 
   function openDeleteDialog(u: User) {
@@ -255,17 +274,31 @@ export default function User(): JSX.Element {
                       >
                         <Pen className="size-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openLockDialog(u)
-                        }}
-                        title="Khóa tài khoản"
-                      >
-                        <Lock className="text-muted-foreground size-4" />
-                      </Button>
+                      {!u.is_active ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openUnlockDialog(u)
+                          }}
+                          title="Mở khóa tài khoản"
+                        >
+                          <LockOpen className="text-warning size-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openLockDialog(u)
+                          }}
+                          title="Khóa tài khoản"
+                        >
+                          <Lock className="text-muted-foreground size-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -332,6 +365,27 @@ export default function User(): JSX.Element {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {lockMutation.isPending ? 'Đang khóa...' : 'Xác nhận khóa'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={unlockDialogOpen} onOpenChange={setUnlockDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mở khóa tài khoản</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn mở khóa tài khoản &quot;
+              {userToUnlock?.full_name || userToUnlock?.email}&quot;?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => userToUnlock && unlockMutation.mutate(userToUnlock.id)}
+              disabled={unlockMutation.isPending}
+            >
+              {unlockMutation.isPending ? 'Đang mở khóa...' : 'Xác nhận mở khóa'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

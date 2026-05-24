@@ -9,6 +9,7 @@ import type {
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import {
   Select,
   SelectTrigger,
@@ -156,18 +157,13 @@ export default function BusinessEnterpriseView(): JSX.Element {
           {bizListQuery.isLoading ? (
             <p className="text-muted-foreground text-sm">Đang tải...</p>
           ) : (
-            <Select value={selectedBizId} onValueChange={setSelectedBizId}>
-              <SelectTrigger className="w-72">
-                <SelectValue placeholder="-- Chọn doanh nghiệp --" />
-              </SelectTrigger>
-              <SelectContent>
-                {businesses.map((biz) => (
-                  <SelectItem key={biz.id} value={String(biz.id)}>
-                    {bizLabel(biz)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchSelect
+              options={businesses.map((biz) => ({ value: String(biz.id), label: bizLabel(biz) }))}
+              value={selectedBizId}
+              onValueChange={setSelectedBizId}
+              placeholder="-- Chọn doanh nghiệp --"
+              className="w-72"
+            />
           )}
         </div>
         {bizListQuery.isError && (

@@ -1,9 +1,10 @@
 import type { JSX } from 'react'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useApiQuery, useApiMutation, governanceService, roleService } from '@/service'
 import type {
   ApiResponse,
   GovernanceAdminDashboard,
+  GovernanceTrafficData,
   GovernancePermission,
   GovernancePermissionCreateBody,
 } from '@/types/api'
@@ -29,14 +30,24 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Users, Building2, AlertTriangle, ShieldCheck, Plus, Activity } from 'lucide-react'
+import {
+  Users,
+  FileText,
+  ShieldCheck,
+  Plus,
+  Activity,
+  Utensils,
+  PartyPopper,
+  Package,
+  BookOpen,
+  Eye,
+  TrendingUp,
+  MapPin,
+  Layers,
+  Globe,
+} from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import BusinessEnterpriseView from './BusinessEnterpriseView'
 import { useForm, type SubmitHandler } from 'react-hook-form'
@@ -93,17 +104,18 @@ function normalizePermissions(data: unknown): GovernancePermission[] {
   return []
 }
 
-function normalizeRoles(data: unknown): { id: number; name: string }[] {
-  if (Array.isArray(data)) return data as { id: number; name: string }[]
+function normalizeRoles(data: unknown): { id: number; name_vi: string; code: string }[] {
+  if (Array.isArray(data)) return data as { id: number; name_vi: string; code: string }[]
   if (!data || typeof data !== 'object') return []
   const r = data as Record<string, unknown>
   const candidates = [r.data, r.roles, r.items]
   for (const c of candidates) {
-    if (Array.isArray(c)) return c as { id: number; name: string }[]
+    if (Array.isArray(c)) return c as { id: number; name_vi: string; code: string }[]
     if (c && typeof c === 'object') {
       const nested = c as Record<string, unknown>
       for (const key of ['data', 'roles', 'items']) {
-        if (Array.isArray(nested[key])) return nested[key] as { id: number; name: string }[]
+        if (Array.isArray(nested[key]))
+          return nested[key] as { id: number; name_vi: string; code: string }[]
       }
     }
   }
@@ -130,28 +142,55 @@ export default function GovernanceAdminPage(): JSX.Element {
     false,
     false
   )
-  const trafficItems: any[] = (() => {
-    const d = trafficQuery.data?.data
-    if (Array.isArray(d)) return d
-    if (d && typeof d === 'object') {
-      const r = d as Record<string, unknown>
-      for (const key of ['data', 'items', 'traffic']) {
-        if (Array.isArray(r[key])) return r[key] as any[]
-      }
+  const trafficData: GovernanceTrafficData = (() => {
+    const d = trafficQuery.data?.data as Record<string, unknown> | undefined
+    return {
+      time_series: Array.isArray(d?.time_series)
+        ? (d!.time_series as Record<string, unknown>[])
+        : [],
+      top_sources: Array.isArray(d?.top_sources)
+        ? (d!.top_sources as Record<string, unknown>[])
+        : [],
+      top_actions: Array.isArray(d?.top_actions)
+        ? (d!.top_actions as GovernanceTrafficData['top_actions'])
+        : [],
     }
-    return []
   })()
 
   // ─── Permissions ────────────────────────────────────────────────────────────
+  const PERM_LIMIT = 50
   const [permSearch, setPermSearch] = useState('')
+  const [permPage, setPermPage] = useState(1)
   const permQuery = useApiQuery(
-    ['governance-admin-permissions', permSearch],
-    () => governanceService.getPermissions({ search: permSearch || undefined, limit: 50 }),
+    ['governance-admin-permissions', permSearch, permPage],
+    () =>
+      governanceService.getPermissions({
+        search: permSearch || undefined,
+        limit: PERM_LIMIT,
+        page: permPage,
+      }),
     { staleTime: STALE_DEFAULT },
     false,
     false
   )
+  const permPagination = (permQuery.data?.data as Record<string, unknown> | undefined)
+    ?.pagination as { total: number; totalPages: number; page: number } | undefined
   const permissions = normalizePermissions(permQuery.data?.data)
+
+  // Fetch all permissions (no search, high limit) for role-permission assignment checkboxes
+  const allPermsQuery = useApiQuery(
+    ['governance-admin-permissions-all'],
+    () => governanceService.getPermissions({ limit: 100 }),
+    { staleTime: STALE_REF },
+    false,
+    false
+  )
+  const allPermissions = normalizePermissions(allPermsQuery.data?.data)
+
+  function handlePermSearchChange(value: string) {
+    setPermSearch(value)
+    setPermPage(1)
+  }
 
   const [permDialogOpen, setPermDialogOpen] = useState(false)
   const createPermMutation = useApiMutation(
@@ -200,16 +239,40 @@ export default function GovernanceAdminPage(): JSX.Element {
     const d = rolePermsQuery.data?.data
     if (!d || typeof d !== 'object') return []
     const r = d as Record<string, unknown>
-    const list = r.permissions ?? r.items ?? r.data
+    const list = r.items ?? r.permissions ?? r.data
     if (!Array.isArray(list)) return []
-    return (list as GovernancePermission[]).map((p) => p.id)
+    return (list as Array<{ permission_id?: number; id?: number }>)
+      .map((p) => p.permission_id ?? p.id ?? 0)
+      .filter(Boolean) as number[]
   })()
 
   const [selectedPermIds, setSelectedPermIds] = useState<number[]>([])
 
+  useEffect(() => {
+    if (rolePermsQuery.dataUpdatedAt) {
+      setSelectedPermIds(assignedPermIds)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rolePermsQuery.dataUpdatedAt])
+
+  const permsByResource = useMemo(() => {
+    const map = new Map<string, GovernancePermission[]>()
+    for (const p of allPermissions) {
+      const group = map.get(p.resource) ?? []
+      group.push(p)
+      map.set(p.resource, group)
+    }
+    return map
+  }, [allPermissions])
+
   function togglePermId(id: number) {
+    setSelectedPermIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  function toggleResourceGroup(perms: GovernancePermission[], allChecked: boolean) {
+    const ids = perms.map((p) => p.id)
     setSelectedPermIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      allChecked ? prev.filter((x) => !ids.includes(x)) : [...new Set([...prev, ...ids])]
     )
   }
 
@@ -221,7 +284,10 @@ export default function GovernanceAdminPage(): JSX.Element {
   )
 
   return (
-    <PageLayout title="Quản trị Admin" description="Tổng quan hệ thống, lưu lượng truy cập và phân quyền">
+    <PageLayout
+      title="Quản trị Admin"
+      description="Tổng quan hệ thống, lưu lượng truy cập và phân quyền"
+    >
       <Tabs defaultValue="dashboard" className="flex flex-col gap-4">
         <TabsList className="w-fit">
           <TabsTrigger value="dashboard">Tổng quan</TabsTrigger>
@@ -232,133 +298,301 @@ export default function GovernanceAdminPage(): JSX.Element {
         </TabsList>
 
         {/* ── Tab: Dashboard ── */}
-        <TabsContent value="dashboard" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            <StatCard
-              icon={<Users className="size-5" />}
-              label="Tổng người dùng"
-              value={dashboard.total_users ?? '-'}
-            />
-            <StatCard
-              icon={<Activity className="size-5" />}
-              label="Đang hoạt động"
-              value={dashboard.active_users ?? '-'}
-              colorClass="text-success"
-            />
-            <StatCard
-              icon={<Building2 className="size-5" />}
-              label="Doanh nghiệp"
-              value={dashboard.total_businesses ?? '-'}
-              colorClass="text-blue-600"
-            />
-            <StatCard
-              icon={<AlertTriangle className="size-5" />}
-              label="Phản ánh chờ xử lý"
-              value={dashboard.pending_feedbacks ?? '-'}
-              colorClass="text-warning"
-            />
-            <StatCard
-              icon={<ShieldCheck className="size-5" />}
-              label="Tổng vai trò"
-              value={dashboard.total_roles ?? '-'}
-              colorClass="text-purple-600"
-            />
-          </div>
-
+        <TabsContent value="dashboard" className="space-y-6">
           {dashboardQuery.isLoading && (
             <p className="text-muted-foreground text-sm">Đang tải tổng quan...</p>
           )}
           {dashboardQuery.isError && (
             <p className="text-destructive text-sm">Không thể tải dữ liệu tổng quan.</p>
           )}
+
+          <div className="space-y-2">
+            <p className="typo-label text-muted-foreground px-1">Người dùng</p>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <StatCard
+                icon={<Users className="size-5" />}
+                label="Tổng người dùng"
+                value={dashboard.total_users ?? '-'}
+              />
+              <StatCard
+                icon={<Activity className="size-5" />}
+                label="Đang hoạt động"
+                value={dashboard.active_users ?? '-'}
+                colorClass="text-success"
+              />
+              <StatCard
+                icon={<ShieldCheck className="size-5" />}
+                label="Tổng quyền hạn"
+                value={dashboard.total_permissions ?? '-'}
+                colorClass="text-purple-600"
+              />
+              <StatCard
+                icon={<BookOpen className="size-5" />}
+                label="Audit logs (kỳ)"
+                value={dashboard.audit_logs_in_range ?? '-'}
+                colorClass="text-slate-600"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="typo-label text-muted-foreground px-1">Nội dung</p>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <StatCard
+                icon={<FileText className="size-5" />}
+                label="Tin tức"
+                value={dashboard.total_news ?? '-'}
+                colorClass="text-blue-600"
+              />
+              <StatCard
+                icon={<Utensils className="size-5" />}
+                label="Ẩm thực"
+                value={dashboard.total_cuisine_items ?? '-'}
+                colorClass="text-orange-500"
+              />
+              <StatCard
+                icon={<PartyPopper className="size-5" />}
+                label="Lễ hội"
+                value={dashboard.total_festivals ?? '-'}
+                colorClass="text-pink-600"
+              />
+              <StatCard
+                icon={<Package className="size-5" />}
+                label="Sản phẩm OCOP"
+                value={dashboard.total_ocop_products ?? '-'}
+                colorClass="text-emerald-600"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="typo-label text-muted-foreground px-1">Bản đồ</p>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <StatCard
+                icon={<MapPin className="size-5" />}
+                label="Danh mục bản đồ"
+                value={dashboard.total_map_categories ?? '-'}
+                colorClass="text-cyan-600"
+              />
+              <StatCard
+                icon={<Layers className="size-5" />}
+                label="Lớp bản đồ"
+                value={dashboard.total_map_layers ?? '-'}
+                colorClass="text-cyan-600"
+              />
+              <StatCard
+                icon={<Globe className="size-5" />}
+                label="API bản đồ"
+                value={dashboard.total_map_apis ?? '-'}
+                colorClass="text-cyan-600"
+              />
+              <StatCard
+                icon={<Eye className="size-5" />}
+                label="Lượt truy cập (kỳ)"
+                value={dashboard.visits_in_range ?? '-'}
+                colorClass="text-indigo-500"
+              />
+            </div>
+          </div>
         </TabsContent>
 
         {/* ── Tab: Traffic ── */}
         <TabsContent value="traffic" className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Label className="shrink-0">Số ngày</Label>
-            <Select value={trafficDays} onValueChange={setTrafficDays}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">7 ngày</SelectItem>
-                <SelectItem value="14">14 ngày</SelectItem>
-                <SelectItem value="30">30 ngày</SelectItem>
-                <SelectItem value="60">60 ngày</SelectItem>
-                <SelectItem value="90">90 ngày</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Label className="shrink-0">Số ngày</Label>
+              <Select value={trafficDays} onValueChange={setTrafficDays}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 ngày</SelectItem>
+                  <SelectItem value="14">14 ngày</SelectItem>
+                  <SelectItem value="30">30 ngày</SelectItem>
+                  <SelectItem value="60">60 ngày</SelectItem>
+                  <SelectItem value="90">90 ngày</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => trafficQuery.refetch()}
+              disabled={trafficQuery.isFetching}
+            >
+              {trafficQuery.isFetching ? 'Đang tải...' : 'Làm mới'}
+            </Button>
           </div>
 
-          <ToolTableCustom
-            searchValue=""
-            setSearchValue={() => {}}
-            dataUpdatedAt={trafficQuery.dataUpdatedAt}
-            onRefresh={() => trafficQuery.refetch()}
-            isRefreshing={trafficQuery.isFetching && !trafficQuery.isLoading}
-            total={trafficItems.length}
-          >
-            <Table className="relative">
-              <TableHeader className="sticky top-0 z-20">
-                <TableRow>
-                  <TableHead>Ngày</TableHead>
-                  <TableHead className="text-right">Lượt truy cập</TableHead>
-                  <TableHead className="text-right">Phiên</TableHead>
-                  <TableHead className="text-right">Trang xem</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {trafficQuery.isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
-                      Đang tải...
-                    </TableCell>
-                  </TableRow>
-                ) : trafficItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
-                      Không có dữ liệu
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  trafficItems.map((item: any, idx: number) => (
-                    <TableRow key={idx}>
-                      <TableCell className="typo-table-cell">
-                        {item.date ?? item.day ?? item.week ?? item.month ?? '-'}
-                      </TableCell>
-                      <TableCell className="typo-table-cell text-right">
-                        {item.visitors?.toLocaleString('vi-VN') ?? '-'}
-                      </TableCell>
-                      <TableCell className="typo-table-cell text-right">
-                        {item.sessions?.toLocaleString('vi-VN') ?? '-'}
-                      </TableCell>
-                      <TableCell className="typo-table-cell text-right">
-                        {item.pageviews?.toLocaleString('vi-VN') ?? '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </ToolTableCustom>
+          {trafficQuery.isLoading ? (
+            <p className="text-muted-foreground text-sm">Đang tải dữ liệu...</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {/* Top Actions */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <TrendingUp className="size-4" />
+                    Top hành động
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {trafficData.top_actions.length === 0 ? (
+                    <p className="text-muted-foreground px-6 pb-4 text-sm">Không có dữ liệu</p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-8">#</TableHead>
+                          <TableHead>Hành động</TableHead>
+                          <TableHead className="text-right">Lượt</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {trafficData.top_actions.map((item, idx) => {
+                          const [resource, action] = item.action.split('.')
+                          return (
+                            <TableRow key={item.action}>
+                              <TableCell className="text-muted-foreground typo-table-cell w-8">
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell className="typo-table-cell">
+                                <span className="flex items-center gap-2">
+                                  <Badge variant="outline">{resource}</Badge>
+                                  <Badge variant="secondary">{action}</Badge>
+                                </span>
+                              </TableCell>
+                              <TableCell className="typo-table-cell text-right font-medium">
+                                {Number(item.count).toLocaleString('vi-VN')}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Top Sources */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Globe className="size-4" />
+                    Top nguồn truy cập
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {trafficData.top_sources.length === 0 ? (
+                    <p className="text-muted-foreground px-6 pb-4 text-sm">Không có dữ liệu</p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nguồn</TableHead>
+                          <TableHead className="text-right">Lượt</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {trafficData.top_sources.map((item, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="typo-table-cell">
+                              {String(item.source ?? item.name ?? '-')}
+                            </TableCell>
+                            <TableCell className="typo-table-cell text-right font-medium">
+                              {Number(item.count ?? item.visits ?? 0).toLocaleString('vi-VN')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Time Series */}
+              <Card className="lg:col-span-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="size-4" />
+                    Chuỗi thời gian
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {trafficData.time_series.length === 0 ? (
+                    <p className="text-muted-foreground px-6 pb-4 text-sm">Không có dữ liệu</p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Ngày</TableHead>
+                          <TableHead className="text-right">Lượt truy cập</TableHead>
+                          <TableHead className="text-right">Phiên</TableHead>
+                          <TableHead className="text-right">Trang xem</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {trafficData.time_series.map((item, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="typo-table-cell">
+                              {String(item.date ?? item.day ?? item.week ?? item.month ?? '-')}
+                            </TableCell>
+                            <TableCell className="typo-table-cell text-right">
+                              {item.visitors != null
+                                ? Number(item.visitors).toLocaleString('vi-VN')
+                                : '-'}
+                            </TableCell>
+                            <TableCell className="typo-table-cell text-right">
+                              {item.sessions != null
+                                ? Number(item.sessions).toLocaleString('vi-VN')
+                                : '-'}
+                            </TableCell>
+                            <TableCell className="typo-table-cell text-right">
+                              {item.pageviews != null
+                                ? Number(item.pageviews).toLocaleString('vi-VN')
+                                : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
         {/* ── Tab: Permissions ── */}
         <TabsContent value="permissions" className="space-y-4">
           <ToolTableCustom
             searchValue={permSearch}
-            setSearchValue={setPermSearch}
+            setSearchValue={handlePermSearchChange}
             dataUpdatedAt={permQuery.dataUpdatedAt}
             onRefresh={() => permQuery.refetch()}
             isRefreshing={permQuery.isFetching && !permQuery.isLoading}
             filter={
-              <Button variant="default" onClick={() => { permForm.reset(); setPermDialogOpen(true) }}>
+              <Button
+                variant="default"
+                onClick={() => {
+                  permForm.reset()
+                  setPermDialogOpen(true)
+                }}
+              >
                 <Plus className="mr-1 size-4" />
                 Thêm quyền
               </Button>
             }
-            total={permissions.length}
+            total={permPagination?.total ?? permissions.length}
+            pagination={
+              permPagination && permPagination.totalPages > 1
+                ? {
+                    currentPage: permPage,
+                    totalPages: permPagination.totalPages,
+                    onPageChange: setPermPage,
+                  }
+                : undefined
+            }
           >
             <Table className="relative">
               <TableHeader className="sticky top-0 z-20">
@@ -374,11 +608,15 @@ export default function GovernanceAdminPage(): JSX.Element {
               <TableBody>
                 {permQuery.isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-muted-foreground text-center">Đang tải...</TableCell>
+                    <TableCell colSpan={6} className="text-muted-foreground text-center">
+                      Đang tải...
+                    </TableCell>
                   </TableRow>
                 ) : permissions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-muted-foreground text-center">Không có dữ liệu</TableCell>
+                    <TableCell colSpan={6} className="text-muted-foreground text-center">
+                      Không có dữ liệu
+                    </TableCell>
                   </TableRow>
                 ) : (
                   permissions.map((perm: GovernancePermission) => (
@@ -391,7 +629,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                         <Badge variant="secondary">{perm.action}</Badge>
                       </TableCell>
                       <TableCell className="typo-table-cell font-medium">{perm.name_vi}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-64 typo-table-cell">
+                      <TableCell className="text-muted-foreground typo-table-cell max-w-64">
                         <span className="line-clamp-1">{perm.description || '-'}</span>
                       </TableCell>
                       <TableCell className="typo-table-cell">
@@ -414,18 +652,30 @@ export default function GovernanceAdminPage(): JSX.Element {
                     <Label htmlFor="perm-resource">
                       Resource <span className="text-destructive">*</span>
                     </Label>
-                    <Input id="perm-resource" {...permForm.register('resource')} placeholder="vd: spots" />
+                    <Input
+                      id="perm-resource"
+                      {...permForm.register('resource')}
+                      placeholder="vd: spots"
+                    />
                     {permForm.formState.errors.resource && (
-                      <p className="text-destructive text-sm">{permForm.formState.errors.resource.message}</p>
+                      <p className="text-destructive text-sm">
+                        {permForm.formState.errors.resource.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="perm-action">
                       Action <span className="text-destructive">*</span>
                     </Label>
-                    <Input id="perm-action" {...permForm.register('action')} placeholder="vd: read" />
+                    <Input
+                      id="perm-action"
+                      {...permForm.register('action')}
+                      placeholder="vd: read"
+                    />
                     {permForm.formState.errors.action && (
-                      <p className="text-destructive text-sm">{permForm.formState.errors.action.message}</p>
+                      <p className="text-destructive text-sm">
+                        {permForm.formState.errors.action.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -433,17 +683,30 @@ export default function GovernanceAdminPage(): JSX.Element {
                   <Label htmlFor="perm-name-vi">
                     Tên tiếng Việt <span className="text-destructive">*</span>
                   </Label>
-                  <Input id="perm-name-vi" {...permForm.register('name_vi')} placeholder="vd: Xem điểm tham quan" />
+                  <Input
+                    id="perm-name-vi"
+                    {...permForm.register('name_vi')}
+                    placeholder="vd: Xem điểm tham quan"
+                  />
                   {permForm.formState.errors.name_vi && (
-                    <p className="text-destructive text-sm">{permForm.formState.errors.name_vi.message}</p>
+                    <p className="text-destructive text-sm">
+                      {permForm.formState.errors.name_vi.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="perm-desc">Mô tả</Label>
-                  <Textarea id="perm-desc" {...permForm.register('description')} placeholder="Mô tả chi tiết quyền hạn" rows={2} />
+                  <Textarea
+                    id="perm-desc"
+                    {...permForm.register('description')}
+                    placeholder="Mô tả chi tiết quyền hạn"
+                    rows={2}
+                  />
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setPermDialogOpen(false)}>Hủy</Button>
+                  <Button type="button" variant="outline" onClick={() => setPermDialogOpen(false)}>
+                    Hủy
+                  </Button>
                   <Button type="submit" disabled={createPermMutation.isPending}>
                     {createPermMutation.isPending ? 'Đang tạo...' : 'Tạo mới'}
                   </Button>
@@ -475,7 +738,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                   <SelectContent>
                     {roles.map((r) => (
                       <SelectItem key={r.id} value={String(r.id)}>
-                        {r.name}
+                        {r.name_vi}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -484,51 +747,102 @@ export default function GovernanceAdminPage(): JSX.Element {
 
               {selectedRoleId && (
                 <>
-                  {rolePermsQuery.isLoading ? (
+                  {rolePermsQuery.isLoading || allPermsQuery.isLoading ? (
                     <p className="text-muted-foreground text-sm">Đang tải quyền vai trò...</p>
                   ) : (
-                    <div className="space-y-2">
-                      <p className="typo-label text-muted-foreground">
-                        Đang gán: {selectedPermIds.length} quyền được chọn (hiện tại: {assignedPermIds.length})
-                      </p>
-                      <div className="border-border max-h-72 overflow-y-auto rounded-md border">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="typo-label text-muted-foreground">
+                          Đã chọn{' '}
+                          <span className="text-foreground font-medium">
+                            {selectedPermIds.length}
+                          </span>{' '}
+                          / {allPermissions.length} quyền
+                          {assignedPermIds.length > 0 && (
+                            <span className="ml-2 opacity-60">
+                              (đang gán: {assignedPermIds.length})
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedPermIds(allPermissions.map((p) => p.id))}
+                          >
+                            Chọn tất cả
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setSelectedPermIds([])}>
+                            Bỏ chọn tất cả
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="border-border max-h-96 overflow-y-auto rounded-md border">
                         <Table>
-                          <TableHeader className="sticky top-0 z-10">
-                            <TableRow>
-                              <TableHead className="w-10"></TableHead>
-                              <TableHead>Resource</TableHead>
-                              <TableHead>Action</TableHead>
-                              <TableHead>Tên</TableHead>
-                            </TableRow>
-                          </TableHeader>
                           <TableBody>
-                            {permissions.map((perm: GovernancePermission) => (
-                              <TableRow
-                                key={perm.id}
-                                className="cursor-pointer"
-                                onClick={() => togglePermId(perm.id)}
-                              >
-                                <TableCell>
-                                  <input
-                                    type="checkbox"
-                                    readOnly
-                                    checked={
-                                      selectedPermIds.length > 0
-                                        ? selectedPermIds.includes(perm.id)
-                                        : assignedPermIds.includes(perm.id)
-                                    }
-                                    className="accent-primary size-4"
-                                  />
-                                </TableCell>
-                                <TableCell><Badge variant="outline">{perm.resource}</Badge></TableCell>
-                                <TableCell><Badge variant="secondary">{perm.action}</Badge></TableCell>
-                                <TableCell className="typo-table-cell">{perm.name_vi}</TableCell>
-                              </TableRow>
-                            ))}
+                            {Array.from(permsByResource.entries()).map(([resource, perms]) => {
+                              const allChecked = perms.every((p) => selectedPermIds.includes(p.id))
+                              const someChecked = perms.some((p) => selectedPermIds.includes(p.id))
+                              return (
+                                <>
+                                  <TableRow
+                                    key={`group-${resource}`}
+                                    className="bg-muted/40 hover:bg-muted/60 cursor-pointer"
+                                    onClick={() => toggleResourceGroup(perms, allChecked)}
+                                  >
+                                    <TableCell className="w-10">
+                                      <input
+                                        type="checkbox"
+                                        readOnly
+                                        checked={allChecked}
+                                        ref={(el) => {
+                                          if (el) el.indeterminate = !allChecked && someChecked
+                                        }}
+                                        className="accent-primary size-4"
+                                      />
+                                    </TableCell>
+                                    <TableCell colSpan={3}>
+                                      <span className="flex items-center gap-2">
+                                        <Badge variant="outline" className="font-mono">
+                                          {resource}
+                                        </Badge>
+                                        <span className="text-muted-foreground text-xs">
+                                          {perms.length} quyền
+                                        </span>
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                  {perms.map((perm) => (
+                                    <TableRow
+                                      key={perm.id}
+                                      className="cursor-pointer"
+                                      onClick={() => togglePermId(perm.id)}
+                                    >
+                                      <TableCell className="w-10">
+                                        <input
+                                          type="checkbox"
+                                          readOnly
+                                          checked={selectedPermIds.includes(perm.id)}
+                                          className="accent-primary size-4"
+                                        />
+                                      </TableCell>
+                                      <TableCell className="w-32 pl-6">
+                                        <Badge variant="secondary">{perm.action}</Badge>
+                                      </TableCell>
+                                      <TableCell colSpan={2} className="typo-table-cell">
+                                        {perm.name_vi}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </>
+                              )
+                            })}
                           </TableBody>
                         </Table>
                       </div>
-                      <div className="flex justify-end gap-2 pt-2">
+
+                      <div className="flex justify-end gap-2 pt-1">
                         <Button
                           variant="outline"
                           onClick={() => setSelectedPermIds(assignedPermIds)}
@@ -539,8 +853,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                           onClick={() =>
                             setRolePermsMutation.mutate({
                               roleId: Number(selectedRoleId),
-                              permission_ids:
-                                selectedPermIds.length > 0 ? selectedPermIds : assignedPermIds,
+                              permission_ids: selectedPermIds,
                             })
                           }
                           disabled={setRolePermsMutation.isPending}

@@ -1,7 +1,14 @@
 import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
-import { useApiQuery, useApiMutation, newsCommentService } from '@/service'
-import type { ApiResponse, NewsComment, NewsCommentListData, Pagination } from '@/types/api'
+import { useApiQuery, useApiMutation, newsCommentService, newsService } from '@/service'
+import type {
+  ApiResponse,
+  News,
+  NewsComment,
+  NewsCommentListData,
+  NewsListData,
+  Pagination,
+} from '@/types/api'
 import {
   Select,
   SelectTrigger,
@@ -31,13 +38,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { MessagesSquare, Search, Trash2 } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Check, ChevronDown, MessagesSquare, Pen, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import NewsCommentDetailDialog from './NewsCommentDetailDialog'
 import NewsCommentFormDialog from './NewsCommentFormDialog'
 import { formatDate } from '@/lib/date'
-import { STALE_HOT } from '@/constant/queryConstant'
+import { STALE_HOT, STALE_DEFAULT } from '@/constant/queryConstant'
+import { cn } from '@/lib/utils'
 
 const APPROVED_LABEL: Record<string, string> = {
   true: 'Đã duyệt',
@@ -53,8 +62,25 @@ const APPROVED_DOT: Record<string, string> = {
 }
 
 export default function NewsComments(): JSX.Element {
-  const [newsIdInput, setNewsIdInput] = useState<string>('')
+  // ── News picker ────────────────────────────────────────────────────────────
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerSearch, setPickerSearch] = useState('')
   const [activeNewsId, setActiveNewsId] = useState<string>('')
+  const [activeNewsTitle, setActiveNewsTitle] = useState<string>('')
+
+  const newsListQuery = useApiQuery(
+    ['news-picker'],
+    () => newsService.getAllAdmin({ limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
+    { staleTime: STALE_DEFAULT },
+    false,
+    false
+  )
+  const allNews: News[] = (newsListQuery.data as ApiResponse<NewsListData>)?.data?.items ?? []
+  const filteredNews = pickerSearch.trim()
+    ? allNews.filter((n) => n.title.toLowerCase().includes(pickerSearch.toLowerCase()))
+    : allNews
+
+  // ── Comments query ─────────────────────────────────────────────────────────
   const [searchValue, setSearchValue] = useState<string>('')
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
@@ -77,11 +103,12 @@ export default function NewsComments(): JSX.Element {
   )
 
   const data = (dbQuery.data as ApiResponse<NewsCommentListData>)?.data
-  const allComments = data?.comments ?? []
+  const allComments = data?.items ?? []
   const comments = searchValue
-    ? allComments.filter((c: NewsComment) =>
-        c.content?.toLowerCase().includes(searchValue.toLowerCase()) ||
-        c.user_name?.toLowerCase().includes(searchValue.toLowerCase())
+    ? allComments.filter(
+        (c: NewsComment) =>
+          c.content?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          c.user_name?.toLowerCase().includes(searchValue.toLowerCase())
       )
     : allComments
   const pagination = (data?.pagination ?? {}) as Partial<Pagination>
@@ -94,13 +121,16 @@ export default function NewsComments(): JSX.Element {
     if (currentPage > totalPages) setCurrentPage(totalPages)
   }, [currentPage, totalPages])
 
+  // ── Dialog state ───────────────────────────────────────────────────────────
   const [selectedComment, setSelectedComment] = useState<NewsComment | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [formDialogOpen, setFormDialogOpen] = useState(false)
+  const [commentToEdit, setCommentToEdit] = useState<NewsComment | null>(null)
+  const [commentToReply, setCommentToReply] = useState<NewsComment | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [commentToDelete, setCommentToDelete] = useState<NewsComment | null>(null)
-  const [formDialogOpen, setFormDialogOpen] = useState(false)
-  const [commentToReply, setCommentToReply] = useState<NewsComment | null>(null)
 
+  // ── Mutations ──────────────────────────────────────────────────────────────
   const setApprovalMutation = useApiMutation(
     (payload: { newsId: string; commentId: string; is_approved: boolean }) =>
       newsCommentService.setApproval(payload.newsId, payload.commentId, payload.is_approved),
@@ -121,32 +151,82 @@ export default function NewsComments(): JSX.Element {
     true
   )
 
-  function handleSearch() {
-    if (newsIdInput.trim()) {
-      setActiveNewsId(newsIdInput.trim())
-      setCurrentPage(1)
-    }
+  function selectNews(news: News) {
+    setActiveNewsId(news.id)
+    setActiveNewsTitle(news.title)
+    setPickerOpen(false)
+    setPickerSearch('')
+    setCurrentPage(1)
+  }
+
+  function openEdit(c: NewsComment) {
+    setCommentToEdit(c)
+    setCommentToReply(null)
+    setFormDialogOpen(true)
+  }
+
+  function openReply(c: NewsComment) {
+    setCommentToReply(c)
+    setCommentToEdit(null)
+    setFormDialogOpen(true)
   }
 
   return (
     <PageLayout title="Bình luận tin tức" description="Quản lý bình luận theo bài viết">
-      <div className="mb-4 flex items-center gap-2">
-        <Input
-          className="max-w-xs"
-          placeholder="Nhập ID bài viết..."
-          value={newsIdInput}
-          onChange={(e) => setNewsIdInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <Button variant="outline" onClick={handleSearch}>
-          <Search className="mr-1 size-4" />
-          Xem bình luận
-        </Button>
-        {activeNewsId && (
-          <span className="text-muted-foreground text-sm">
-            Bài viết: <span className="font-mono">{activeNewsId}</span>
-          </span>
-        )}
+      {/* ── News picker ── */}
+      <div className="mb-4">
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={pickerOpen}
+              className="w-full max-w-lg justify-between"
+            >
+              <span className={cn('truncate', !activeNewsTitle && 'text-muted-foreground')}>
+                {activeNewsTitle || 'Chọn bài viết để xem bình luận...'}
+              </span>
+              <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+            <div className="p-2">
+              <Input
+                placeholder="Tìm tiêu đề bài viết..."
+                value={pickerSearch}
+                onChange={(e) => setPickerSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              {newsListQuery.isLoading ? (
+                <p className="text-muted-foreground p-3 text-center text-sm">Đang tải...</p>
+              ) : filteredNews.length === 0 ? (
+                <p className="text-muted-foreground p-3 text-center text-sm">Không tìm thấy</p>
+              ) : (
+                filteredNews.map((n) => (
+                  <button
+                    key={n.id}
+                    type="button"
+                    className={cn(
+                      'hover:bg-accent flex w-full items-start gap-2 px-3 py-2 text-left text-sm',
+                      activeNewsId === n.id && 'bg-accent'
+                    )}
+                    onClick={() => selectNews(n)}
+                  >
+                    <Check
+                      className={cn(
+                        'mt-0.5 size-4 shrink-0',
+                        activeNewsId === n.id ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                    <span className="line-clamp-2">{n.title}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <ToolTableCustom
@@ -205,31 +285,30 @@ export default function NewsComments(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead className="w-48">ID</TableHead>
               <TableHead>Người bình luận</TableHead>
               <TableHead>Nội dung</TableHead>
-              <TableHead className="w-28">Trạng thái</TableHead>
-              <TableHead className="w-32">Ngày tạo</TableHead>
-              <TableHead className="w-28 text-right">Hành động</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Ngày tạo</TableHead>
+              <TableHead className="w-36 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {!activeNewsId ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-muted-foreground text-center">
-                  Nhập ID bài viết để xem bình luận
+                <TableCell colSpan={5} className="text-muted-foreground text-center">
+                  Chọn bài viết ở trên để xem bình luận
                 </TableCell>
               </TableRow>
             ) : comments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-muted-foreground text-center">
+                <TableCell colSpan={5} className="text-muted-foreground text-center">
                   Không có bình luận
                 </TableCell>
               </TableRow>
             ) : (
               comments.map((c: NewsComment) => (
                 <TableRow
-                  className="hover:cursor-pointer"
+                  className="cursor-pointer"
                   key={c.id}
                   onClick={() => {
                     setSelectedComment(c)
@@ -237,12 +316,12 @@ export default function NewsComments(): JSX.Element {
                   }}
                 >
                   <TableCell>
-                    <span className="text-muted-foreground font-mono text-xs">{c.id}</span>
-                  </TableCell>
-                  <TableCell>
                     <UserCell userId={c.user_id} inlineUser={c.user ?? c.user_name} />
+                    {c.parent_comment_id && (
+                      <span className="text-muted-foreground mt-0.5 block text-xs">↳ reply</span>
+                    )}
                   </TableCell>
-                  <TableCell className="max-w-64">
+                  <TableCell className="max-w-80">
                     <span className="line-clamp-2 text-sm">{c.content}</span>
                   </TableCell>
                   <TableCell>
@@ -259,7 +338,7 @@ export default function NewsComments(): JSX.Element {
                     <div className="flex justify-end gap-1">
                       {!c.is_approved && (
                         <Button
-                          variant="default"
+                          variant="ghost"
                           size="sm"
                           disabled={setApprovalMutation.isPending}
                           onClick={(e) => {
@@ -270,21 +349,31 @@ export default function NewsComments(): JSX.Element {
                               is_approved: true,
                             })
                           }}
-                          title="Duyệt bình luận"
+                          title="Duyệt"
                         >
-                          Duyệt
+                          <Check className="text-success size-4" />
                         </Button>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openEdit(c)
+                        }}
+                        title="Chỉnh sửa"
+                      >
+                        <Pen className="size-4" />
+                      </Button>
                       {!c.parent_comment_id && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation()
-                            setCommentToReply(c)
-                            setFormDialogOpen(true)
+                            openReply(c)
                           }}
-                          title="Trả lời bình luận"
+                          title="Trả lời"
                         >
                           <MessagesSquare className="size-4" />
                         </Button>
@@ -310,20 +399,28 @@ export default function NewsComments(): JSX.Element {
         </Table>
       </ToolTableCustom>
 
-      <NewsCommentFormDialog
-        open={formDialogOpen}
-        onOpenChange={setFormDialogOpen}
-        parentComment={commentToReply}
-        onSuccess={() => {
-          dbQuery.refetch()
-          setCommentToReply(null)
-        }}
-      />
-
       <NewsCommentDetailDialog
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         comment={selectedComment}
+        onEdit={() => {
+          setDetailDialogOpen(false)
+          if (selectedComment) openEdit(selectedComment)
+        }}
+      />
+
+      <NewsCommentFormDialog
+        open={formDialogOpen}
+        onOpenChange={(v) => {
+          setFormDialogOpen(v)
+          if (!v) {
+            setCommentToEdit(null)
+            setCommentToReply(null)
+          }
+        }}
+        comment={commentToEdit}
+        parentComment={commentToReply}
+        onSuccess={() => dbQuery.refetch()}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

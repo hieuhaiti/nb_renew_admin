@@ -128,7 +128,7 @@ export default function TourPage(): JSX.Element {
         setSelectedTourId(null)
       },
     },
-    true
+    false
   )
 
   const updateMutation = useApiMutation(
@@ -141,7 +141,7 @@ export default function TourPage(): JSX.Element {
         setSelectedTourId(null)
       },
     },
-    true
+    false
   )
 
   const deleteMutation = useApiMutation(

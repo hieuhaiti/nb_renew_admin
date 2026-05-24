@@ -3,7 +3,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { newsService, useApiQuery } from '@/service'
-import type { ApiResponse, NewsData, NewsFormBody } from '@/types/api'
+import type { ApiResponse, News, NewsFormBody } from '@/types/api'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -62,7 +62,7 @@ export default function NewsFormDialog({
     false,
     false
   )
-  const news = (dbQuery.data as ApiResponse<NewsData>)?.data?.news ?? null
+  const news = (dbQuery.data as unknown as ApiResponse<News>)?.data ?? null
   const isEdit = !!news
 
   const {
