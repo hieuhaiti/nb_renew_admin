@@ -1,6 +1,8 @@
 import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, ratingService, businessService } from '@/service'
+import { useAuthStore } from '@/stores/common/useAuthStore'
+import { ROLE_IDS } from '@/constant/roleConstant'
 import { SearchSelect } from '@/components/common/SearchSelect'
 import type {
   ApiResponse,
@@ -66,6 +68,9 @@ const STATUS_DOT: Record<RatingStatus, string> = {
 const STARS = ['★', '★★', '★★★', '★★★★', '★★★★★']
 
 export default function RatingBusinessPage(): JSX.Element {
+  const roleId = useAuthStore((s) => s.user?.role_id)
+  const canFilterByBusiness = roleId !== ROLE_IDS.SPOT_OPERATOR
+
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -81,7 +86,7 @@ export default function RatingBusinessPage(): JSX.Element {
   const businessQuery = useApiQuery(
     ['rating-business-targets'],
     () => businessService.getAll({ page: 1, limit: 50, sortBy: 'created_at', sortOrder: 'DESC' }),
-    { staleTime: STALE_REF },
+    { enabled: canFilterByBusiness, staleTime: STALE_REF },
     false,
     false
   )
@@ -92,12 +97,13 @@ export default function RatingBusinessPage(): JSX.Element {
   const businessOptions = businesses.map((b) => ({ id: b.id, label: b.business_name || b.id }))
 
   useEffect(() => {
+    if (!canFilterByBusiness) return
     if (businessOptions.length === 0) {
       if (businessId) setBusinessId('')
       return
     }
     if (!businessOptions.some((opt) => opt.id === businessId)) setBusinessId(businessOptions[0].id)
-  }, [businessId, businessOptions])
+  }, [businessId, businessOptions, canFilterByBusiness])
 
   const hasBusinessId = Boolean(businessId)
 
@@ -113,7 +119,7 @@ export default function RatingBusinessPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['ratings-businesses', queryParams],
     () => ratingService.getAll(queryParams),
-    { enabled: hasBusinessId, staleTime: STALE_HOT },
+    { enabled: !canFilterByBusiness || hasBusinessId, staleTime: STALE_HOT },
     false,
     false
   )
@@ -178,17 +184,19 @@ export default function RatingBusinessPage(): JSX.Element {
         searchValue={searchValue}
         setSearchValue={(v) => { setSearchValue(v); setCurrentPage(1) }}
         dataUpdatedAt={dbQuery.dataUpdatedAt}
-        onRefresh={hasBusinessId ? () => dbQuery.refetch() : undefined}
+        onRefresh={(!canFilterByBusiness || hasBusinessId) ? () => dbQuery.refetch() : undefined}
         isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
         filter={
           <div className="flex items-center gap-2">
-            <SearchSelect
-              options={businessOptions.map((o) => ({ value: o.id, label: o.label }))}
-              value={businessId}
-              onValueChange={(v) => { setBusinessId(v); setCurrentPage(1) }}
-              placeholder="Chọn doanh nghiệp"
-              className="w-64"
-            />
+            {canFilterByBusiness && (
+              <SearchSelect
+                options={businessOptions.map((o) => ({ value: o.id, label: o.label }))}
+                value={businessId}
+                onValueChange={(v) => { setBusinessId(v); setCurrentPage(1) }}
+                placeholder="Chọn doanh nghiệp"
+                className="w-64"
+              />
+            )}
 
             <Select
               value={statusFilter}
@@ -240,10 +248,16 @@ export default function RatingBusinessPage(): JSX.Element {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!hasBusinessId ? (
+            {canFilterByBusiness && !hasBusinessId ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-muted-foreground text-center">
                   Vui lòng chọn doanh nghiệp để xem đánh giá
+                </TableCell>
+              </TableRow>
+            ) : dbQuery.isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : ratings.length === 0 ? (

@@ -29,6 +29,10 @@ export const ROLE_GROUPS = {
   ALL_ADMIN: [1, 2, 3, 4, 5, 6],
   /** Admin + Bộ + Sở — quản lý nội dung hệ thống và báo cáo */
   MANAGEMENT: [1, 2, 3],
+  /** Chỉ Admin — danh mục điểm & hạ tầng bản đồ (Bộ và Sở đều bị backend block) */
+  CATALOG: [1],
+  /** Admin + Bộ — dashboard và thống kê cấp quốc gia (Sở bị backend block) */
+  NATIONAL: [1, 2],
   /** Admin + Bộ + Sở + Đơn vị vận hành — quản lý điểm, nội dung địa phương */
   CONTENT: [1, 2, 3, 4],
   /** Admin + Bộ + Sở + Đơn vị vận hành + Công ty lữ hành — quản lý tour */

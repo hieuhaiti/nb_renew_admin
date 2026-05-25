@@ -26,7 +26,7 @@ export const navConfig: NavItem[] = [
     name: 'Dashboard',
     path: '/dashboard',
     subpath: '/',
-    authen: [...ROLE_GROUPS.MANAGEMENT],
+    authen: [...ROLE_GROUPS.NATIONAL],
   },
 
   {
@@ -53,7 +53,7 @@ export const navConfig: NavItem[] = [
     path: '/spots',
     authen: [...ROLE_GROUPS.CONTENT],
     subItems: [
-      { name: 'Danh mục', path: '/categories', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'Danh mục', path: '/categories', authen: [...ROLE_GROUPS.CATALOG] },
       { name: 'Điểm tham quan', path: '/spots', authen: [...ROLE_GROUPS.CONTENT] },
       { name: 'Ẩm thực', path: '/culinary', authen: [...ROLE_GROUPS.CONTENT] },
       { name: 'Lễ hội & sự kiện', path: '/festivals', authen: [...ROLE_GROUPS.CONTENT] },
@@ -112,11 +112,11 @@ export const navConfig: NavItem[] = [
     icon: <Map />,
     name: 'Bản đồ',
     path: '/map-layers',
-    authen: [...ROLE_GROUPS.MANAGEMENT],
+    authen: [...ROLE_GROUPS.CATALOG],
     subItems: [
-      { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.MANAGEMENT] },
-      { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.MANAGEMENT] },
-      { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.CATALOG] },
+      { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.CATALOG] },
+      { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.CATALOG] },
     ],
   },
 
@@ -146,7 +146,7 @@ export const navConfig: NavItem[] = [
     icon: <Database />,
     name: 'Dữ liệu thống kê',
     path: '/statistics',
-    authen: [...ROLE_GROUPS.MANAGEMENT],
+    authen: [...ROLE_GROUPS.NATIONAL],
   },
 
   {

@@ -103,18 +103,26 @@ function App() {
                   <Route path="/governance/admin" element={<GovernanceAdminPage />} />
                 </Route>
 
-                {/* === Dashboard + Thống kê + Nội dung — Admin, Bộ, Sở === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.MANAGEMENT} />}>
+                {/* === Dashboard + Thống kê — Admin, Bộ (Sở bị backend block) === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.NATIONAL} />}>
                   <Route path="/dashboard" element={<VisitorStatisticsPage />} />
                   <Route path="/statistics" element={<StatisticsPage />} />
-                  <Route path="/categories" element={<CategoryPage />} />
+                </Route>
+
+                {/* === Nội dung — Admin, Bộ, Sở === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.MANAGEMENT} />}>
                   <Route path="/vlogs" element={<VlogPage />} />
                   <Route path="/news" element={<NewsPage />} />
                   <Route path="/news-comments" element={<NewsCommentsPage />} />
+                  <Route path="/businesses" element={<BusinessPage />} />
+                </Route>
+
+                {/* === Danh mục điểm + Bản đồ — Admin, Sở (Bộ không có quyền backend) === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CATALOG} />}>
+                  <Route path="/categories" element={<CategoryPage />} />
                   <Route path="/map-layers" element={<MapLayerPage />} />
                   <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
                   <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
-                  <Route path="/businesses" element={<BusinessPage />} />
                 </Route>
 
                 {/* === Điểm + Sức chứa + Đánh giá — Admin, Bộ, Sở, Đơn vị vận hành === */}

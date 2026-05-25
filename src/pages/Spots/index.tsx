@@ -2,6 +2,8 @@ import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, spotService, spotCategoryService } from '@/service'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { useAuthStore } from '@/stores/common/useAuthStore'
+import { ROLE_IDS } from '@/constant/roleConstant'
 import type {
   Spot,
   SpotListData,
@@ -79,6 +81,8 @@ function formatRatingAvg(value: unknown): string | null {
 
 export default function SpotPage(): JSX.Element {
   const openLightbox = useLightboxStore((s) => s.open)
+  const roleId = useAuthStore((s) => s.user?.role_id)
+  const isDepartment = roleId === ROLE_IDS.DEPARTMENT
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -109,7 +113,7 @@ export default function SpotPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['spots', queryParams],
     () => spotService.getAll(queryParams),
-    { staleTime: STALE_DEFAULT },
+    { staleTime: STALE_DEFAULT, enabled: !isDepartment || !!trimmedProvinceCode },
     false,
     false
   )
@@ -232,8 +236,8 @@ export default function SpotPage(): JSX.Element {
                 setProvinceCodeFilter(e.target.value)
                 setCurrentPage(1)
               }}
-              placeholder="Mã tỉnh"
-              className="w-28"
+              placeholder={isDepartment ? 'Mã tỉnh *' : 'Mã tỉnh'}
+              className={`w-28${isDepartment && !trimmedProvinceCode ? ' border-warning' : ''}`}
             />
             <Select
               value={featuredFilter}
@@ -312,7 +316,13 @@ export default function SpotPage(): JSX.Element {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dbQuery.isLoading ? (
+            {isDepartment && !trimmedProvinceCode ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
+                  Vui lòng nhập <span className="font-medium">Mã tỉnh</span> để tải danh sách điểm tham quan
+                </TableCell>
+              </TableRow>
+            ) : dbQuery.isLoading ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
                   Đang tải...
