@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 import { useState, useEffect } from 'react'
-import { useApiQuery, capacityService } from '@/service'
+import { useApiQuery, capacityService, roleService } from '@/service'
 import { useCapacityStore } from '@/stores/common/useCapacityStore'
 import type {
   ApiResponse,
@@ -9,6 +9,7 @@ import type {
   CapacityCurrentData,
   CapacityConfig,
   CapacityConfigsData,
+  Role,
 } from '@/types/api'
 import { Button } from '@/components/ui/button'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
@@ -20,7 +21,16 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { Wifi, WifiOff, Loader2, Settings, ClipboardList, Eye, Plus, Bell } from 'lucide-react'
+import {
+  Wifi,
+  WifiOff,
+  Loader2,
+  Settings,
+  ClipboardList,
+  Plus,
+  Bell,
+  RefreshCw,
+} from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatDateTime } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
@@ -54,27 +64,19 @@ const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   closed: 'bg-muted-foreground',
 }
 
-function ThresholdBar({
-  busy,
-  near,
-  over,
-}: {
-  busy: number
-  near: number
-  over: number
-}) {
+function ThresholdBar({ busy, near, over }: { busy: number; near: number; over: number }) {
   const cap = over > 0 ? over : 100
   return (
     <div className="space-y-1">
       <div className="bg-muted relative h-3 w-40 overflow-hidden rounded-full">
         {/* normal zone */}
         <div
-          className="absolute inset-y-0 left-0 bg-success/70"
+          className="bg-success/70 absolute inset-y-0 left-0"
           style={{ width: `${(busy / cap) * 100}%` }}
         />
         {/* busy zone */}
         <div
-          className="absolute inset-y-0 bg-warning/70"
+          className="bg-warning/70 absolute inset-y-0"
           style={{
             left: `${(busy / cap) * 100}%`,
             width: `${((near - busy) / cap) * 100}%`,
@@ -97,7 +99,8 @@ function ThresholdBar({
 }
 
 export default function CapacityPage(): JSX.Element {
-  const { capacityBySpotId, wsStatus, loadSnapshot, connectWS, disconnectWS } = useCapacityStore()
+  const { capacityBySpotId, wsStatus, initFromSnapshot, connectWS, disconnectWS } =
+    useCapacityStore()
 
   const [detailOpen, setDetailOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
@@ -122,9 +125,20 @@ export default function CapacityPage(): JSX.Element {
     false
   )
 
+  const rolesQuery = useApiQuery(
+    ['roles'],
+    () => roleService.getAll(),
+    { staleTime: STALE_HOT },
+    false,
+    false
+  )
+  const roles: Role[] = (rolesQuery.data as unknown as ApiResponse<{ roles: Role[] }>)?.data?.roles ?? []
+
   useEffect(() => {
-    loadSnapshot()
-  }, [loadSnapshot])
+    const rawCapacity = (snapshotQuery.data as ApiResponse<CapacityCurrentData>)?.data?.capacity
+    const items: CapacityState[] = Array.isArray(rawCapacity) ? rawCapacity : []
+    initFromSnapshot(items)
+  }, [snapshotQuery.data, initFromSnapshot])
 
   useEffect(() => {
     connectWS()
@@ -150,7 +164,6 @@ export default function CapacityPage(): JSX.Element {
 
   function handleRefresh() {
     snapshotQuery.refetch()
-    loadSnapshot()
   }
 
   function openDetail(item: CapacityState) {
@@ -205,12 +218,13 @@ export default function CapacityPage(): JSX.Element {
           <span className="typo-meta text-muted-foreground">{wsStatusLabel[wsStatus]}</span>
         </div>
         <Button
-          variant="outline"
-          size="sm"
+          variant="secondary"
           onClick={handleRefresh}
           disabled={snapshotQuery.isFetching}
+          className="gap-1.5 px-3"
         >
-          {snapshotQuery.isFetching ? 'Đang tải...' : 'Làm mới'}
+          <RefreshCw className={`h-6 w-6 ${snapshotQuery.isFetching ? 'animate-spin' : ''}`} />
+          {snapshotQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
         </Button>
       </div>
 
@@ -310,14 +324,6 @@ export default function CapacityPage(): JSX.Element {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openDetail(item)}
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
                           onClick={() => openLog(item)}
                           title="Ghi nhận lượt khách"
                         >
@@ -343,12 +349,18 @@ export default function CapacityPage(): JSX.Element {
 
       {/* ── Alert configs section ── */}
       <div className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="text-muted-foreground size-4" />
-            <h2 className="text-base font-semibold">Cấu hình cảnh báo</h2>
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Bell className="text-muted-foreground size-4" />
+              <h2 className="text-base font-semibold">Cấu hình cảnh báo nâng cao</h2>
+            </div>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              Ngưỡng % tải trọng chi tiết cho từng điểm — hệ thống push thông báo đến vai trò quản
+              lý khi lượng khách vượt mức.
+            </p>
           </div>
-          <Button size="sm" onClick={openAddConfig}>
+          <Button size="sm" onClick={openAddConfig} className="shrink-0">
             <Plus className="mr-1 size-4" />
             Thêm cấu hình
           </Button>
@@ -360,20 +372,21 @@ export default function CapacityPage(): JSX.Element {
               <TableRow>
                 <TableHead>Điểm tham quan</TableHead>
                 <TableHead>Ngưỡng sức chứa</TableHead>
-                <TableHead className="w-36">Cập nhật lúc</TableHead>
-                <TableHead className="w-20 text-right">Hành động</TableHead>
+                <TableHead>Vai trò nhận báo</TableHead>
+                <TableHead>Cập nhật lúc</TableHead>
+                <TableHead className="text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {configsQuery.isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
+                  <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
                     Đang tải...
                   </TableCell>
                 </TableRow>
               ) : configs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
+                  <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
                     Chưa có cấu hình cảnh báo nào
                   </TableCell>
                 </TableRow>
@@ -393,6 +406,25 @@ export default function CapacityPage(): JSX.Element {
                         near={cfg.threshold_near}
                         over={cfg.threshold_over}
                       />
+                    </TableCell>
+                    <TableCell>
+                      {cfg.notify_roles?.length ? (
+                        <div className="flex flex-wrap gap-1">
+                          {cfg.notify_roles.map((id) => {
+                            const role = roles.find((r) => String(r.id) === id)
+                            return (
+                              <span
+                                key={id}
+                                className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs"
+                              >
+                                {role?.name_vi ?? role?.name ?? id}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {formatDateTime(cfg.updated_at)}

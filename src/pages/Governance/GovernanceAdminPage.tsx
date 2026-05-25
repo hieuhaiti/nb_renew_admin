@@ -47,6 +47,7 @@ import {
   MapPin,
   Layers,
   Globe,
+  RefreshCw,
 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import BusinessEnterpriseView from './BusinessEnterpriseView'
@@ -415,12 +416,13 @@ export default function GovernanceAdminPage(): JSX.Element {
               </Select>
             </div>
             <Button
-              variant="outline"
-              size="sm"
+              variant="secondary"
               onClick={() => trafficQuery.refetch()}
               disabled={trafficQuery.isFetching}
+              className="gap-1.5 px-3"
             >
-              {trafficQuery.isFetching ? 'Đang tải...' : 'Làm mới'}
+              <RefreshCw className={`h-6 w-6 ${trafficQuery.isFetching ? 'animate-spin' : ''}`} />
+              {trafficQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
             </Button>
           </div>
 

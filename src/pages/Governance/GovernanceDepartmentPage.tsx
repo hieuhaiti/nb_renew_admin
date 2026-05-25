@@ -51,7 +51,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Check, X, Plus, Send, TreePine, AlertTriangle } from 'lucide-react'
+import { Check, X, Plus, Send, TreePine, AlertTriangle, RefreshCw } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import BusinessEnterpriseView from './BusinessEnterpriseView'
 import { useForm, type SubmitHandler } from 'react-hook-form'
@@ -923,11 +923,13 @@ export default function GovernanceDepartmentPage(): JSX.Element {
             <p className="text-muted-foreground text-sm">Đang tải dữ liệu bảo tồn...</p>
           )}
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => conservQuery.refetch()}
             disabled={conservQuery.isFetching}
+            className="gap-1.5 px-3"
           >
-            {conservQuery.isFetching ? 'Đang tải...' : 'Làm mới'}
+            <RefreshCw className={`h-6 w-6 ${conservQuery.isFetching ? 'animate-spin' : ''}`} />
+            {conservQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
           </Button>
         </TabsContent>
 

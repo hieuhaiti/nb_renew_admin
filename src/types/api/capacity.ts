@@ -114,6 +114,7 @@ export interface CapacityConfigBody {
   threshold_busy: number
   threshold_near: number
   threshold_over: number
+  notify_roles?: string[] | null
 }
 
 // Realtime event payloads from SSE / WebSocket

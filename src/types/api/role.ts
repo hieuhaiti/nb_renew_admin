@@ -2,6 +2,8 @@ export interface Role {
   [key: string]: unknown
   id: number
   name: string
+  name_vi?: string | null
+  code?: string | null
   description?: string | null
   is_system?: boolean
   permissions?:

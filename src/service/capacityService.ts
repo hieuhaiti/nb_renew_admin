@@ -5,7 +5,7 @@ import type {
   CapacityCurrentData,
   CapacityGeoJSON,
   CapacityHistoryData,
-  CapacityStats,
+  CapacityStatsData,
   CapacityAlternative,
   CapacityConfig,
   CapacityLogBody,
@@ -19,7 +19,7 @@ export default {
 
   /** GET /capacity/current — all spots' current capacity */
   getCurrent: () =>
-    apiClient.get<ApiResponse<CapacityCurrentData>>(`${serviceCapacityPath}/current`),
+    apiClient.get<ApiResponse<CapacityCurrentData>>(`${serviceCapacityPath}/current`, { sortOrder: 'desc' }),
 
   /** GET /capacity/current/geojson — GeoJSON for map rendering */
   getCurrentGeoJSON: () =>
@@ -35,7 +35,7 @@ export default {
 
   /** GET /capacity/spots/:spotId/stats */
   getStats: (spotId: string) =>
-    apiClient.get<ApiResponse<CapacityStats>>(`${serviceCapacityPath}/spots/${spotId}/stats`),
+    apiClient.get<ApiResponse<CapacityStatsData>>(`${serviceCapacityPath}/spots/${spotId}/stats`),
 
   /** GET /capacity/spots/:spotId/alternatives */
   getAlternatives: (spotId: string) =>

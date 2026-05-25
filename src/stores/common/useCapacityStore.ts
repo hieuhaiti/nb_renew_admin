@@ -22,6 +22,9 @@ interface CapacityStoreState {
   /** Load REST snapshot — call before opening realtime connection */
   loadSnapshot: () => Promise<void>
 
+  /** Sync store from an already-fetched snapshot (avoids duplicate HTTP call) */
+  initFromSnapshot: (items: CapacityState[]) => void
+
   /** Update a single spot's capacity from a realtime event */
   updateCapacityBySpotId: (spotId: string, payload: Pick<CapacityState, 'visitor_count' | 'capacity_pct' | 'status' | 'recorded_at'>) => void
 
@@ -59,6 +62,12 @@ export const useCapacityStore = create<CapacityStoreState>((set, get) => ({
     } finally {
       set({ isLoading: false })
     }
+  },
+
+  initFromSnapshot: (items: CapacityState[]) => {
+    const byId: Record<string, CapacityState> = {}
+    for (const item of items) byId[item.spot_id] = item
+    set({ capacityBySpotId: byId })
   },
 
   updateCapacityBySpotId: (spotId, payload) => {

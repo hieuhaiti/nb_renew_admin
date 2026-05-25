@@ -127,18 +127,23 @@ export function connectCapacitySocket(opts: WSOptions): void {
   const url = `${import.meta.env.VITE_WS_URL}?token=${encodeURIComponent(token)}`
 
   function connect() {
-    wsInstance = new WebSocket(url)
+    const ws = new WebSocket(url)
+    wsInstance = ws
 
-    wsInstance.onopen = () => {
+    ws.onopen = () => {
+      // Guard: if this socket was superseded (disconnect was called), do nothing
+      if (wsInstance !== ws) return
+
       wsStatus = 'connected'
       wsReconnectAttempts = 0
       wsOptions?.onConnected?.()
 
       // Subscribe to capacity channel
-      wsInstance!.send(JSON.stringify({ action: 'subscribe', channels: ['capacity'] }))
+      ws.send(JSON.stringify({ action: 'subscribe', channels: ['capacity'] }))
     }
 
-    wsInstance.onmessage = (event) => {
+    ws.onmessage = (event) => {
+      if (wsInstance !== ws) return
       try {
         const msg: CapacityWSMessage = JSON.parse(event.data as string)
         if (msg.event !== 'capacity_update' && msg.event !== 'capacity_alert') return
@@ -154,11 +159,13 @@ export function connectCapacitySocket(opts: WSOptions): void {
       }
     }
 
-    wsInstance.onerror = (err) => {
+    ws.onerror = (err) => {
+      if (wsInstance !== ws) return
       wsOptions?.onError?.(err)
     }
 
-    wsInstance.onclose = () => {
+    ws.onclose = () => {
+      if (wsInstance !== ws) return
       wsStatus = 'reconnecting'
       wsOptions?.onDisconnected?.()
       wsInstance = null

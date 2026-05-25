@@ -186,12 +186,22 @@ export default function CapacityDetailDialog({
                 </Row>
                 <Row label="Khách hiện tại">{item.visitor_count ?? '-'}</Row>
                 <Row label="Sức chứa tối đa">{item.max_capacity ?? '-'}</Row>
-                <Row label="Tỷ lệ lấp đầy">
-                  {pct != null ? <CapacityBar pct={pct} /> : '-'}
+                <Row label="Tỷ lệ thực tế">
+                  {pct != null ? (
+                    <div className="flex items-center gap-2">
+                      <CapacityBar pct={pct} />
+                      <span className="rounded border border-info/30 bg-info/10 px-1 py-px text-[10px] text-info-foreground">Tự tính</span>
+                    </div>
+                  ) : '-'}
                 </Row>
                 <Row label="Trạng thái">{statusBadge(item.status)}</Row>
                 <Row label="Ngưỡng cảnh báo">
-                  {item.alert_threshold_pct != null ? `${item.alert_threshold_pct}%` : '-'}
+                  {item.alert_threshold_pct != null ? (
+                    <div className="flex items-center gap-2">
+                      <span className="tabular-nums">{item.alert_threshold_pct}%</span>
+                      <span className="rounded border border-warning/30 bg-warning/10 px-1 py-px text-[10px] text-warning">Cố định</span>
+                    </div>
+                  ) : '-'}
                 </Row>
                 <Row label="Cập nhật lúc">{formatDateTime(item.recorded_at)}</Row>
               </div>

@@ -28,7 +28,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Building2, Users, Star, Activity, DollarSign } from 'lucide-react'
+import { Building2, Users, Star, Activity, DollarSign, RefreshCw } from 'lucide-react'
 import { formatDate } from '@/lib/date'
 import { STALE_DEFAULT, STALE_REF } from '@/constant/queryConstant'
 
@@ -203,11 +203,13 @@ export default function BusinessEnterpriseView(): JSX.Element {
                 </Select>
               </div>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => dashboardQuery.refetch()}
                 disabled={dashboardQuery.isFetching}
+                className="gap-1.5 px-3"
               >
-                {dashboardQuery.isFetching ? 'Đang tải...' : 'Làm mới'}
+                <RefreshCw className={`h-6 w-6 ${dashboardQuery.isFetching ? 'animate-spin' : ''}`} />
+                {dashboardQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
               </Button>
             </div>
 

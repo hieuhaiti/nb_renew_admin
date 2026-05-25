@@ -39,7 +39,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Building2, Users, Star, Activity, Plus, DollarSign } from 'lucide-react'
+import { Building2, Users, Star, Activity, Plus, DollarSign, RefreshCw } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -321,11 +321,13 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                 </Select>
               </div>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => dashboardQuery.refetch()}
                 disabled={dashboardQuery.isFetching}
+                className="gap-1.5 px-3"
               >
-                {dashboardQuery.isFetching ? 'Đang tải...' : 'Làm mới'}
+                <RefreshCw className={`h-6 w-6 ${dashboardQuery.isFetching ? 'animate-spin' : ''}`} />
+                {dashboardQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
               </Button>
             </div>
 

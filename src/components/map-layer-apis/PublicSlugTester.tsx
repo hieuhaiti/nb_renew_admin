@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { toast } from 'react-toastify'
-import { Copy, KeyRound, Layers, Link2, Play, RotateCcw, ShieldCheck } from 'lucide-react'
+import { Copy, KeyRound, Layers, Link2, Play, RefreshCw, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -134,9 +134,9 @@ export default function PublicSlugTester() {
                 <Play className="mr-2 h-4 w-4" />
                 {loading ? 'Đang gọi...' : 'Kiểm tra API'}
               </Button>
-              <Button type="button" variant="outline" onClick={resetAll}>
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Làm mới
+              <Button type="button" variant="secondary" onClick={resetAll} className="gap-1.5 px-3">
+                <RefreshCw className="h-6 w-6" />
+                Tải lại
               </Button>
             </div>
           </form>

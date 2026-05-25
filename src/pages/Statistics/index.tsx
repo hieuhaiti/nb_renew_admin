@@ -69,13 +69,13 @@ export default function StatisticsPage(): JSX.Element {
           {items.length > 0 ? `${items.length} file` : ''}
         </p>
         <Button
-          variant="outline"
-          size="sm"
+          variant="secondary"
           onClick={() => dbQuery.refetch()}
           disabled={dbQuery.isFetching}
+          className="gap-1.5 px-3"
         >
-          <RefreshCw className={`mr-1.5 size-4 ${dbQuery.isFetching ? 'animate-spin' : ''}`} />
-          Làm mới
+          <RefreshCw className={`h-6 w-6 ${dbQuery.isFetching ? 'animate-spin' : ''}`} />
+          {dbQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
         </Button>
       </div>
 

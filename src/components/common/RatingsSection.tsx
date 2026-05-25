@@ -14,7 +14,7 @@ import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
-import { Check, Pen, Trash2, X } from 'lucide-react'
+import { Check, Pen, RefreshCw, Trash2, X } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -115,8 +115,9 @@ export default function RatingsSection({ targetType, targetId, enabled }: Rating
           Đánh giá {dbQuery.isLoading ? '' : `(${total})`}
         </span>
         {!dbQuery.isLoading && (
-          <Button size="sm" variant="ghost" onClick={() => dbQuery.refetch()} className="h-7 px-2 text-xs">
-            Làm mới
+          <Button variant="secondary" onClick={() => dbQuery.refetch()} disabled={dbQuery.isFetching} className="gap-1.5 px-3">
+            <RefreshCw className={`h-6 w-6 ${dbQuery.isFetching ? 'animate-spin' : ''}`} />
+            {dbQuery.isFetching ? 'Đang tải...' : 'Tải lại'}
           </Button>
         )}
       </div>
