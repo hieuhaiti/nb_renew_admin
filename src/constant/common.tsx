@@ -108,24 +108,24 @@ export const navConfig: NavItem[] = [
     ],
   },
 
-  {
-    icon: <Map />,
-    name: 'Bản đồ',
-    path: '/map-layers',
-    authen: [...ROLE_GROUPS.CATALOG],
-    subItems: [
-      { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.CATALOG] },
-      { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.CATALOG] },
-      { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.CATALOG] },
-    ],
-  },
+  // {
+  //   icon: <Map />,
+  //   name: 'Bản đồ',
+  //   path: '/map-layers',
+  //   authen: [...ROLE_GROUPS.CATALOG],
+  //   subItems: [
+  //     { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.CATALOG] },
+  //     { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.CATALOG] },
+  //     { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.CATALOG] },
+  //   ],
+  // },
 
-  {
-    icon: <Plug />,
-    name: 'Tích hợp dịch vụ',
-    path: '/integrations',
-    authen: ADMIN,
-  },
+  // {
+  //   icon: <Plug />,
+  //   name: 'Tích hợp dịch vụ',
+  //   path: '/integrations',
+  //   authen: ADMIN,
+  // },
 
   // feedbacks/admin + enterprise xem phản ánh xung quanh location
   {

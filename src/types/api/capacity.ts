@@ -17,6 +17,11 @@ export interface CapacityCurrentData {
   capacity: CapacityState[]
 }
 
+export interface CapacityAdminData {
+  capacity: CapacityState[]
+  pagination: Pagination
+}
+
 export interface CapacityGeoJSONFeature {
   type: 'Feature'
   geometry: {

@@ -5,6 +5,7 @@ import type {
   ApiResponse,
   GovernanceAdminDashboard,
   GovernanceTrafficData,
+  GovernanceTrafficTimelineItem,
   GovernancePermission,
   GovernancePermissionCreateBody,
 } from '@/types/api'
@@ -48,14 +49,46 @@ import {
   Layers,
   Globe,
   RefreshCw,
+  Timer,
+  Percent,
 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts'
 import PageLayout from '@/layout/pageLayout'
+import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import BusinessEnterpriseView from './BusinessEnterpriseView'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { formatDate } from '@/lib/date'
 import { STALE_DEFAULT, STALE_REF } from '@/constant/queryConstant'
+
+const CAPACITY_STATUS_LABEL: Record<string, string> = {
+  normal: 'Bình thường',
+  busy: 'Đông đúc',
+  near_full: 'Gần đầy',
+  overloaded: 'Quá tải',
+}
+const CAPACITY_STATUS_DOT: Record<string, string> = {
+  normal: 'bg-success',
+  busy: 'bg-warning',
+  near_full: 'bg-orange-500',
+  overloaded: 'bg-destructive',
+}
+const CAPACITY_STATUS_BADGE: Record<string, string> = {
+  normal: 'bg-success/10 text-success border-success/20',
+  busy: 'bg-warning/10 text-warning border-warning/20',
+  near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
+}
 
 const permissionSchema = z.object({
   resource: z.string().min(1, 'Bắt buộc'),
@@ -146,11 +179,12 @@ export default function GovernanceAdminPage(): JSX.Element {
   const trafficData: GovernanceTrafficData = (() => {
     const d = trafficQuery.data?.data as Record<string, unknown> | undefined
     return {
-      time_series: Array.isArray(d?.time_series)
-        ? (d!.time_series as Record<string, unknown>[])
-        : [],
-      top_sources: Array.isArray(d?.top_sources)
-        ? (d!.top_sources as Record<string, unknown>[])
+      total_visits: d?.total_visits as number | undefined,
+      unique_visitors: d?.unique_visitors as number | undefined,
+      avg_duration_seconds: d?.avg_duration_seconds as number | undefined,
+      bounce_rate_pct: d?.bounce_rate_pct as number | undefined,
+      timeline: Array.isArray(d?.timeline)
+        ? (d!.timeline as GovernanceTrafficTimelineItem[])
         : [],
       top_actions: Array.isArray(d?.top_actions)
         ? (d!.top_actions as GovernanceTrafficData['top_actions'])
@@ -284,6 +318,43 @@ export default function GovernanceAdminPage(): JSX.Element {
     true
   )
 
+  // ─── Capacity alerts ──────────────────────────────────────────────────────────
+  const [capacityStatus, setCapacityStatus] = useState('all')
+  const [capacityLimit, setCapacityLimit] = useState('50')
+
+  const capacityQuery = useApiQuery(
+    ['governance-admin-capacity', capacityStatus, capacityLimit],
+    () =>
+      governanceService.getMinistryCapacityAlerts({
+        limit: Number(capacityLimit),
+        ...(capacityStatus !== 'all' && { statuses: capacityStatus }),
+      }),
+    { staleTime: STALE_DEFAULT },
+    false,
+    false
+  )
+  const capacityData = (capacityQuery.data as any)?.data ?? {}
+  const capacityTotal: number = (capacityData as any).total ?? 0
+  const capacityItems: any[] = Array.isArray((capacityData as any).items)
+    ? (capacityData as any).items
+    : []
+
+  // ─── Conservation ─────────────────────────────────────────────────────────────
+  const [conservDays, setConservDays] = useState('30')
+
+  const conservQuery = useApiQuery(
+    ['governance-admin-conservation', conservDays],
+    () => governanceService.getMinistryConservationSummary({ days: Number(conservDays) }),
+    { staleTime: STALE_DEFAULT },
+    false,
+    false
+  )
+  const conservData = (conservQuery.data as any)?.data ?? {}
+  const conservTotal: number = (conservData as any).total ?? 0
+  const conservItems: any[] = Array.isArray((conservData as any).items)
+    ? (conservData as any).items
+    : []
+
   return (
     <PageLayout
       title="Quản trị Admin"
@@ -296,6 +367,8 @@ export default function GovernanceAdminPage(): JSX.Element {
           <TabsTrigger value="permissions">Quyền hạn</TabsTrigger>
           <TabsTrigger value="role-permissions">Phân quyền theo vai trò</TabsTrigger>
           <TabsTrigger value="enterprise">Doanh nghiệp</TabsTrigger>
+          <TabsTrigger value="capacity">Cảnh báo sức chứa</TabsTrigger>
+          <TabsTrigger value="conservation">Bảo tồn</TabsTrigger>
         </TabsList>
 
         {/* ── Tab: Dashboard ── */}
@@ -428,20 +501,119 @@ export default function GovernanceAdminPage(): JSX.Element {
 
           {trafficQuery.isLoading ? (
             <p className="text-muted-foreground text-sm">Đang tải dữ liệu...</p>
+          ) : trafficQuery.isError ? (
+            <p className="text-destructive text-sm">Không thể tải dữ liệu lưu lượng.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {/* Top Actions */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <TrendingUp className="size-4" />
-                    Top hành động
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {trafficData.top_actions.length === 0 ? (
-                    <p className="text-muted-foreground px-6 pb-4 text-sm">Không có dữ liệu</p>
-                  ) : (
+            <div className="space-y-4">
+              {/* Summary stats */}
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <StatCard
+                  icon={<Eye className="size-5" />}
+                  label="Tổng lượt truy cập"
+                  value={(trafficData.total_visits ?? 0).toLocaleString('vi-VN')}
+                  colorClass="text-indigo-500"
+                />
+                <StatCard
+                  icon={<Users className="size-5" />}
+                  label="Khách duy nhất"
+                  value={(trafficData.unique_visitors ?? 0).toLocaleString('vi-VN')}
+                  colorClass="text-sky-600"
+                />
+                <StatCard
+                  icon={<Timer className="size-5" />}
+                  label="Thời gian TB (giây)"
+                  value={(trafficData.avg_duration_seconds ?? 0).toLocaleString('vi-VN')}
+                  colorClass="text-amber-600"
+                />
+                <StatCard
+                  icon={<Percent className="size-5" />}
+                  label="Tỷ lệ thoát"
+                  value={
+                    trafficData.bounce_rate_pct != null
+                      ? `${trafficData.bounce_rate_pct.toFixed(1)}%`
+                      : '-'
+                  }
+                  colorClass="text-rose-500"
+                />
+              </div>
+
+              {/* Timeline chart */}
+              {(trafficData.timeline?.length ?? 0) > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Activity className="size-4" />
+                      Lưu lượng theo ngày
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart
+                        data={trafficData.timeline}
+                        margin={{ top: 4, right: 16, left: 0, bottom: 4 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis dataKey="period" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{ fontSize: 12 }}
+                          formatter={(value: number) => value.toLocaleString('vi-VN')}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Bar dataKey="visits" name="Lượt truy cập" fill="#6366f1" radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="unique_visitors" name="Khách duy nhất" fill="#10b981" radius={[3, 3, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Timeline table */}
+              {(trafficData.timeline?.length ?? 0) > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <TrendingUp className="size-4" />
+                      Chi tiết theo ngày
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Ngày</TableHead>
+                          <TableHead className="text-right">Lượt truy cập</TableHead>
+                          <TableHead className="text-right">Khách duy nhất</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {trafficData.timeline!.map((item) => (
+                          <TableRow key={item.period}>
+                            <TableCell className="typo-table-cell">{item.period}</TableCell>
+                            <TableCell className="typo-table-cell text-right tabular-nums">
+                              {item.visits.toLocaleString('vi-VN')}
+                            </TableCell>
+                            <TableCell className="typo-table-cell text-right tabular-nums">
+                              {item.unique_visitors.toLocaleString('vi-VN')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Top actions (if present in response) */}
+              {(trafficData.top_actions?.length ?? 0) > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Globe className="size-4" />
+                      Top hành động
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -451,7 +623,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {trafficData.top_actions.map((item, idx) => {
+                        {trafficData.top_actions!.map((item, idx) => {
                           const [resource, action] = item.action.split('.')
                           return (
                             <TableRow key={item.action}>
@@ -461,7 +633,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                               <TableCell className="typo-table-cell">
                                 <span className="flex items-center gap-2">
                                   <Badge variant="outline">{resource}</Badge>
-                                  <Badge variant="secondary">{action}</Badge>
+                                  {action && <Badge variant="secondary">{action}</Badge>}
                                 </span>
                               </TableCell>
                               <TableCell className="typo-table-cell text-right font-medium">
@@ -472,95 +644,14 @@ export default function GovernanceAdminPage(): JSX.Element {
                         })}
                       </TableBody>
                     </Table>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Top Sources */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Globe className="size-4" />
-                    Top nguồn truy cập
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {trafficData.top_sources.length === 0 ? (
-                    <p className="text-muted-foreground px-6 pb-4 text-sm">Không có dữ liệu</p>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nguồn</TableHead>
-                          <TableHead className="text-right">Lượt</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {trafficData.top_sources.map((item, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell className="typo-table-cell">
-                              {String(item.source ?? item.name ?? '-')}
-                            </TableCell>
-                            <TableCell className="typo-table-cell text-right font-medium">
-                              {Number(item.count ?? item.visits ?? 0).toLocaleString('vi-VN')}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Time Series */}
-              <Card className="lg:col-span-2">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Activity className="size-4" />
-                    Chuỗi thời gian
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {trafficData.time_series.length === 0 ? (
-                    <p className="text-muted-foreground px-6 pb-4 text-sm">Không có dữ liệu</p>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Ngày</TableHead>
-                          <TableHead className="text-right">Lượt truy cập</TableHead>
-                          <TableHead className="text-right">Phiên</TableHead>
-                          <TableHead className="text-right">Trang xem</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {trafficData.time_series.map((item, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell className="typo-table-cell">
-                              {String(item.date ?? item.day ?? item.week ?? item.month ?? '-')}
-                            </TableCell>
-                            <TableCell className="typo-table-cell text-right">
-                              {item.visitors != null
-                                ? Number(item.visitors).toLocaleString('vi-VN')
-                                : '-'}
-                            </TableCell>
-                            <TableCell className="typo-table-cell text-right">
-                              {item.sessions != null
-                                ? Number(item.sessions).toLocaleString('vi-VN')
-                                : '-'}
-                            </TableCell>
-                            <TableCell className="typo-table-cell text-right">
-                              {item.pageviews != null
-                                ? Number(item.pageviews).toLocaleString('vi-VN')
-                                : '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
+              {(trafficData.timeline?.length ?? 0) === 0 &&
+                (trafficData.total_visits == null) && (
+                  <p className="text-muted-foreground text-sm">Không có dữ liệu lưu lượng.</p>
+                )}
             </div>
           )}
         </TabsContent>
@@ -874,6 +965,203 @@ export default function GovernanceAdminPage(): JSX.Element {
         {/* ── Tab: Doanh nghiệp ── */}
         <TabsContent value="enterprise">
           <BusinessEnterpriseView />
+        </TabsContent>
+
+        {/* ── Tab: Cảnh báo sức chứa ── */}
+        <TabsContent value="capacity" className="space-y-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1">
+              <Label>Trạng thái</Label>
+              <Select value={capacityStatus} onValueChange={setCapacityStatus}>
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="busy">Đông đúc</SelectItem>
+                  <SelectItem value="near_full">Gần đầy</SelectItem>
+                  <SelectItem value="overloaded">Quá tải</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Giới hạn</Label>
+              <Select value={capacityLimit} onValueChange={setCapacityLimit}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <ToolTableCustom
+            searchValue=""
+            setSearchValue={() => {}}
+            dataUpdatedAt={capacityQuery.dataUpdatedAt}
+            onRefresh={() => capacityQuery.refetch()}
+            isRefreshing={capacityQuery.isFetching && !capacityQuery.isLoading}
+            total={capacityTotal}
+          >
+            <Table className="relative">
+              <TableHeader className="sticky top-0 z-20">
+                <TableRow>
+                  <TableHead>Điểm tham quan</TableHead>
+                  <TableHead>Tỉnh/Thành</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Khách hiện tại</TableHead>
+                  <TableHead className="text-right">Sức chứa tối đa</TableHead>
+                  <TableHead className="text-right">Tỷ lệ (%)</TableHead>
+                  <TableHead className="w-40">Ghi nhận lúc</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {capacityQuery.isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-muted-foreground text-center">
+                      Đang tải...
+                    </TableCell>
+                  </TableRow>
+                ) : capacityItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-muted-foreground text-center">
+                      Không có cảnh báo
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  capacityItems.map((item: any, idx: number) => {
+                    const st = item.status ?? 'normal'
+                    return (
+                      <TableRow key={item.spot_id ?? idx}>
+                        <TableCell className="typo-table-cell font-medium">
+                          {item.name_vi ?? '-'}
+                        </TableCell>
+                        <TableCell className="typo-table-cell text-muted-foreground">
+                          {item.province_name ?? '-'}
+                        </TableCell>
+                        <TableCell>
+                          <StatusDotBadge
+                            label={CAPACITY_STATUS_LABEL[st] ?? st}
+                            dotClass={CAPACITY_STATUS_DOT[st] ?? 'bg-muted-foreground'}
+                            badgeClass={
+                              CAPACITY_STATUS_BADGE[st] ??
+                              'bg-muted/40 text-muted-foreground border-border'
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="typo-table-cell text-right">
+                          {item.visitor_count?.toLocaleString('vi-VN') ?? '-'}
+                        </TableCell>
+                        <TableCell className="typo-table-cell text-right">
+                          {item.max_capacity?.toLocaleString('vi-VN') ?? '-'}
+                        </TableCell>
+                        <TableCell className="typo-table-cell text-right">
+                          {item.capacity_pct != null
+                            ? `${Number(item.capacity_pct).toFixed(1)}%`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="typo-table-cell text-muted-foreground">
+                          {item.recorded_at
+                            ? new Date(item.recorded_at).toLocaleString('vi-VN')
+                            : '-'}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </ToolTableCustom>
+        </TabsContent>
+
+        {/* ── Tab: Bảo tồn ── */}
+        <TabsContent value="conservation" className="space-y-4">
+          <div className="flex items-end gap-4">
+            <div className="space-y-1">
+              <Label>Số ngày gần nhất</Label>
+              <Select value={conservDays} onValueChange={setConservDays}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 ngày</SelectItem>
+                  <SelectItem value="14">14 ngày</SelectItem>
+                  <SelectItem value="30">30 ngày</SelectItem>
+                  <SelectItem value="60">60 ngày</SelectItem>
+                  <SelectItem value="90">90 ngày</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={() => conservQuery.refetch()} disabled={conservQuery.isFetching}>
+              {conservQuery.isFetching ? 'Đang tải...' : 'Cập nhật'}
+            </Button>
+          </div>
+
+          {conservQuery.isError && (
+            <p className="text-destructive text-sm">Không thể tải dữ liệu bảo tồn.</p>
+          )}
+
+          <ToolTableCustom
+            searchValue=""
+            setSearchValue={() => {}}
+            dataUpdatedAt={conservQuery.dataUpdatedAt}
+            onRefresh={() => conservQuery.refetch()}
+            isRefreshing={conservQuery.isFetching && !conservQuery.isLoading}
+            total={conservTotal}
+          >
+            <Table className="relative">
+              <TableHeader className="sticky top-0 z-20">
+                <TableRow>
+                  <TableHead>Khu bảo tồn</TableHead>
+                  <TableHead>Tỉnh/Thành</TableHead>
+                  <TableHead className="text-right">Biến động phát hiện</TableHead>
+                  <TableHead className="text-right">Diện tích biến động (ha)</TableHead>
+                  <TableHead className="w-40">Phân tích gần nhất</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {conservQuery.isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-muted-foreground text-center">
+                      Đang tải...
+                    </TableCell>
+                  </TableRow>
+                ) : conservItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-muted-foreground text-center">
+                      Không có dữ liệu bảo tồn
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  conservItems.map((item: any, idx: number) => (
+                    <TableRow key={item.conservation_id ?? idx}>
+                      <TableCell className="typo-table-cell font-medium">
+                        {item.conservation_name ?? '-'}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-muted-foreground">
+                        {item.province_name ?? '-'}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-right">
+                        {item.detected_changes?.toLocaleString('vi-VN') ?? '-'}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-right">
+                        {item.total_change_area_ha != null
+                          ? `${Number(item.total_change_area_ha).toFixed(2)} ha`
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-muted-foreground">
+                        {item.latest_analyzed_at ? formatDate(item.latest_analyzed_at) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </ToolTableCustom>
         </TabsContent>
       </Tabs>
     </PageLayout>

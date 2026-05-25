@@ -3,6 +3,7 @@ import type {
   ApiResponse,
   CapacityState,
   CapacityCurrentData,
+  CapacityAdminData,
   CapacityGeoJSON,
   CapacityHistoryData,
   CapacityStatsData,
@@ -16,6 +17,10 @@ import { serviceCapacityPath } from '@/constant/serviceConstant'
 
 export default {
   // ─── Snapshot (REST) ──────────────────────────────────────────────────────
+
+  /** GET /capacity/admin — all spots' current capacity (admin view, paginated) */
+  getAdmin: (params?: { page?: number; limit?: number; sortOrder?: 'ASC' | 'DESC'; search?: string }) =>
+    apiClient.get<ApiResponse<CapacityAdminData>>(`${serviceCapacityPath}/admin`, params),
 
   /** GET /capacity/current — all spots' current capacity */
   getCurrent: () =>

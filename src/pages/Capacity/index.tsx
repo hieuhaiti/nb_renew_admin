@@ -1,12 +1,13 @@
 import type { JSX } from 'react'
 import { useState, useEffect } from 'react'
+import { useDebounce } from '@/hooks/useDebounce'
 import { useApiQuery, capacityService, roleService } from '@/service'
 import { useCapacityStore } from '@/stores/common/useCapacityStore'
 import type {
   ApiResponse,
   CapacityState,
   CapacityStatus,
-  CapacityCurrentData,
+  CapacityAdminData,
   CapacityConfig,
   CapacityConfigsData,
   Role,
@@ -30,7 +31,10 @@ import {
   Plus,
   Bell,
   RefreshCw,
+  Search,
+  X,
 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import PageLayout from '@/layout/pageLayout'
 import { formatDateTime } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
@@ -38,6 +42,7 @@ import CapacityDetailDialog from './CapacityDetailDialog'
 import CapacityLogFormDialog from './CapacityLogFormDialog'
 import CapacitySettingsFormDialog from './CapacitySettingsFormDialog'
 import CapacityConfigFormDialog from './CapacityConfigFormDialog'
+import { PaginationCustom } from '@/components/features/PaginationCustom'
 
 const CAPACITY_STATUS_LABEL: Record<CapacityStatus, string> = {
   normal: 'Bình thường',
@@ -108,10 +113,20 @@ export default function CapacityPage(): JSX.Element {
   const [configOpen, setConfigOpen] = useState(false)
   const [activeItem, setActiveItem] = useState<CapacityState | null>(null)
   const [editConfig, setEditConfig] = useState<CapacityConfig | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebounce(searchInput, 400)
+
+  const queryParams = {
+    page: currentPage,
+    limit: 10,
+    sortOrder: 'DESC' as const,
+    ...(debouncedSearch && { search: debouncedSearch }),
+  }
 
   const snapshotQuery = useApiQuery(
-    ['capacity-current'],
-    () => capacityService.getCurrent(),
+    ['capacity-admin', queryParams],
+    () => capacityService.getAdmin(queryParams),
     { staleTime: STALE_HOT },
     false,
     false
@@ -132,10 +147,11 @@ export default function CapacityPage(): JSX.Element {
     false,
     false
   )
-  const roles: Role[] = (rolesQuery.data as unknown as ApiResponse<{ roles: Role[] }>)?.data?.roles ?? []
+  const roles: Role[] =
+    (rolesQuery.data as unknown as ApiResponse<{ roles: Role[] }>)?.data?.roles ?? []
 
   useEffect(() => {
-    const rawCapacity = (snapshotQuery.data as ApiResponse<CapacityCurrentData>)?.data?.capacity
+    const rawCapacity = (snapshotQuery.data as ApiResponse<CapacityAdminData>)?.data?.capacity
     const items: CapacityState[] = Array.isArray(rawCapacity) ? rawCapacity : []
     initFromSnapshot(items)
   }, [snapshotQuery.data, initFromSnapshot])
@@ -147,8 +163,9 @@ export default function CapacityPage(): JSX.Element {
     }
   }, [connectWS, disconnectWS])
 
-  const rawCapacity = (snapshotQuery.data as ApiResponse<CapacityCurrentData>)?.data?.capacity
+  const rawCapacity = (snapshotQuery.data as ApiResponse<CapacityAdminData>)?.data?.capacity
   const snapshotItems: CapacityState[] = Array.isArray(rawCapacity) ? rawCapacity : []
+  const pagination = (snapshotQuery.data as ApiResponse<CapacityAdminData>)?.data?.pagination
 
   const displayItems: CapacityState[] = snapshotItems.map((item) => {
     const live = capacityBySpotId[item.spot_id]
@@ -205,17 +222,43 @@ export default function CapacityPage(): JSX.Element {
       title="Sức chứa điểm đến"
       description="Theo dõi và cập nhật sức chứa điểm tham quan theo thời gian thực"
     >
-      {/* ── WS status + refresh ── */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {wsStatus === 'connected' ? (
-            <Wifi className="text-success size-4" />
-          ) : wsStatus === 'connecting' || wsStatus === 'reconnecting' ? (
-            <Loader2 className="text-warning size-4 animate-spin" />
-          ) : (
-            <WifiOff className="text-muted-foreground size-4" />
-          )}
-          <span className="typo-meta text-muted-foreground">{wsStatusLabel[wsStatus]}</span>
+      {/* ── Toolbar: search + WS status + refresh ── */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {/* Search input */}
+          <div className="relative w-64">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input
+              placeholder="Tìm kiếm điểm tham quan..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="pr-9 pl-9"
+            />
+            {searchInput && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSearchInput(''); setCurrentPage(1) }}
+                className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 p-2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          {/* WS status */}
+          <div className="flex items-center gap-1.5">
+            {wsStatus === 'connected' ? (
+              <Wifi className="text-success size-4" />
+            ) : wsStatus === 'connecting' || wsStatus === 'reconnecting' ? (
+              <Loader2 className="text-warning size-4 animate-spin" />
+            ) : (
+              <WifiOff className="text-muted-foreground size-4" />
+            )}
+            <span className="typo-meta text-muted-foreground">{wsStatusLabel[wsStatus]}</span>
+          </div>
         </div>
         <Button
           variant="secondary"
@@ -346,6 +389,14 @@ export default function CapacityPage(): JSX.Element {
           </TableBody>
         </Table>
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <PaginationCustom
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+          className="mt-4"
+        />
+      )}
 
       {/* ── Alert configs section ── */}
       <div className="mt-8">

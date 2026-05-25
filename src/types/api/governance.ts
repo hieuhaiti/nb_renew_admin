@@ -21,10 +21,22 @@ export interface GovernanceTrafficAction {
   count: string | number
 }
 
+export interface GovernanceTrafficTimelineItem {
+  period: string
+  visits: number
+  unique_visitors: number
+}
+
 export interface GovernanceTrafficData {
-  time_series: Record<string, unknown>[]
-  top_sources: Record<string, unknown>[]
-  top_actions: GovernanceTrafficAction[]
+  total_visits?: number
+  unique_visitors?: number
+  avg_duration_seconds?: number
+  bounce_rate_pct?: number
+  timeline?: GovernanceTrafficTimelineItem[]
+  /** Legacy fields — may be absent depending on API version */
+  time_series?: Record<string, unknown>[]
+  top_sources?: Record<string, unknown>[]
+  top_actions?: GovernanceTrafficAction[]
 }
 
 export interface GovernancePermission {

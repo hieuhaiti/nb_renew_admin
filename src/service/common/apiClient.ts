@@ -66,11 +66,6 @@ async function handleResponse<T>(res: Response, isAuthEndpoint = false, isGet = 
     throw err
   }
 
-  // Hiện success toast cho non-GET (bỏ qua auth endpoints và GET)
-  if (!isAuthEndpoint && !isGet && body?.message) {
-    toast.success(body.message)
-  }
-
   return body as T
 }
 

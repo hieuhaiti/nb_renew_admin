@@ -99,7 +99,7 @@ function App() {
                   <Route path="/users" element={<UserPage />} />
                   <Route path="/roles" element={<RolePage />} />
                   <Route path="/audit-logs" element={<AuditLogPage />} />
-                  <Route path="/integrations" element={<IntegrationPage />} />
+                  {/* <Route path="/integrations" element={<IntegrationPage />} /> */}
                   <Route path="/governance/admin" element={<GovernanceAdminPage />} />
                 </Route>
 
@@ -120,9 +120,9 @@ function App() {
                 {/* === Danh mục điểm + Bản đồ — Admin, Sở (Bộ không có quyền backend) === */}
                 <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CATALOG} />}>
                   <Route path="/categories" element={<CategoryPage />} />
-                  <Route path="/map-layers" element={<MapLayerPage />} />
-                  <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
-                  <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
+                  {/* <Route path="/map-layers" element={<MapLayerPage />} /> */}
+                  {/* <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} /> */}
+                  {/* <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} /> */}
                 </Route>
 
                 {/* === Điểm + Sức chứa + Đánh giá — Admin, Bộ, Sở, Đơn vị vận hành === */}
