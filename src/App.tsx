@@ -8,7 +8,6 @@ import { useAuthStore } from './stores/common/useAuthStore'
 import { tokenManager } from './lib/tokenManager'
 import { ToastContainer } from 'react-toastify'
 import { AppErrorBoundary } from '@/components/common/AppErrorBoundary'
-import { lazyWithRetry } from '@/lib/lazyWithRetry'
 import ImageLightbox from '@/components/common/ImageLightbox'
 import { ROLE_GROUPS, ROLE_IDS } from '@/constant/roleConstant'
 import 'react-toastify/dist/ReactToastify.css'
@@ -35,11 +34,11 @@ const NewsCommentsPage = lazy(() => import('@/pages/NewsComments'))
 const RatingSpotPage = lazy(() => import('@/pages/Ratings/RatingSpotPage'))
 const RatingBusinessPage = lazy(() => import('@/pages/Ratings/RatingBusinessPage'))
 const RatingMyBusinessPage = lazy(() => import('@/pages/Ratings/RatingMyBusinessPage'))
-const MapLayerPage = lazy(() => import('@/pages/MapLayers'))
-const MapLayerApisPage = lazyWithRetry(
-  () => import('@/pages/MapLayerApis'),
-  'retry:page:map-layer-apis'
-)
+// const MapLayerPage = lazy(() => import('@/pages/MapLayers'))
+// const MapLayerApisPage = lazyWithRetry(
+//   () => import('@/pages/MapLayerApis'),
+//   'retry:page:map-layer-apis'
+// )
 const MapLayerApiPublicPage = lazy(() => import('@/pages/MapLayerApis/MapLayerApiPublicPage'))
 const FeedbackPage = lazy(() => import('@/pages/Feedback'))
 const AuditLogPage = lazy(() => import('@/pages/AuditLog'))
@@ -50,10 +49,11 @@ const GovernanceDepartmentPage = lazy(() => import('@/pages/Governance/Governanc
 const GovernanceEnterprisePage = lazy(() => import('@/pages/Governance/GovernanceEnterprisePage'))
 const VisitorStatisticsPage = lazy(() => import('@/pages/Statistics/VisitorStatistics'))
 const StatisticsPage = lazy(() => import('@/pages/Statistics'))
-const MapAdminCategoriesPage = lazy(() => import('@/pages/MapAdminCategories'))
+// const MapAdminCategoriesPage = lazy(() => import('@/pages/MapAdminCategories'))
 const TourPage = lazy(() => import('@/pages/Tours'))
+const AframeScenePage = lazy(() => import('@/pages/AframeScenes'))
 const CapacityPage = lazy(() => import('@/pages/Capacity'))
-const IntegrationPage = lazy(() => import('@/pages/Integrations'))
+// const IntegrationPage = lazy(() => import('@/pages/Integrations'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const ChangePasswordPage = lazy(() => import('@/pages/ChangePassword'))
 
@@ -128,6 +128,7 @@ function App() {
                 {/* === Điểm + Sức chứa + Đánh giá — Admin, Bộ, Sở, Đơn vị vận hành === */}
                 <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CONTENT} />}>
                   <Route path="/spots" element={<SpotPage />} />
+                  <Route path="/aframe-scenes" element={<AframeScenePage />} />
                   <Route path="/culinary" element={<CulinaryPage />} />
                   <Route path="/festivals" element={<FestivalPage />} />
                   <Route path="/capacity" element={<CapacityPage />} />

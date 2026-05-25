@@ -2043,9 +2043,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/capacity/current",
+              "raw": "{{baseUrl}}/capacity/admin",
               "host": ["{{baseUrl}}"],
-              "path": ["capacity", "current"]
+              "path": ["capacity", "admin"]
             }
           },
           "response": []

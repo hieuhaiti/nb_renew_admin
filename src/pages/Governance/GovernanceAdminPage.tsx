@@ -557,7 +557,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                         <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                         <Tooltip
                           contentStyle={{ fontSize: 12 }}
-                          formatter={(value: number) => value.toLocaleString('vi-VN')}
+                          formatter={(value: number | undefined) => (value ?? 0).toLocaleString('vi-VN')}
                         />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
                         <Bar dataKey="visits" name="Lượt truy cập" fill="#6366f1" radius={[3, 3, 0, 0]} />

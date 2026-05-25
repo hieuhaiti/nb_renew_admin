@@ -11,7 +11,7 @@ import { serviceSpotPath } from '@/constant/serviceConstant'
 // ─── VR / Media local types ────────────────────────────────────────────────
 
 export interface AFrameScene {
-  id: number
+  id: string
   spot_id: string
   name: string
   description?: string | null
@@ -49,14 +49,14 @@ export interface AFrameSceneFormBody {
 }
 
 export interface AFrameHotspot {
-  id: number
-  scene_id: number
+  id: string
+  scene_id: string
   name: string
   description?: string | null
   hotspot_type: string
   position?: object | null
   scale?: object | null
-  target_scene_id?: number | null
+  target_scene_id?: string | null
   linked_spot_id?: string | null
   target_url?: string | null
   icon_type?: string | null
@@ -71,7 +71,7 @@ export interface AFrameHotspotFormBody {
   hotspot_type: string
   position?: object
   scale?: object
-  target_scene_id?: number
+  target_scene_id?: string
   linked_spot_id?: string
   target_url?: string
   icon_type?: string
@@ -217,13 +217,13 @@ export default {
 
   /** GET /spots/:spotId/aframe-scenes/:sceneId/preload */
   // TODO: Available in Postman but not used by admin UI yet
-  preloadScene: (spotId: string, sceneId: number) =>
+  preloadScene: (spotId: string, sceneId: string) =>
     apiClient.get<ApiResponse<AFrameScene>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/preload`
     ),
 
   /** GET /spots/:spotId/aframe-scenes/:sceneId */
-  getSceneById: (spotId: string, sceneId: number) =>
+  getSceneById: (spotId: string, sceneId: string) =>
     apiClient.get<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`),
 
   /** POST /spots/:spotId/aframe-scenes */
@@ -231,59 +231,59 @@ export default {
     apiClient.post<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes`, data),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId */
-  updateScene: (spotId: string, sceneId: number, data: Partial<AFrameSceneFormBody>) =>
+  updateScene: (spotId: string, sceneId: string, data: Partial<AFrameSceneFormBody>) =>
     apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`, data),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/set-main */
-  setMainScene: (spotId: string, sceneId: number) =>
+  setMainScene: (spotId: string, sceneId: string) =>
     apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/set-main`),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/activate */
-  activateScene: (spotId: string, sceneId: number) =>
+  activateScene: (spotId: string, sceneId: string) =>
     apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/activate`),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/deactivate */
-  deactivateScene: (spotId: string, sceneId: number) =>
+  deactivateScene: (spotId: string, sceneId: string) =>
     apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/deactivate`),
 
   /** DELETE /spots/:spotId/aframe-scenes/:sceneId */
-  deleteScene: (spotId: string, sceneId: number) =>
+  deleteScene: (spotId: string, sceneId: string) =>
     apiClient.del<ApiResponse<{}>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`),
 
   // ─── Scene Hotspots ───────────────────────────────────────────────────────
 
   /** GET /spots/:spotId/aframe-scenes/:sceneId/hotspots */
-  getSceneHotspots: (spotId: string, sceneId: number, params?: { include_inactive?: boolean }) =>
+  getSceneHotspots: (spotId: string, sceneId: string, params?: { include_inactive?: boolean }) =>
     apiClient.get<ApiResponse<AFrameHotspot[]>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots`, params
     ),
 
   /** POST /spots/:spotId/aframe-scenes/:sceneId/hotspots */
-  createSceneHotspot: (spotId: string, sceneId: number, data: AFrameHotspotFormBody) =>
+  createSceneHotspot: (spotId: string, sceneId: string, data: AFrameHotspotFormBody) =>
     apiClient.post<ApiResponse<AFrameHotspot>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots`, data
     ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/hotspots/:hotspotId */
-  updateSceneHotspot: (spotId: string, sceneId: number, hotspotId: number, data: Partial<AFrameHotspotFormBody>) =>
+  updateSceneHotspot: (spotId: string, sceneId: string, hotspotId: string, data: Partial<AFrameHotspotFormBody>) =>
     apiClient.patch<ApiResponse<AFrameHotspot>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots/${hotspotId}`, data
     ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/hotspots/:hotspotId/activate */
-  activateSceneHotspot: (spotId: string, sceneId: number, hotspotId: number) =>
+  activateSceneHotspot: (spotId: string, sceneId: string, hotspotId: string) =>
     apiClient.patch<ApiResponse<AFrameHotspot>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots/${hotspotId}/activate`
     ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/hotspots/:hotspotId/deactivate */
-  deactivateSceneHotspot: (spotId: string, sceneId: number, hotspotId: number) =>
+  deactivateSceneHotspot: (spotId: string, sceneId: string, hotspotId: string) =>
     apiClient.patch<ApiResponse<AFrameHotspot>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots/${hotspotId}/deactivate`
     ),
 
   /** DELETE /spots/:spotId/aframe-scenes/:sceneId/hotspots/:hotspotId */
-  deleteSceneHotspot: (spotId: string, sceneId: number, hotspotId: number) =>
+  deleteSceneHotspot: (spotId: string, sceneId: string, hotspotId: string) =>
     apiClient.del<ApiResponse<{}>>(
       `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots/${hotspotId}`
     ),

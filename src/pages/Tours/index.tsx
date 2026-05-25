@@ -95,7 +95,7 @@ export default function TourPage(): JSX.Element {
 
   const dbQuery = useApiQuery(
     ['tours', queryParams],
-    () => tourService.getAll(queryParams),
+    () => tourService.getAdmin(queryParams),
     { staleTime: STALE_DEFAULT },
     false,
     false

@@ -9,6 +9,10 @@ import type {
 import { serviceOcopPath } from '@/constant/serviceConstant'
 
 export default {
+  /** GET /ocop/admin */
+  getAdmin: (params?: OcopListParams) =>
+    apiClient.get<ApiResponse<OcopListData>>('/ocop/admin', params),
+
   /** GET /ocop */
   getAll: (params?: OcopListParams) =>
     apiClient.get<ApiResponse<OcopListData>>(serviceOcopPath, params),
@@ -19,20 +23,16 @@ export default {
     apiClient.get<ApiResponse<OcopListData>>(`${serviceOcopPath}/me`, params),
 
   /** GET /ocop/geojson */
-  getGeoJSON: () =>
-    apiClient.get<ApiResponse<object>>(`${serviceOcopPath}/geojson`),
+  getGeoJSON: () => apiClient.get<ApiResponse<object>>(`${serviceOcopPath}/geojson`),
 
   /** GET /ocop/categories */
-  getCategories: () =>
-    apiClient.get<ApiResponse<string[]>>(`${serviceOcopPath}/categories`),
+  getCategories: () => apiClient.get<ApiResponse<string[]>>(`${serviceOcopPath}/categories`),
 
   /** GET /ocop/:id */
-  getById: (id: string) =>
-    apiClient.get<ApiResponse<OcopProduct>>(`${serviceOcopPath}/${id}`),
+  getById: (id: string) => apiClient.get<ApiResponse<OcopProduct>>(`${serviceOcopPath}/${id}`),
 
   /** POST /ocop */
-  create: (data: OcopFormBody) =>
-    apiClient.post<ApiResponse<OcopProduct>>(serviceOcopPath, data),
+  create: (data: OcopFormBody) => apiClient.post<ApiResponse<OcopProduct>>(serviceOcopPath, data),
 
   /** PATCH /ocop/:id */
   update: (id: string, data: Partial<OcopFormBody>) =>

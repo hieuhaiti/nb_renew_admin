@@ -172,7 +172,10 @@ export default function GovernanceEnterprisePage(): JSX.Element {
     false,
     false
   )
-  const myBiz = (myBizQuery.data?.data ?? myBizQuery.data) as Business | undefined
+  const myBizRaw = myBizQuery.data?.data ?? myBizQuery.data
+  const myBiz = (Array.isArray((myBizRaw as any)?.businesses)
+    ? (myBizRaw as any).businesses[0]
+    : myBizRaw) as Business | undefined
   const businessId: string = myBiz?.id ?? ''
 
   // ── Dashboard ──────────────────────────────────────────────────────────────

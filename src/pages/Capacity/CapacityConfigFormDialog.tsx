@@ -12,6 +12,8 @@ import { useForm, Controller, type SubmitHandler, type Resolver } from 'react-ho
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { STALE_REF } from '@/constant/queryConstant'
+import { useAuthStore } from '@/stores/common/useAuthStore'
+import { ROLE_GROUPS } from '@/constant/roleConstant'
 
 const configSchema = z
   .object({
@@ -78,6 +80,9 @@ export default function CapacityConfigFormDialog({
     }
   }, [open, editConfig, form])
 
+  const roleId = useAuthStore((s) => s.user?.role_id)
+  const canAccessRoles = roleId != null && (ROLE_GROUPS.CONTENT as readonly number[]).includes(roleId)
+
   const spotsQuery = useApiQuery(
     ['spots-for-config'],
     () => spotService.getAll({ limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
@@ -90,7 +95,7 @@ export default function CapacityConfigFormDialog({
   const rolesQuery = useApiQuery(
     ['roles'],
     () => roleService.getAll(),
-    { staleTime: STALE_REF, enabled: open },
+    { staleTime: STALE_REF, enabled: open && canAccessRoles },
     false,
     false
   )
@@ -221,53 +226,55 @@ export default function CapacityConfigFormDialog({
             </div>
           </div>
 
-          {/* notify_roles */}
-          <div className="space-y-1.5">
-            <Label>Vai trò nhận thông báo</Label>
-            <p className="text-muted-foreground text-xs">
-              Push thông báo đến các vai trò này khi lượng khách vượt ngưỡng
-            </p>
-            <Controller
-              control={form.control}
-              name="notify_roles"
-              render={({ field }) => {
-                const selected = field.value ?? []
-                return (
-                  <div className="max-h-36 overflow-y-auto rounded-md border p-2">
-                    {rolesQuery.isLoading ? (
-                      <p className="text-muted-foreground py-2 text-center text-xs">Đang tải...</p>
-                    ) : roles.length === 0 ? (
-                      <p className="text-muted-foreground py-2 text-center text-xs">Không có vai trò</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {roles.map((role) => {
-                          const id = String(role.id)
-                          return (
-                            <label
-                              key={role.id}
-                              className="flex cursor-pointer items-center gap-2.5"
-                            >
-                              <Checkbox
-                                checked={selected.includes(id)}
-                                onCheckedChange={(checked) => {
-                                  field.onChange(
-                                    checked
-                                      ? [...selected, id]
-                                      : selected.filter((v) => v !== id)
-                                  )
-                                }}
-                              />
-                              <span className="text-sm">{role.name_vi ?? role.name}</span>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              }}
-            />
-          </div>
+          {/* notify_roles — chỉ CONTENT group mới có quyền xem/chỉnh */}
+          {canAccessRoles && (
+            <div className="space-y-1.5">
+              <Label>Vai trò nhận thông báo</Label>
+              <p className="text-muted-foreground text-xs">
+                Push thông báo đến các vai trò này khi lượng khách vượt ngưỡng
+              </p>
+              <Controller
+                control={form.control}
+                name="notify_roles"
+                render={({ field }) => {
+                  const selected = field.value ?? []
+                  return (
+                    <div className="max-h-36 overflow-y-auto rounded-md border p-2">
+                      {rolesQuery.isLoading ? (
+                        <p className="text-muted-foreground py-2 text-center text-xs">Đang tải...</p>
+                      ) : roles.length === 0 ? (
+                        <p className="text-muted-foreground py-2 text-center text-xs">Không có vai trò</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {roles.map((role) => {
+                            const id = String(role.id)
+                            return (
+                              <label
+                                key={role.id}
+                                className="flex cursor-pointer items-center gap-2.5"
+                              >
+                                <Checkbox
+                                  checked={selected.includes(id)}
+                                  onCheckedChange={(checked) => {
+                                    field.onChange(
+                                      checked
+                                        ? [...selected, id]
+                                        : selected.filter((v) => v !== id)
+                                    )
+                                  }}
+                                />
+                                <span className="text-sm">{role.name_vi ?? role.name}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }}
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

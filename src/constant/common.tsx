@@ -4,15 +4,15 @@ import {
   Video,
   Building2,
   Newspaper,
-  MessageSquare,
-  Map,
+  // MessageSquare,
+  // Map,
   Users,
   AlertTriangle,
   ClipboardList,
   BarChart2,
   Navigation,
   Gauge,
-  Plug,
+  // Plug,
   Database,
 } from 'lucide-react'
 import type { NavItem } from '@/types/common/index'
@@ -55,6 +55,7 @@ export const navConfig: NavItem[] = [
     subItems: [
       { name: 'Danh mục', path: '/categories', authen: [...ROLE_GROUPS.CATALOG] },
       { name: 'Điểm tham quan', path: '/spots', authen: [...ROLE_GROUPS.CONTENT] },
+      { name: 'Cảnh VR A-Frame', path: '/aframe-scenes', authen: [...ROLE_GROUPS.CONTENT] },
       { name: 'Ẩm thực', path: '/culinary', authen: [...ROLE_GROUPS.CONTENT] },
       { name: 'Lễ hội & sự kiện', path: '/festivals', authen: [...ROLE_GROUPS.CONTENT] },
       { name: 'Sản phẩm OCOP', path: '/ocop', authen: [...ROLE_GROUPS.ALL_ADMIN] },
@@ -149,10 +150,10 @@ export const navConfig: NavItem[] = [
     authen: [...ROLE_GROUPS.NATIONAL],
   },
 
-  {
-    icon: <MessageSquare />,
-    name: 'Tài liệu hệ thống',
-    path: 'http://103.163.119.247:8881/uploads/dl_hdsd_admin.docx',
-    authen: [],
-  },
+  // {
+  //   icon: <MessageSquare />,
+  //   name: 'Tài liệu hệ thống',
+  //   path: 'http://103.163.119.247:8881/uploads/dl_hdsd_admin.docx',
+  //   authen: [],
+  // },
 ]

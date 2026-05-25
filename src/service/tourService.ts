@@ -11,6 +11,10 @@ import type {
 import { serviceTourPath } from '@/constant/serviceConstant'
 
 export default {
+  /** GET /tours/admin */
+  getAdmin: (params?: TourListParams) =>
+    apiClient.get<ApiResponse<TourListData>>('/tours/admin', params),
+
   /** GET /tours */
   getAll: (params?: TourListParams) =>
     apiClient.get<ApiResponse<TourListData>>(serviceTourPath, params),

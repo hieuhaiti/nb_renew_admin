@@ -75,7 +75,7 @@ export default function OcopPage(): JSX.Element {
 
   const dbQuery = useApiQuery(
     ['ocop', queryParams],
-    () => ocopService.getAll(queryParams),
+    () => ocopService.getAdmin(queryParams),
     { staleTime: STALE_DEFAULT },
     false,
     false
