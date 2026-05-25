@@ -91,8 +91,8 @@ export default function AframeScenePage(): JSX.Element {
 
   return (
     <PageLayout
-      title="Canh VR A-Frame"
-      description="Quan ly canh thuc te ao 360 do cho cac diem tham quan"
+      title="Cảnh VR A-Frame"
+      description="Quản lý cảnh thực tế ảo 360° cho các điểm tham quan"
     >
       <ToolTableCustom
         searchValue={searchValue}
@@ -109,7 +109,7 @@ export default function AframeScenePage(): JSX.Element {
                 setSpotId(v)
                 setSelectedId(null)
               }}
-              placeholder="Chon diem tham quan..."
+              placeholder="Chọn điểm tham quan..."
               className="w-64"
             />
             <Select value={includeInactive} onValueChange={setIncludeInactive}>
@@ -117,8 +117,8 @@ export default function AframeScenePage(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="false">Chi canh hoat dong</SelectItem>
-                <SelectItem value="true">Bao gom vo hieu</SelectItem>
+                <SelectItem value="false">Chỉ cảnh hoạt động</SelectItem>
+                <SelectItem value="true">Bao gồm vô hiệu</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -130,7 +130,7 @@ export default function AframeScenePage(): JSX.Element {
               }}
             >
               <Plus className="mr-1 size-4" />
-              Them canh VR
+              Thêm cảnh VR
             </Button>
           </div>
         }
@@ -139,37 +139,37 @@ export default function AframeScenePage(): JSX.Element {
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead>Ten canh</TableHead>
-              <TableHead>Canh chinh</TableHead>
-              <TableHead>Trang thai</TableHead>
+              <TableHead>Tên cảnh</TableHead>
+              <TableHead>Cảnh chính</TableHead>
+              <TableHead>Trạng thái</TableHead>
               <TableHead>FOV</TableHead>
-              <TableHead>Ngay tao</TableHead>
-              <TableHead className="w-36 text-right">Hanh dong</TableHead>
+              <TableHead>Ngày tạo</TableHead>
+              <TableHead className="w-36 text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {!spotId ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-muted-foreground py-12 text-center">
-                  Chon diem tham quan de xem danh sach canh VR
+                  Chọn điểm tham quan để xem danh sách cảnh VR
                 </TableCell>
               </TableRow>
             ) : dbQuery.isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-muted-foreground py-8 text-center">
-                  Dang tai...
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : dbQuery.isError ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-destructive py-8 text-center">
-                  Da xay ra loi, vui long thu lai
+                  Đã xảy ra lỗi, vui lòng thử lại
                 </TableCell>
               </TableRow>
             ) : scenes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-muted-foreground text-center">
-                  Chua co canh VR nao
+                  Chưa có cảnh VR nào
                 </TableCell>
               </TableRow>
             ) : (
@@ -194,7 +194,7 @@ export default function AframeScenePage(): JSX.Element {
                     {scene.is_main ? (
                       <Badge className="border-warning/20 bg-warning/10 text-warning">
                         <Crown className="mr-1 size-3" />
-                        Canh chinh
+                        Cảnh chính
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground text-xs">-</span>
@@ -202,10 +202,10 @@ export default function AframeScenePage(): JSX.Element {
                   </TableCell>
                   <TableCell>
                     {scene.is_active ? (
-                      <Badge className="border-success/20 bg-success/10 text-success">Hoat dong</Badge>
+                      <Badge className="border-success/20 bg-success/10 text-success">Hoạt động</Badge>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground">
-                        Vo hieu
+                        Vô hiệu
                       </Badge>
                     )}
                   </TableCell>
@@ -223,7 +223,7 @@ export default function AframeScenePage(): JSX.Element {
                           setSelectedId(scene.id)
                           setDetailOpen(true)
                         }}
-                        title="Chinh sua"
+                        title="Chỉnh sửa"
                       >
                         <Pen className="size-4" />
                       </Button>
@@ -235,7 +235,7 @@ export default function AframeScenePage(): JSX.Element {
                             e.stopPropagation()
                             setMainMutation.mutate(scene.id)
                           }}
-                          title="Dat lam canh chinh"
+                          title="Đặt làm cảnh chính"
                           disabled={setMainMutation.isPending}
                         >
                           <Crown className="size-4" />
@@ -248,7 +248,7 @@ export default function AframeScenePage(): JSX.Element {
                           e.stopPropagation()
                           toggleActiveMutation.mutate({ id: scene.id, active: !scene.is_active })
                         }}
-                        title={scene.is_active ? 'Vo hieu hoa' : 'Kich hoat'}
+                        title={scene.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
                         disabled={toggleActiveMutation.isPending}
                       >
                         {scene.is_active ? (
@@ -265,7 +265,7 @@ export default function AframeScenePage(): JSX.Element {
                           setItemToDelete(scene)
                           setDeleteOpen(true)
                         }}
-                        title="Xoa"
+                        title="Xóa"
                       >
                         <Trash2 className="text-destructive size-4" />
                       </Button>
@@ -289,19 +289,19 @@ export default function AframeScenePage(): JSX.Element {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xac nhan xoa</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Ban co chac chan muon xoa canh VR "{itemToDelete?.name}"? Hanh dong nay khong the hoan tac.
+              Bạn có chắc chắn muốn xóa cảnh VR &quot;{itemToDelete?.name}&quot;? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => itemToDelete && deleteMutation.mutate(itemToDelete.id)}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Dang xoa...' : 'Xoa'}
+              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

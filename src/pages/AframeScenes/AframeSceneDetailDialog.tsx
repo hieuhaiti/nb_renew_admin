@@ -16,15 +16,28 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { SearchSelect } from '@/components/common/SearchSelect'
 import AframeScenePreview from '@/components/aframe/AframeScenePreview'
 import type { PreviewHotspot } from '@/components/aframe/AframeScenePreview'
 import { spotService, useApiMutation, useApiQuery } from '@/service'
-import type { AFrameHotspot, AFrameHotspotFormBody, AFrameScene, AFrameSceneFormBody } from '@/service/spotService'
+import type {
+  AFrameHotspot,
+  AFrameHotspotFormBody,
+  AFrameScene,
+  AFrameSceneFormBody,
+} from '@/service/spotService'
+import type { ApiResponse, Spot, SpotListData } from '@/types/api'
 import { formatDateTime } from '@/lib/date'
-import { Crown, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
+import { Crown, Eye, EyeOff, Pen, Plus, Trash2 } from 'lucide-react'
 import { STALE_REF } from '@/constant/queryConstant'
+import { parseLink } from '@/lib/utils'
 
 interface NestedScene {
   camera?: { position?: object | null; rotation?: object | null; fov?: number | null } | null
@@ -56,7 +69,26 @@ interface Vec3Like {
   z?: number | null
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function InfoRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[9rem_1fr] items-start gap-2 py-0.5">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="text-xs break-all">
+        {children ?? <span className="text-muted-foreground">—</span>}
+      </span>
+    </div>
+  )
+}
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-muted-foreground mt-3 mb-1 text-xs font-semibold tracking-wider uppercase">
+      {children}
+    </p>
+  )
+}
+
+function HsRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid grid-cols-3 gap-2">
       <span className="text-xs font-semibold">{label}:</span>
@@ -66,10 +98,18 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 }
 
 const HOTSPOT_TYPES = [
-  { value: 'navigation', label: 'Navigation' },
-  { value: 'info', label: 'Info' },
-  { value: 'url', label: 'URL' },
+  { value: 'navigation', label: 'Điều hướng' },
+  { value: 'info', label: 'Thông tin' },
+  { value: 'url', label: 'Liên kết URL' },
   { value: 'media', label: 'Media' },
+]
+
+const ICON_TYPES = [
+  { value: 'arrow', label: 'Mũi tên' },
+  { value: 'info', label: 'Thông tin' },
+  { value: 'link', label: 'Liên kết' },
+  { value: 'media', label: 'Media' },
+  { value: 'plus', label: 'Thêm' },
 ]
 
 interface SceneFormState {
@@ -151,6 +191,7 @@ export default function AframeSceneDetailDialog({
   const [createdSceneId, setCreatedSceneId] = useState<string | null>(null)
   const effectiveSceneId = sceneId ?? createdSceneId
   const isCreateMode = !effectiveSceneId
+  const [isEditingScene, setIsEditingScene] = useState(false)
 
   const [sceneForm, setSceneForm] = useState<SceneFormState>(DEFAULT_SCENE_FORM)
   const [sceneFormError, setSceneFormError] = useState<string | null>(null)
@@ -165,7 +206,9 @@ export default function AframeSceneDetailDialog({
   )
   const raw = (dbQuery.data as any)?.data
   const scene: Scene | null = raw
-    ? ('id' in raw ? (raw as Scene) : ((raw?.scene ?? raw?.aframe_scene ?? null) as Scene | null))
+    ? 'id' in raw
+      ? (raw as Scene)
+      : ((raw?.scene ?? raw?.aframe_scene ?? null) as Scene | null)
     : null
 
   const hotspotQuery = useApiQuery(
@@ -190,6 +233,41 @@ export default function AframeSceneDetailDialog({
   const allScenes: AFrameScene[] = scenesRaw?.scenes ?? (Array.isArray(scenesRaw) ? scenesRaw : [])
   const otherScenes = allScenes.filter((s) => s.id !== effectiveSceneId)
 
+  const spotsQuery = useApiQuery(
+    ['spots-ref'],
+    () => spotService.getAll({ limit: 100, sortBy: 'name', sortOrder: 'ASC' }),
+    { staleTime: STALE_REF },
+    false,
+    false
+  )
+  const allSpots: Spot[] = (spotsQuery.data as ApiResponse<SpotListData>)?.data?.spots ?? []
+  const spotSelectOptions = allSpots.map((s) => ({ value: s.id, label: s.name || s.id }))
+
+  function hydrateFormFromScene(s: Scene) {
+    const pos = normPos(s) as Vec3Like | null
+    const rot = normRot(s) as Vec3Like | null
+    setSceneForm({
+      name: s.name ?? '',
+      description: s.description ?? '',
+      equirectangular_image_url: s.equirectangular_image_url ?? '',
+      thumbnail_url: s.thumbnail_url ?? '',
+      camera_fov: String(normFov(s) ?? 80),
+      cam_pos_x: String(pos?.x ?? 0),
+      cam_pos_y: String(pos?.y ?? 1.6),
+      cam_pos_z: String(pos?.z ?? 0),
+      cam_rot_x: String(rot?.x ?? 0),
+      cam_rot_y: String(rot?.y ?? 0),
+      cam_rot_z: String(rot?.z ?? 0),
+      ambient_sound_url: normAUrl(s) ?? '',
+      ambient_sound_loop: !!normLoop(s),
+      ambient_sound_volume: normVol(s) != null ? String(normVol(s)) : '',
+      narration_audio_url: normNUrl(s) ?? '',
+      auto_play_narration: !!normAuto(s),
+      is_main: !!s.is_main,
+      is_active: !!s.is_active,
+    })
+  }
+
   const createSceneMutation = useApiMutation(
     (data: AFrameSceneFormBody) => spotService.createScene(spotId, data),
     {
@@ -205,11 +283,14 @@ export default function AframeSceneDetailDialog({
     false
   )
   const updateSceneMutation = useApiMutation(
-    (data: Partial<AFrameSceneFormBody>) => spotService.updateScene(spotId, effectiveSceneId!, data),
+    (data: Partial<AFrameSceneFormBody>) =>
+      spotService.updateScene(spotId, effectiveSceneId!, data),
     {
       onSuccess: () => {
+        hydratedRef.current = null
         dbQuery.refetch()
         if (effectiveSceneId) onSceneSaved?.(effectiveSceneId)
+        setIsEditingScene(false)
       },
     },
     false
@@ -217,13 +298,23 @@ export default function AframeSceneDetailDialog({
 
   const setMainMutation = useApiMutation(
     (id: string) => spotService.setMainScene(spotId, id),
-    { onSuccess: () => dbQuery.refetch() },
+    {
+      onSuccess: () => {
+        hydratedRef.current = null
+        dbQuery.refetch()
+      },
+    },
     false
   )
   const toggleActiveMutation = useApiMutation(
     ({ id, active }: { id: string; active: boolean }) =>
       active ? spotService.activateScene(spotId, id) : spotService.deactivateScene(spotId, id),
-    { onSuccess: () => dbQuery.refetch() },
+    {
+      onSuccess: () => {
+        hydratedRef.current = null
+        dbQuery.refetch()
+      },
+    },
     false
   )
 
@@ -235,6 +326,9 @@ export default function AframeSceneDetailDialog({
   const [editPos, setEditPos] = useState({ x: '', y: '', z: '' })
   const [editScale, setEditScale] = useState({ x: '1', y: '1', z: '1' })
   const [editTarget, setEditTarget] = useState<string | null>(null)
+  const [editLinkedSpotId, setEditLinkedSpotId] = useState<string | null>(null)
+  const [editTargetUrl, setEditTargetUrl] = useState('')
+  const [editIconType, setEditIconType] = useState('arrow')
   const [editVisible, setEditVisible] = useState(true)
   const [editActive, setEditActive] = useState(true)
   const [deleteHsOpen, setDeleteHsOpen] = useState(false)
@@ -247,7 +341,7 @@ export default function AframeSceneDetailDialog({
       setSceneForm(DEFAULT_SCENE_FORM)
       setSceneFormError(null)
       hydratedRef.current = null
-
+      setIsEditingScene(false)
       setSelectedHsId(null)
       setEditingId(null)
       setDeleteHsOpen(false)
@@ -256,38 +350,14 @@ export default function AframeSceneDetailDialog({
 
   useEffect(() => {
     if (!open) return
-
     if (!effectiveSceneId) {
       hydratedRef.current = 'create'
       setSceneForm(DEFAULT_SCENE_FORM)
       return
     }
-
     if (!scene) return
     if (hydratedRef.current === effectiveSceneId) return
-
-    const pos = normPos(scene) as Vec3Like | null
-    const rot = normRot(scene) as Vec3Like | null
-    setSceneForm({
-      name: scene.name ?? '',
-      description: scene.description ?? '',
-      equirectangular_image_url: scene.equirectangular_image_url ?? '',
-      thumbnail_url: scene.thumbnail_url ?? '',
-      camera_fov: String(normFov(scene) ?? 80),
-      cam_pos_x: String(pos?.x ?? 0),
-      cam_pos_y: String(pos?.y ?? 1.6),
-      cam_pos_z: String(pos?.z ?? 0),
-      cam_rot_x: String(rot?.x ?? 0),
-      cam_rot_y: String(rot?.y ?? 0),
-      cam_rot_z: String(rot?.z ?? 0),
-      ambient_sound_url: normAUrl(scene) ?? '',
-      ambient_sound_loop: !!normLoop(scene),
-      ambient_sound_volume: normVol(scene) != null ? String(normVol(scene)) : '',
-      narration_audio_url: normNUrl(scene) ?? '',
-      auto_play_narration: !!normAuto(scene),
-      is_main: !!scene.is_main,
-      is_active: !!scene.is_active,
-    })
+    hydrateFormFromScene(scene)
     hydratedRef.current = effectiveSceneId
   }, [open, scene, effectiveSceneId])
 
@@ -327,7 +397,8 @@ export default function AframeSceneDetailDialog({
   }, [hotspots, selectedHsId, editingId, editName, editVisible, editPos, editScale])
 
   const createHsMutation = useApiMutation(
-    (data: AFrameHotspotFormBody) => spotService.createSceneHotspot(spotId, effectiveSceneId!, data),
+    (data: AFrameHotspotFormBody) =>
+      spotService.createSceneHotspot(spotId, effectiveSceneId!, data),
     {
       onSuccess: (res) => {
         const d = (res as any)?.data
@@ -370,6 +441,9 @@ export default function AframeSceneDetailDialog({
     setEditDesc(hs.description || '')
     setEditType(hs.hotspot_type || 'navigation')
     setEditTarget(hs.target_scene_id ?? null)
+    setEditLinkedSpotId(hs.linked_spot_id ?? null)
+    setEditTargetUrl(hs.target_url ?? '')
+    setEditIconType(hs.icon_type || 'arrow')
     setEditVisible(hs.visible !== false)
     setEditActive(hs.is_active)
 
@@ -387,6 +461,9 @@ export default function AframeSceneDetailDialog({
     setEditPos({ x: '', y: '', z: '' })
     setEditScale({ x: '1', y: '1', z: '1' })
     setEditTarget(null)
+    setEditLinkedSpotId(null)
+    setEditTargetUrl('')
+    setEditIconType('arrow')
     setEditVisible(true)
     setEditActive(true)
   }
@@ -394,10 +471,11 @@ export default function AframeSceneDetailDialog({
   function handleCreateHotspot() {
     if (!effectiveSceneId) return
     createHsMutation.mutate({
-      name: 'Hotspot moi',
+      name: 'Hotspot mới',
       hotspot_type: 'navigation',
       position: { x: 0, y: 1.6, z: -3 },
       scale: { x: 1, y: 1, z: 1 },
+      icon_type: 'arrow',
       visible: true,
       is_active: true,
     })
@@ -414,7 +492,12 @@ export default function AframeSceneDetailDialog({
     if (editType !== orig.hotspot_type) payload.hotspot_type = editType
     if (editVisible !== (orig.visible !== false)) payload.visible = editVisible
     if (editActive !== orig.is_active) payload.is_active = editActive
-    if (editTarget !== (orig.target_scene_id ?? null)) payload.target_scene_id = editTarget ?? undefined
+    if (editTarget !== (orig.target_scene_id ?? null))
+      payload.target_scene_id = editTarget ?? undefined
+    if (editLinkedSpotId !== (orig.linked_spot_id ?? null))
+      payload.linked_spot_id = editLinkedSpotId ?? undefined
+    if (editTargetUrl !== (orig.target_url ?? '')) payload.target_url = editTargetUrl || undefined
+    if (editIconType !== (orig.icon_type || 'arrow')) payload.icon_type = editIconType
 
     const origPos = orig.position as Vec3Like | null
     const px = editPos.x !== '' ? num(editPos.x) : num(origPos?.x)
@@ -458,10 +541,14 @@ export default function AframeSceneDetailDialog({
       ...(fov != null && { camera_fov: fov }),
       ...(cameraPosition && { camera_position: cameraPosition }),
       ...(cameraRotation && { camera_rotation: cameraRotation }),
-      ...(values.ambient_sound_url.trim() && { ambient_sound_url: values.ambient_sound_url.trim() }),
+      ...(values.ambient_sound_url.trim() && {
+        ambient_sound_url: values.ambient_sound_url.trim(),
+      }),
       ambient_sound_loop: values.ambient_sound_loop,
       ...(ambientVolume != null && { ambient_sound_volume: ambientVolume }),
-      ...(values.narration_audio_url.trim() && { narration_audio_url: values.narration_audio_url.trim() }),
+      ...(values.narration_audio_url.trim() && {
+        narration_audio_url: values.narration_audio_url.trim(),
+      }),
       auto_play_narration: values.auto_play_narration,
       is_main: values.is_main,
       is_active: values.is_active,
@@ -469,17 +556,13 @@ export default function AframeSceneDetailDialog({
   }
 
   function validateSceneForm(values: SceneFormState): string | null {
-    if (!values.name.trim()) return 'Ten canh khong duoc de trong'
-    if (!values.equirectangular_image_url.trim()) return 'URL anh 360 khong duoc de trong'
-
+    if (!values.name.trim()) return 'Tên cảnh không được để trống'
+    if (!values.equirectangular_image_url.trim()) return 'URL ảnh 360° không được để trống'
     const fov = parseOptionalNumber(values.camera_fov)
-    if (fov != null && (fov < 10 || fov > 180)) return 'FOV phai nam trong khoang 10-180'
-
+    if (fov != null && (fov < 10 || fov > 180)) return 'FOV phải nằm trong khoảng 10–180'
     const ambientVolume = parseOptionalNumber(values.ambient_sound_volume)
-    if (ambientVolume != null && (ambientVolume < 0 || ambientVolume > 1)) {
-      return 'Volume phai nam trong khoang 0-1'
-    }
-
+    if (ambientVolume != null && (ambientVolume < 0 || ambientVolume > 1))
+      return 'Âm lượng phải nằm trong khoảng 0–1'
     return null
   }
 
@@ -487,7 +570,6 @@ export default function AframeSceneDetailDialog({
     const error = validateSceneForm(sceneForm)
     setSceneFormError(error)
     if (error) return
-
     const payload = buildScenePayload(sceneForm)
     if (effectiveSceneId) {
       updateSceneMutation.mutate(payload)
@@ -497,7 +579,6 @@ export default function AframeSceneDetailDialog({
   }
 
   const selectedHs = hotspots.find((h) => h.id === selectedHsId)
-
   const previewPosition = {
     x: parseOptionalNumber(sceneForm.cam_pos_x) ?? 0,
     y: parseOptionalNumber(sceneForm.cam_pos_y) ?? 1.6,
@@ -510,22 +591,24 @@ export default function AframeSceneDetailDialog({
   }
   const previewFov = parseOptionalNumber(sceneForm.camera_fov) ?? 80
   const isSavingScene = createSceneMutation.isPending || updateSceneMutation.isPending
+  const showSceneForm = isCreateMode || isEditingScene
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
-          <DialogTitle>{isCreateMode ? 'Tao canh VR moi' : 'Chi tiet canh VR'}</DialogTitle>
+          <DialogTitle>{isCreateMode ? 'Tạo cảnh VR mới' : 'Chi tiết cảnh VR'}</DialogTitle>
           <DialogDescription>
-            Quan ly scene, camera, am thanh va hotspot trong mot man hinh duy nhat
+            Quản lý cảnh, camera, âm thanh và hotspot trong một màn hình duy nhất
           </DialogDescription>
 
           {!isCreateMode && dbQuery.isLoading ? (
-            <div className="text-muted-foreground py-12 text-center">Dang tai...</div>
+            <div className="text-muted-foreground py-12 text-center">Đang tải...</div>
           ) : !isCreateMode && !scene ? (
-            <div className="text-muted-foreground py-12 text-center">Khong co du lieu</div>
+            <div className="text-muted-foreground py-12 text-center">Không có dữ liệu</div>
           ) : (
             <div className="mt-2 grid grid-cols-1 gap-4 lg:grid-cols-3">
+              {/* Left 2/3: preview + scene card */}
               <div className="space-y-3 lg:col-span-2">
                 <AframeScenePreview
                   imageUrl={sceneForm.equirectangular_image_url}
@@ -536,221 +619,399 @@ export default function AframeSceneDetailDialog({
                   height="420px"
                 />
 
-                <div className="rounded border p-3">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold">Chinh sua scene</p>
-                    <div className="flex items-center gap-2">
-                      {!!effectiveSceneId && scene?.is_main && (
-                        <Badge className="border-warning/20 bg-warning/10 text-warning">
-                          <Crown className="mr-1 size-3" /> Canh chinh
-                        </Badge>
-                      )}
-                      {!!effectiveSceneId && !scene?.is_main && (
+                {/* Edit / create form */}
+                {showSceneForm && (
+                  <div className="rounded border p-3">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold">
+                        {isCreateMode ? 'Thông tin cảnh mới' : 'Chỉnh sửa cảnh'}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {!!effectiveSceneId && scene?.is_main && (
+                          <Badge className="border-warning/20 bg-warning/10 text-warning">
+                            <Crown className="mr-1 size-3" /> Cảnh chính
+                          </Badge>
+                        )}
+                        {!!effectiveSceneId && !scene?.is_main && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={setMainMutation.isPending}
+                            onClick={() => setMainMutation.mutate(effectiveSceneId)}
+                          >
+                            <Crown className="mr-1 size-4" /> Đặt làm cảnh chính
+                          </Button>
+                        )}
+                        {!!effectiveSceneId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={toggleActiveMutation.isPending}
+                            onClick={() =>
+                              toggleActiveMutation.mutate({
+                                id: effectiveSceneId,
+                                active: !(scene?.is_active ?? sceneForm.is_active),
+                              })
+                            }
+                          >
+                            {(scene?.is_active ?? sceneForm.is_active) ? (
+                              <>
+                                <EyeOff className="mr-1 size-4" /> Vô hiệu hóa
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="mr-1 size-4" /> Kích hoạt
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div className="space-y-1 md:col-span-2">
+                        <Label>Tên cảnh *</Label>
+                        <Input
+                          value={sceneForm.name}
+                          onChange={(e) => setSceneField('name', e.target.value)}
+                          placeholder="Ví dụ: Cảnh chính Tràng An"
+                        />
+                      </div>
+
+                      <div className="space-y-1 md:col-span-2">
+                        <Label>Mô tả</Label>
+                        <Textarea
+                          rows={2}
+                          value={sceneForm.description}
+                          onChange={(e) => setSceneField('description', e.target.value)}
+                          placeholder="Mô tả ngắn về cảnh VR"
+                        />
+                      </div>
+
+                      <div className="space-y-1 md:col-span-2">
+                        <Label>URL ảnh 360° *</Label>
+                        <Input
+                          value={sceneForm.equirectangular_image_url}
+                          onChange={(e) =>
+                            setSceneField('equirectangular_image_url', e.target.value)
+                          }
+                          placeholder="https://example.com/panorama.jpg"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>URL thumbnail</Label>
+                        <Input
+                          value={sceneForm.thumbnail_url}
+                          onChange={(e) => setSceneField('thumbnail_url', e.target.value)}
+                          placeholder="https://example.com/thumb.jpg"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>FOV (10–180)</Label>
+                        <Input
+                          type="number"
+                          min={10}
+                          max={180}
+                          value={sceneForm.camera_fov}
+                          onChange={(e) => setSceneField('camera_fov', e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Vị trí camera (X Y Z)</Label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {(['cam_pos_x', 'cam_pos_y', 'cam_pos_z'] as const).map((k) => (
+                            <Input
+                              key={k}
+                              type="number"
+                              step="0.01"
+                              value={sceneForm[k]}
+                              onChange={(e) => setSceneField(k, e.target.value)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Hướng nhìn camera (X Y Z)</Label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {(['cam_rot_x', 'cam_rot_y', 'cam_rot_z'] as const).map((k) => (
+                            <Input
+                              key={k}
+                              type="number"
+                              step="0.01"
+                              value={sceneForm[k]}
+                              onChange={(e) => setSceneField(k, e.target.value)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 md:col-span-2">
+                        <Label>URL âm thanh nền</Label>
+                        <Input
+                          value={sceneForm.ambient_sound_url}
+                          onChange={(e) => setSceneField('ambient_sound_url', e.target.value)}
+                          placeholder="https://example.com/ambient.mp3"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Âm lượng nền (0–1)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={1}
+                          step="0.1"
+                          value={sceneForm.ambient_sound_volume}
+                          onChange={(e) => setSceneField('ambient_sound_volume', e.target.value)}
+                          placeholder="0.5"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>URL thuyết minh</Label>
+                        <Input
+                          value={sceneForm.narration_audio_url}
+                          onChange={(e) => setSceneField('narration_audio_url', e.target.value)}
+                          placeholder="https://example.com/narration.mp3"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-4">
+                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={sceneForm.ambient_sound_loop}
+                          onCheckedChange={(v) => setSceneField('ambient_sound_loop', !!v)}
+                        />
+                        Lặp lại âm thanh nền
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={sceneForm.auto_play_narration}
+                          onCheckedChange={(v) => setSceneField('auto_play_narration', !!v)}
+                        />
+                        Tự động phát thuyết minh
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={sceneForm.is_main}
+                          onCheckedChange={(v) => setSceneField('is_main', !!v)}
+                        />
+                        Cảnh chính
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={sceneForm.is_active}
+                          onCheckedChange={(v) => setSceneField('is_active', !!v)}
+                        />
+                        Kích hoạt
+                      </label>
+                    </div>
+
+                    {sceneFormError && (
+                      <p className="text-destructive mt-2 text-xs">{sceneFormError}</p>
+                    )}
+
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                      {isEditingScene ? (
                         <Button
-                          size="sm"
                           variant="outline"
-                          disabled={setMainMutation.isPending}
-                          onClick={() => setMainMutation.mutate(effectiveSceneId)}
+                          onClick={() => {
+                            setIsEditingScene(false)
+                            setSceneFormError(null)
+                            if (scene) hydrateFormFromScene(scene)
+                          }}
+                          disabled={isSavingScene}
                         >
-                          <Crown className="mr-1 size-4" /> Dat lam canh chinh
+                          Hủy
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => onOpenChange(false)}
+                          disabled={isSavingScene}
+                        >
+                          Đóng
                         </Button>
                       )}
-                      {!!effectiveSceneId && (
+                      <Button onClick={handleSaveScene} disabled={isSavingScene || !spotId}>
+                        {isSavingScene ? 'Đang lưu...' : isCreateMode ? 'Tạo cảnh' : 'Lưu thay đổi'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Detail view — shown when not editing and scene exists */}
+                {!showSceneForm && scene && (
+                  <div className="rounded border p-3">
+                    <div className="mb-3 flex items-start justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold">Chi tiết cảnh</p>
+                        {scene.is_main && (
+                          <Badge className="border-warning/20 bg-warning/10 text-warning">
+                            <Crown className="mr-1 size-3" /> Cảnh chính
+                          </Badge>
+                        )}
+                        {scene.is_active ? (
+                          <Badge className="border-success/20 bg-success/10 text-success">
+                            Hoạt động
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground">
+                            Vô hiệu
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        {!scene.is_main && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={setMainMutation.isPending}
+                            onClick={() => setMainMutation.mutate(effectiveSceneId!)}
+                          >
+                            <Crown className="mr-1 size-4" /> Đặt cảnh chính
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
                           disabled={toggleActiveMutation.isPending}
                           onClick={() =>
                             toggleActiveMutation.mutate({
-                              id: effectiveSceneId,
-                              active: !(scene?.is_active ?? sceneForm.is_active),
+                              id: effectiveSceneId!,
+                              active: !scene.is_active,
                             })
                           }
                         >
-                          {(scene?.is_active ?? sceneForm.is_active) ? (
+                          {scene.is_active ? (
                             <>
-                              <EyeOff className="mr-1 size-4" /> Vo hieu hoa
+                              <EyeOff className="mr-1 size-4" /> Vô hiệu hóa
                             </>
                           ) : (
                             <>
-                              <Eye className="mr-1 size-4" /> Kich hoat
+                              <Eye className="mr-1 size-4" /> Kích hoạt
                             </>
                           )}
                         </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div className="space-y-1 md:col-span-2">
-                      <Label>Ten canh *</Label>
-                      <Input
-                        value={sceneForm.name}
-                        onChange={(e) => setSceneField('name', e.target.value)}
-                        placeholder="Canh chinh"
-                      />
-                    </div>
-
-                    <div className="space-y-1 md:col-span-2">
-                      <Label>URL anh 360 *</Label>
-                      <Input
-                        value={sceneForm.equirectangular_image_url}
-                        onChange={(e) => setSceneField('equirectangular_image_url', e.target.value)}
-                        placeholder="https://example.com/panorama.jpg"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label>Thumbnail URL</Label>
-                      <Input
-                        value={sceneForm.thumbnail_url}
-                        onChange={(e) => setSceneField('thumbnail_url', e.target.value)}
-                        placeholder="https://example.com/thumb.jpg"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label>FOV (10-180)</Label>
-                      <Input
-                        type="number"
-                        min={10}
-                        max={180}
-                        value={sceneForm.camera_fov}
-                        onChange={(e) => setSceneField('camera_fov', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-1 md:col-span-2">
-                      <Label>Mo ta</Label>
-                      <Textarea
-                        rows={2}
-                        value={sceneForm.description}
-                        onChange={(e) => setSceneField('description', e.target.value)}
-                        placeholder="Mo ta canh VR"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label>Camera Position (X Y Z)</Label>
-                      <div className="grid grid-cols-3 gap-1">
-                        {(['cam_pos_x', 'cam_pos_y', 'cam_pos_z'] as const).map((k) => (
-                          <Input
-                            key={k}
-                            type="number"
-                            step="0.01"
-                            value={sceneForm[k]}
-                            onChange={(e) => setSceneField(k, e.target.value)}
-                          />
-                        ))}
+                        <Button size="sm" onClick={() => setIsEditingScene(true)}>
+                          <Pen className="mr-1 size-4" /> Chỉnh sửa
+                        </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <Label>Camera Rotation (X Y Z)</Label>
-                      <div className="grid grid-cols-3 gap-1">
-                        {(['cam_rot_x', 'cam_rot_y', 'cam_rot_z'] as const).map((k) => (
-                          <Input
-                            key={k}
-                            type="number"
-                            step="0.01"
-                            value={sceneForm[k]}
-                            onChange={(e) => setSceneField(k, e.target.value)}
+                    <SectionLabel>Thông tin cơ bản</SectionLabel>
+                    <InfoRow label="Tên cảnh">{scene.name}</InfoRow>
+                    <InfoRow label="Mô tả">{scene.description || null}</InfoRow>
+
+                    <SectionLabel>Hình ảnh</SectionLabel>
+                    <InfoRow label="URL ảnh 360°">
+                      {scene.equirectangular_image_url ? (
+                        <a
+                          href={parseLink(scene.equirectangular_image_url)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary line-clamp-1 underline"
+                        >
+                          {scene.equirectangular_image_url}
+                        </a>
+                      ) : null}
+                    </InfoRow>
+                    <InfoRow label="Thumbnail">
+                      {scene.thumbnail_url ? (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={parseLink(scene.thumbnail_url)}
+                            alt="thumbnail"
+                            className="size-10 rounded object-cover"
                           />
-                        ))}
-                      </div>
-                    </div>
+                          <a
+                            href={parseLink(scene.thumbnail_url)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary text-xs underline"
+                          >
+                            Xem ảnh
+                          </a>
+                        </div>
+                      ) : null}
+                    </InfoRow>
 
-                    <div className="space-y-1 md:col-span-2">
-                      <Label>Ambient Sound URL</Label>
-                      <Input
-                        value={sceneForm.ambient_sound_url}
-                        onChange={(e) => setSceneField('ambient_sound_url', e.target.value)}
-                        placeholder="https://example.com/ambient.mp3"
-                      />
-                    </div>
+                    <SectionLabel>Camera</SectionLabel>
+                    <InfoRow label="Vị trí (X, Y, Z)">
+                      {(() => {
+                        const pos = normPos(scene) as Vec3Like | null
+                        return pos ? `${pos.x ?? 0}, ${pos.y ?? 1.6}, ${pos.z ?? 0}` : null
+                      })()}
+                    </InfoRow>
+                    <InfoRow label="Hướng nhìn (X, Y, Z)">
+                      {(() => {
+                        const rot = normRot(scene) as Vec3Like | null
+                        return rot ? `${rot.x ?? 0}, ${rot.y ?? 0}, ${rot.z ?? 0}` : null
+                      })()}
+                    </InfoRow>
+                    <InfoRow label="FOV">
+                      {normFov(scene) != null ? `${normFov(scene)}°` : null}
+                    </InfoRow>
 
-                    <div className="space-y-1">
-                      <Label>Ambient Volume (0-1)</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={1}
-                        step="0.1"
-                        value={sceneForm.ambient_sound_volume}
-                        onChange={(e) => setSceneField('ambient_sound_volume', e.target.value)}
-                        placeholder="0.6"
-                      />
-                    </div>
+                    <SectionLabel>Âm thanh nền</SectionLabel>
+                    <InfoRow label="URL">
+                      {normAUrl(scene) ? (
+                        <a
+                          href={parseLink(normAUrl(scene)!)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary line-clamp-1 underline"
+                        >
+                          {normAUrl(scene)}
+                        </a>
+                      ) : null}
+                    </InfoRow>
+                    <InfoRow label="Âm lượng">
+                      {normVol(scene) != null ? String(normVol(scene)) : null}
+                    </InfoRow>
+                    <InfoRow label="Lặp lại">{normLoop(scene) ? 'Có' : 'Không'}</InfoRow>
 
-                    <div className="space-y-1">
-                      <Label>Narration URL</Label>
-                      <Input
-                        value={sceneForm.narration_audio_url}
-                        onChange={(e) => setSceneField('narration_audio_url', e.target.value)}
-                        placeholder="https://example.com/narration.mp3"
-                      />
+                    <SectionLabel>Thuyết minh</SectionLabel>
+                    <InfoRow label="URL">
+                      {normNUrl(scene) ? (
+                        <a
+                          href={normNUrl(scene)!}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary line-clamp-1 underline"
+                        >
+                          {normNUrl(scene)}
+                        </a>
+                      ) : null}
+                    </InfoRow>
+                    <InfoRow label="Tự động phát">{normAuto(scene) ? 'Có' : 'Không'}</InfoRow>
+
+                    <SectionLabel>Siêu dữ liệu</SectionLabel>
+                    <InfoRow label="ID">
+                      <span className="font-mono">{scene.id}</span>
+                    </InfoRow>
+                    <InfoRow label="Ngày tạo">{formatDateTime(scene.created_at)}</InfoRow>
+                    <InfoRow label="Cập nhật">{formatDateTime(scene.updated_at)}</InfoRow>
+
+                    <div className="mt-3 flex justify-end">
+                      <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        Đóng
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-4">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={sceneForm.ambient_sound_loop}
-                        onCheckedChange={(v) => setSceneField('ambient_sound_loop', !!v)}
-                      />
-                      Loop ambient
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={sceneForm.auto_play_narration}
-                        onCheckedChange={(v) => setSceneField('auto_play_narration', !!v)}
-                      />
-                      Auto play narration
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
-                      <Checkbox checked={sceneForm.is_main} onCheckedChange={(v) => setSceneField('is_main', !!v)} />
-                      Canh chinh
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
-                      <Checkbox checked={sceneForm.is_active} onCheckedChange={(v) => setSceneField('is_active', !!v)} />
-                      Kich hoat
-                    </label>
-                  </div>
-
-                  {sceneFormError && (
-                    <p className="text-destructive mt-2 text-xs">{sceneFormError}</p>
-                  )}
-
-                  <div className="mt-3 flex items-center justify-end gap-2">
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSavingScene}>
-                      Dong
-                    </Button>
-                    <Button onClick={handleSaveScene} disabled={isSavingScene || !spotId}>
-                      {isSavingScene ? 'Dang luu...' : isCreateMode ? 'Tao scene' : 'Luu scene'}
-                    </Button>
-                  </div>
-                </div>
-
-                {!!scene && (
-                  <details className="rounded border">
-                    <summary className="text-muted-foreground cursor-pointer select-none px-3 py-2 text-xs font-semibold hover:underline">
-                      Thong tin scene
-                    </summary>
-                    <div className="space-y-2 border-t p-3">
-                      <Row label="ID">{scene.id}</Row>
-                      <Row label="Trang thai">{scene.is_active ? 'Hoat dong' : 'Vo hieu'}</Row>
-                      <Row label="Main">{scene.is_main ? 'Co' : 'Khong'}</Row>
-                      <Row label="Ngay tao">{formatDateTime(scene.created_at)}</Row>
-                      <Row label="Cap nhat">{formatDateTime(scene.updated_at)}</Row>
-                    </div>
-                  </details>
                 )}
               </div>
 
+              {/* Right 1/3: hotspot panel */}
               <div className="space-y-3 lg:col-span-1">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">
-                    Hotspots{' '}
+                    Hotspot{' '}
                     {!hotspotQuery.isLoading && (
                       <span className="text-muted-foreground font-normal">({hotspots.length})</span>
                     )}
@@ -761,18 +1022,18 @@ export default function AframeSceneDetailDialog({
                     disabled={!effectiveSceneId || createHsMutation.isPending}
                   >
                     <Plus className="mr-1 size-3" />
-                    {createHsMutation.isPending ? '...' : 'Tao moi'}
+                    {createHsMutation.isPending ? '...' : 'Tạo mới'}
                   </Button>
                 </div>
 
                 {!effectiveSceneId ? (
                   <p className="text-muted-foreground text-xs">
-                    Ban can luu scene truoc khi tao hotspot.
+                    Bạn cần lưu cảnh trước khi tạo hotspot.
                   </p>
                 ) : hotspotQuery.isLoading ? (
-                  <p className="text-muted-foreground text-xs">Dang tai hotspot...</p>
+                  <p className="text-muted-foreground text-xs">Đang tải hotspot...</p>
                 ) : hotspots.length === 0 ? (
-                  <p className="text-muted-foreground text-xs">Chua co hotspot nao</p>
+                  <p className="text-muted-foreground text-xs">Chưa có hotspot nào</p>
                 ) : (
                   <select
                     className="border-input bg-background w-full rounded-md border px-3 py-1.5 text-sm"
@@ -783,7 +1044,7 @@ export default function AframeSceneDetailDialog({
                       if (editingId && editingId !== id) cancelEditing()
                     }}
                   >
-                    <option value="">-- Chon hotspot --</option>
+                    <option value="">-- Chọn hotspot --</option>
                     {hotspots.map((h) => (
                       <option key={h.id} value={h.id}>
                         {normalizeLabel(h.name) || `Hotspot #${h.id.slice(0, 8)}`}
@@ -802,33 +1063,63 @@ export default function AframeSceneDetailDialog({
                         )}
                       </div>
                       <Button size="sm" variant="ghost" onClick={() => startEditing(selectedHs)}>
-                        Sua
+                        <Pen className="size-3.5" />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-1">
                       <Badge variant="outline" className="text-xs">
-                        {selectedHs.hotspot_type}
+                        {HOTSPOT_TYPES.find((t) => t.value === selectedHs.hotspot_type)?.label ??
+                          selectedHs.hotspot_type}
                       </Badge>
                       {selectedHs.is_active ? (
-                        <Badge className="border-success/20 bg-success/10 text-xs text-success">Active</Badge>
+                        <Badge className="border-success/20 bg-success/10 text-success text-xs">
+                          Hoạt động
+                        </Badge>
                       ) : (
                         <Badge variant="outline" className="text-muted-foreground text-xs">
-                          Inactive
+                          Vô hiệu
+                        </Badge>
+                      )}
+                      {selectedHs.visible === false && (
+                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                          Ẩn
                         </Badge>
                       )}
                     </div>
+                    {selectedHs.icon_type && (
+                      <HsRow label="Biểu tượng">
+                        {ICON_TYPES.find((t) => t.value === selectedHs.icon_type)?.label ??
+                          selectedHs.icon_type}
+                      </HsRow>
+                    )}
+                    {selectedHs.target_url && (
+                      <HsRow label="URL đích">
+                        <a
+                          href={selectedHs.target_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary line-clamp-1 underline"
+                        >
+                          {selectedHs.target_url}
+                        </a>
+                      </HsRow>
+                    )}
                   </div>
                 )}
 
                 {editingId && (
                   <div className="space-y-2.5 rounded border p-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Ten hotspot</Label>
-                      <Input className="h-7 text-xs" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                      <Label className="text-xs">Tên hotspot</Label>
+                      <Input
+                        className="h-7 text-xs"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                      />
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-xs">Mo ta</Label>
+                      <Label className="text-xs">Mô tả</Label>
                       <Textarea
                         className="text-xs"
                         rows={2}
@@ -837,24 +1128,42 @@ export default function AframeSceneDetailDialog({
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <Label className="text-xs">Loai</Label>
-                      <Select value={editType} onValueChange={setEditType}>
-                        <SelectTrigger className="h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {HOTSPOT_TYPES.map((t) => (
-                            <SelectItem key={t.value} value={t.value} className="text-xs">
-                              {t.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Loại hotspot</Label>
+                        <Select value={editType} onValueChange={setEditType}>
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {HOTSPOT_TYPES.map((t) => (
+                              <SelectItem key={t.value} value={t.value} className="text-xs">
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-xs">Biểu tượng</Label>
+                        <Select value={editIconType} onValueChange={setEditIconType}>
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ICON_TYPES.map((t) => (
+                              <SelectItem key={t.value} value={t.value} className="text-xs">
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-xs">Vi tri X Y Z</Label>
+                      <Label className="text-xs">Vị trí X Y Z</Label>
                       <div className="grid grid-cols-3 gap-1">
                         {(['x', 'y', 'z'] as const).map((axis) => (
                           <Input
@@ -871,7 +1180,7 @@ export default function AframeSceneDetailDialog({
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-xs">Scale X Y Z</Label>
+                      <Label className="text-xs">Tỉ lệ X Y Z</Label>
                       <div className="grid grid-cols-3 gap-1">
                         {(['x', 'y', 'z'] as const).map((axis) => (
                           <Input
@@ -882,7 +1191,9 @@ export default function AframeSceneDetailDialog({
                             className="h-7 text-center text-xs"
                             placeholder={axis.toUpperCase()}
                             value={editScale[axis]}
-                            onChange={(e) => setEditScale((s) => ({ ...s, [axis]: e.target.value }))}
+                            onChange={(e) =>
+                              setEditScale((s) => ({ ...s, [axis]: e.target.value }))
+                            }
                           />
                         ))}
                       </div>
@@ -890,28 +1201,58 @@ export default function AframeSceneDetailDialog({
 
                     {otherScenes.length > 0 && (
                       <div className="space-y-1">
-                        <Label className="text-xs">Lien ket scene</Label>
+                        <Label className="text-xs">Liên kết cảnh</Label>
                         <SearchSelect
                           options={[
-                            { value: '', label: '-- Khong lien ket --' },
+                            { value: '', label: '-- Không liên kết --' },
                             ...otherScenes.map((s) => ({ value: s.id, label: s.name })),
                           ]}
                           value={editTarget ?? ''}
                           onValueChange={(v) => setEditTarget(v || null)}
-                          placeholder="Khong lien ket"
+                          placeholder="Không liên kết"
                           className="h-7 text-xs"
                         />
                       </div>
                     )}
 
+                    <div className="space-y-1">
+                      <Label className="text-xs">Liên kết điểm tham quan</Label>
+                      <SearchSelect
+                        options={[
+                          { value: '', label: '-- Không liên kết --' },
+                          ...spotSelectOptions,
+                        ]}
+                        value={editLinkedSpotId ?? ''}
+                        onValueChange={(v) => setEditLinkedSpotId(v || null)}
+                        placeholder="Không liên kết"
+                        className="h-7 text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs">URL đích</Label>
+                      <Input
+                        className="h-7 text-xs"
+                        value={editTargetUrl}
+                        onChange={(e) => setEditTargetUrl(e.target.value)}
+                        placeholder="https://example.com"
+                      />
+                    </div>
+
                     <div className="flex gap-4">
                       <label className="flex cursor-pointer items-center gap-1.5 text-xs">
-                        <Checkbox checked={editVisible} onCheckedChange={(v) => setEditVisible(!!v)} />
-                        Hien thi
+                        <Checkbox
+                          checked={editVisible}
+                          onCheckedChange={(v) => setEditVisible(!!v)}
+                        />
+                        Hiển thị
                       </label>
                       <label className="flex cursor-pointer items-center gap-1.5 text-xs">
-                        <Checkbox checked={editActive} onCheckedChange={(v) => setEditActive(!!v)} />
-                        Kich hoat
+                        <Checkbox
+                          checked={editActive}
+                          onCheckedChange={(v) => setEditActive(!!v)}
+                        />
+                        Kích hoạt
                       </label>
                     </div>
 
@@ -928,7 +1269,7 @@ export default function AframeSceneDetailDialog({
                         <Trash2 className="size-3.5" />
                       </Button>
                       <Button size="sm" variant="outline" onClick={cancelEditing}>
-                        Huy
+                        Hủy
                       </Button>
                       <Button
                         size="sm"
@@ -936,7 +1277,7 @@ export default function AframeSceneDetailDialog({
                         onClick={handleSaveHotspot}
                         disabled={updateHsMutation.isPending}
                       >
-                        {updateHsMutation.isPending ? 'Dang luu...' : 'Luu'}
+                        {updateHsMutation.isPending ? 'Đang lưu...' : 'Lưu'}
                       </Button>
                     </div>
                   </div>
@@ -950,20 +1291,20 @@ export default function AframeSceneDetailDialog({
       <AlertDialog open={deleteHsOpen} onOpenChange={setDeleteHsOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xoa hotspot</AlertDialogTitle>
+            <AlertDialogTitle>Xóa hotspot</AlertDialogTitle>
             <AlertDialogDescription>
-              Xoa "{hsToDelete?.name || `Hotspot #${hsToDelete?.id?.slice(0, 8) ?? ''}`}"? Hanh dong nay
-              khong the hoan tac.
+              Xóa &quot;{hsToDelete?.name || `Hotspot #${hsToDelete?.id?.slice(0, 8) ?? ''}`}&quot;?
+              Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleteHsMutation.isPending}
               onClick={() => hsToDelete && deleteHsMutation.mutate(hsToDelete.id)}
             >
-              {deleteHsMutation.isPending ? 'Dang xoa...' : 'Xoa'}
+              {deleteHsMutation.isPending ? 'Đang xóa...' : 'Xóa'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
