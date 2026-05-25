@@ -53,7 +53,6 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Check, X, Plus, Send, TreePine, AlertTriangle, RefreshCw } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
-import BusinessEnterpriseView from './BusinessEnterpriseView'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -358,7 +357,6 @@ export default function GovernanceDepartmentPage(): JSX.Element {
           <TabsTrigger value="reports">Báo cáo</TabsTrigger>
           <TabsTrigger value="capacity">Sức chứa</TabsTrigger>
           <TabsTrigger value="conservation">Bảo tồn</TabsTrigger>
-          <TabsTrigger value="enterprise">Doanh nghiệp</TabsTrigger>
         </TabsList>
 
         {/* ── Tab: Business Registrations ── */}
@@ -933,10 +931,6 @@ export default function GovernanceDepartmentPage(): JSX.Element {
           </Button>
         </TabsContent>
 
-        {/* ── Tab: Doanh nghiệp ── */}
-        <TabsContent value="enterprise">
-          <BusinessEnterpriseView />
-        </TabsContent>
       </Tabs>
     </PageLayout>
   )

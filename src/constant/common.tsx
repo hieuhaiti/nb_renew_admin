@@ -16,6 +16,9 @@ import {
   Database,
 } from 'lucide-react'
 import type { NavItem } from '@/types/common/index'
+import { ROLE_GROUPS, ROLE_IDS } from '@/constant/roleConstant'
+
+const ADMIN = [ROLE_IDS.SYSTEM_ADMIN] as number[]
 
 export const navConfig: NavItem[] = [
   {
@@ -23,24 +26,24 @@ export const navConfig: NavItem[] = [
     name: 'Dashboard',
     path: '/dashboard',
     subpath: '/',
-    authen: [1, 2],
+    authen: [...ROLE_GROUPS.MANAGEMENT],
   },
 
   {
     icon: <BarChart2 />,
     name: 'Quản trị nâng cao',
     path: '/governance',
-    authen: [1, 2, 3, 4, 5, 6],
+    authen: [...ROLE_GROUPS.ALL_ADMIN],
   },
 
   {
     icon: <Users />,
     name: 'Quản lý người dùng',
     path: '/users',
-    authen: [1],
+    authen: ADMIN,
     subItems: [
-      { name: 'Người dùng', path: '/users', authen: [1] },
-      { name: 'Vai trò & phân quyền', path: '/roles', authen: [1] },
+      { name: 'Người dùng', path: '/users', authen: ADMIN },
+      { name: 'Vai trò & phân quyền', path: '/roles', authen: ADMIN },
     ],
   },
 
@@ -48,14 +51,14 @@ export const navConfig: NavItem[] = [
     icon: <MapPin />,
     name: 'Điểm du lịch',
     path: '/spots',
-    authen: [1, 2, 3, 4],
+    authen: [...ROLE_GROUPS.CONTENT],
     subItems: [
-      { name: 'Danh mục', path: '/categories', authen: [1, 2, 3] },
-      { name: 'Điểm tham quan', path: '/spots', authen: [1, 2, 3, 4] },
-      { name: 'Ẩm thực', path: '/culinary', authen: [1, 2, 3, 4] },
-      { name: 'Lễ hội & sự kiện', path: '/festivals', authen: [1, 2, 3, 4] },
-      { name: 'Sản phẩm OCOP', path: '/ocop', authen: [1, 2, 3, 4, 5, 6] },
-      { name: 'Đánh giá', path: '/ratings/spots', authen: [1, 2, 3, 4] },
+      { name: 'Danh mục', path: '/categories', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'Điểm tham quan', path: '/spots', authen: [...ROLE_GROUPS.CONTENT] },
+      { name: 'Ẩm thực', path: '/culinary', authen: [...ROLE_GROUPS.CONTENT] },
+      { name: 'Lễ hội & sự kiện', path: '/festivals', authen: [...ROLE_GROUPS.CONTENT] },
+      { name: 'Sản phẩm OCOP', path: '/ocop', authen: [...ROLE_GROUPS.ALL_ADMIN] },
+      { name: 'Đánh giá', path: '/ratings/spots', authen: [...ROLE_GROUPS.CONTENT] },
     ],
   },
 
@@ -64,7 +67,7 @@ export const navConfig: NavItem[] = [
     icon: <Navigation />,
     name: 'Tour du lịch',
     path: '/tours',
-    authen: [1, 2, 3, 4, 5],
+    authen: [...ROLE_GROUPS.TOUR],
   },
 
   // /capacity – sức chứa điểm đến theo thời gian thực
@@ -72,37 +75,36 @@ export const navConfig: NavItem[] = [
     icon: <Gauge />,
     name: 'Sức chứa điểm đến',
     path: '/capacity',
-    authen: [1, 2, 3, 4],
+    authen: [...ROLE_GROUPS.CONTENT],
   },
 
   {
     icon: <Building2 />,
     name: 'Doanh nghiệp',
     path: '/businesses',
-    authen: [1, 2, 3, 4, 5, 6],
+    authen: [...ROLE_GROUPS.ALL_ADMIN],
     subItems: [
-      { name: 'Doanh nghiệp', path: '/businesses', authen: [1, 2, 3] },
-      { name: 'Đánh giá', path: '/ratings/businesses', authen: [1, 2, 3, 4] },
-      { name: 'Đánh giá của tôi', path: '/ratings/businesses/my', authen: [5, 6] },
+      { name: 'Doanh nghiệp', path: '/businesses', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'Đánh giá', path: '/ratings/businesses', authen: [...ROLE_GROUPS.CONTENT] },
+      { name: 'Đánh giá của tôi', path: '/ratings/businesses/my', authen: [...ROLE_GROUPS.ENTERPRISE] },
     ],
   },
-
 
   {
     icon: <Video />,
     name: 'Vlog',
     path: '/vlogs',
-    authen: [1, 2, 3],
+    authen: [...ROLE_GROUPS.MANAGEMENT],
   },
 
   {
     icon: <Newspaper />,
     name: 'Tin tức',
     path: '/news',
-    authen: [1, 2, 3],
+    authen: [...ROLE_GROUPS.MANAGEMENT],
     subItems: [
-      { name: 'Bài viết', path: '/news', authen: [1, 2, 3] },
-      { name: 'Bình luận', path: '/news-comments', authen: [1, 2, 3] },
+      { name: 'Bài viết', path: '/news', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'Bình luận', path: '/news-comments', authen: [...ROLE_GROUPS.MANAGEMENT] },
     ],
   },
 
@@ -110,11 +112,11 @@ export const navConfig: NavItem[] = [
     icon: <Map />,
     name: 'Bản đồ',
     path: '/map-layers',
-    authen: [1, 2, 3],
+    authen: [...ROLE_GROUPS.MANAGEMENT],
     subItems: [
-      { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [1, 2, 3] },
-      { name: 'Lớp bản đồ', path: '/map-layers', authen: [1, 2, 3] },
-      { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [1, 2, 3] },
+      { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.MANAGEMENT] },
+      { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.MANAGEMENT] },
     ],
   },
 
@@ -122,7 +124,7 @@ export const navConfig: NavItem[] = [
     icon: <Plug />,
     name: 'Tích hợp dịch vụ',
     path: '/integrations',
-    authen: [1],
+    authen: ADMIN,
   },
 
   // feedbacks/admin + enterprise xem phản ánh xung quanh location
@@ -130,21 +132,21 @@ export const navConfig: NavItem[] = [
     icon: <AlertTriangle />,
     name: 'Phản ánh người dân',
     path: '/feedbacks',
-    authen: [1, 2, 3, 4, 5, 6],
+    authen: [...ROLE_GROUPS.ALL_ADMIN],
   },
 
   {
     icon: <ClipboardList />,
     name: 'Nhật ký hệ thống',
     path: '/audit-logs',
-    authen: [1],
+    authen: ADMIN,
   },
 
   {
     icon: <Database />,
     name: 'Dữ liệu thống kê',
     path: '/statistics',
-    authen: [1, 2],
+    authen: [...ROLE_GROUPS.MANAGEMENT],
   },
 
   {

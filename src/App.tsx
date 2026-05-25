@@ -3,12 +3,14 @@ import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { MainLayout } from './layout/mainLayout'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
+import { RoleGuard } from './components/common/RoleGuard'
 import { useAuthStore } from './stores/common/useAuthStore'
 import { tokenManager } from './lib/tokenManager'
 import { ToastContainer } from 'react-toastify'
 import { AppErrorBoundary } from '@/components/common/AppErrorBoundary'
 import { lazyWithRetry } from '@/lib/lazyWithRetry'
 import ImageLightbox from '@/components/common/ImageLightbox'
+import { ROLE_GROUPS, ROLE_IDS } from '@/constant/roleConstant'
 import 'react-toastify/dist/ReactToastify.css'
 
 const NotFoundPage = lazy(() => import('@/pages/Errors/404NotFoundPage'))
@@ -81,55 +83,76 @@ function App() {
 
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
+                {/* Home redirect theo role — GovernancePage tự redirect đến sub-route tương ứng */}
                 <Route path="/" element={<GovernancePage />} />
-                <Route path="/dashboard" element={<VisitorStatisticsPage />} />
-
-                {/* Quản lý người dùng */}
-                <Route path="/users" element={<UserPage />} />
-                <Route path="/roles" element={<RolePage />} />
-
-                {/* Du lịch */}
-                <Route path="/categories" element={<CategoryPage />} />
-                <Route path="/spots" element={<SpotPage />} />
-                <Route path="/culinary" element={<CulinaryPage />} />
-                <Route path="/festivals" element={<FestivalPage />} />
-                <Route path="/ocop" element={<OcopPage />} />
-                <Route path="/tours" element={<TourPage />} />
-                <Route path="/capacity" element={<CapacityPage />} />
-                <Route path="/vlogs" element={<VlogPage />} />
-                <Route path="/businesses" element={<BusinessPage />} />
-                <Route path="/integrations" element={<IntegrationPage />} />
-
-                {/* Tin tức */}
-                <Route path="/news" element={<NewsPage />} />
-                <Route path="/news-comments" element={<NewsCommentsPage />} />
-
-                {/* Đánh giá */}
-                <Route path="/ratings/spots" element={<RatingSpotPage />} />
-                <Route path="/ratings/businesses" element={<RatingBusinessPage />} />
-                <Route path="/ratings/businesses/my" element={<RatingMyBusinessPage />} />
-
-                {/* Bản đồ */}
-                <Route path="/map-layers" element={<MapLayerPage />} />
-                <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
-                <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
-                <Route path="/public/map-layer-apis" element={<MapLayerApiPublicPage />} />
-
-                {/* Quản trị nâng cao */}
                 <Route path="/governance" element={<GovernancePage />} />
-                <Route path="/governance/admin" element={<GovernanceAdminPage />} />
-                <Route path="/governance/ministry" element={<GovernanceMinistryPage />} />
-                <Route path="/governance/department" element={<GovernanceDepartmentPage />} />
-                <Route path="/governance/enterprise" element={<GovernanceEnterprisePage />} />
 
-                {/* Phản ánh & nhật ký */}
-                <Route path="/feedbacks" element={<FeedbackPage />} />
-                <Route path="/audit-logs" element={<AuditLogPage />} />
-                <Route path="/statistics" element={<StatisticsPage />} />
-
-                {/* Hồ sơ */}
+                {/* Hồ sơ cá nhân — tất cả role admin đều truy cập được */}
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/change-password" element={<ChangePasswordPage />} />
+
+                {/* Public map page — không cần role guard */}
+                <Route path="/public/map-layer-apis" element={<MapLayerApiPublicPage />} />
+
+                {/* === Quản trị hệ thống — chỉ role 1 === */}
+                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN]} />}>
+                  <Route path="/users" element={<UserPage />} />
+                  <Route path="/roles" element={<RolePage />} />
+                  <Route path="/audit-logs" element={<AuditLogPage />} />
+                  <Route path="/integrations" element={<IntegrationPage />} />
+                  <Route path="/governance/admin" element={<GovernanceAdminPage />} />
+                </Route>
+
+                {/* === Dashboard + Thống kê + Nội dung — Admin, Bộ, Sở === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.MANAGEMENT} />}>
+                  <Route path="/dashboard" element={<VisitorStatisticsPage />} />
+                  <Route path="/statistics" element={<StatisticsPage />} />
+                  <Route path="/categories" element={<CategoryPage />} />
+                  <Route path="/vlogs" element={<VlogPage />} />
+                  <Route path="/news" element={<NewsPage />} />
+                  <Route path="/news-comments" element={<NewsCommentsPage />} />
+                  <Route path="/map-layers" element={<MapLayerPage />} />
+                  <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
+                  <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
+                  <Route path="/businesses" element={<BusinessPage />} />
+                </Route>
+
+                {/* === Điểm + Sức chứa + Đánh giá — Admin, Bộ, Sở, Đơn vị vận hành === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CONTENT} />}>
+                  <Route path="/spots" element={<SpotPage />} />
+                  <Route path="/culinary" element={<CulinaryPage />} />
+                  <Route path="/festivals" element={<FestivalPage />} />
+                  <Route path="/capacity" element={<CapacityPage />} />
+                  <Route path="/ratings/spots" element={<RatingSpotPage />} />
+                  <Route path="/ratings/businesses" element={<RatingBusinessPage />} />
+                </Route>
+
+                {/* === Tour du lịch — Admin, Bộ, Sở, Đơn vị vận hành, Công ty lữ hành === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.TOUR} />}>
+                  <Route path="/tours" element={<TourPage />} />
+                </Route>
+
+                {/* === OCOP + Phản ánh — tất cả role admin === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.ALL_ADMIN} />}>
+                  <Route path="/ocop" element={<OcopPage />} />
+                  <Route path="/feedbacks" element={<FeedbackPage />} />
+                </Route>
+
+                {/* === Đánh giá doanh nghiệp của tôi — Công ty lữ hành + Dịch vụ === */}
+                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.ENTERPRISE} />}>
+                  <Route path="/ratings/businesses/my" element={<RatingMyBusinessPage />} />
+                </Route>
+
+                {/* === Governance sub-routes — admin có thể xem tất cả; role khác chỉ xem của mình === */}
+                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.MINISTRY]} />}>
+                  <Route path="/governance/ministry" element={<GovernanceMinistryPage />} />
+                </Route>
+                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.DEPARTMENT]} />}>
+                  <Route path="/governance/department" element={<GovernanceDepartmentPage />} />
+                </Route>
+                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.SPOT_OPERATOR, ROLE_IDS.TRAVEL_COMPANY, ROLE_IDS.SERVICE_PROVIDER]} />}>
+                  <Route path="/governance/enterprise" element={<GovernanceEnterprisePage />} />
+                </Route>
               </Route>
             </Route>
 

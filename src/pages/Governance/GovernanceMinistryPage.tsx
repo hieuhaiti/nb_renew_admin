@@ -27,7 +27,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { MapPin, Building2, AlertTriangle, TreePine, TrendingUp } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
-import BusinessEnterpriseView from './BusinessEnterpriseView'
 import { formatDate } from '@/lib/date'
 
 const CAPACITY_STATUS_LABEL: Record<string, string> = {
@@ -138,7 +137,6 @@ export default function GovernanceMinistryPage(): JSX.Element {
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="capacity">Cảnh báo sức chứa</TabsTrigger>
           <TabsTrigger value="conservation">Bảo tồn</TabsTrigger>
-          <TabsTrigger value="enterprise">Doanh nghiệp</TabsTrigger>
         </TabsList>
 
         {/* ── Tab: Overview ── */}
@@ -447,10 +445,6 @@ export default function GovernanceMinistryPage(): JSX.Element {
           </ToolTableCustom>
         </TabsContent>
 
-        {/* ── Tab: Doanh nghiệp ── */}
-        <TabsContent value="enterprise">
-          <BusinessEnterpriseView />
-        </TabsContent>
       </Tabs>
     </PageLayout>
   )
