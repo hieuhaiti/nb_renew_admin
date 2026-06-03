@@ -99,18 +99,19 @@ export default function MapLayerApiListPage(): JSX.Element {
 
   const allApisQuery = useApiQuery(
     ['mapLayerApiAllForKeySelection'],
-    () => mapLayerApiService.getAll({ page: 1, limit: 50, sortBy: 'created_at', sortOrder: 'DESC' }),
+    () =>
+      mapLayerApiService.getAll({ page: 1, limit: 50, sortBy: 'created_at', sortOrder: 'DESC' }),
     { staleTime: STALE_DEFAULT },
     false,
     false
   )
 
   const data = (listQuery.data as ApiResponse<MapLayerApiListData> | undefined)?.data
-  const apis = data?.apis ?? []
-  const availableApis =
-    ((allApisQuery.data as ApiResponse<MapLayerApiListData> | undefined)?.data?.apis as
-      | MapLayerApi[]
-      | undefined) ?? []
+  const apis = data?.items ?? data?.apis ?? []
+  const availableApis = ((allApisQuery.data as ApiResponse<MapLayerApiListData> | undefined)?.data
+    ?.items ??
+    (allApisQuery.data as ApiResponse<MapLayerApiListData> | undefined)?.data?.apis ??
+    []) as MapLayerApi[]
 
   const pagination = (data?.pagination ?? {}) as Partial<Pagination>
   const lastTotalPagesRef = useRef<number | null>(null)
@@ -273,6 +274,7 @@ export default function MapLayerApiListPage(): JSX.Element {
                   <TableHead>ID</TableHead>
                   <TableHead>Tên API</TableHead>
                   <TableHead>Danh mục</TableHead>
+                  <TableHead>Lớp bản đồ</TableHead>
                   <TableHead>Method</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead>Ngày tạo</TableHead>
@@ -282,7 +284,7 @@ export default function MapLayerApiListPage(): JSX.Element {
               <TableBody>
                 {apis.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center">
+                    <TableCell colSpan={8} className="text-center">
                       Không có dữ liệu
                     </TableCell>
                   </TableRow>
@@ -296,6 +298,7 @@ export default function MapLayerApiListPage(): JSX.Element {
                       <TableCell>{api.id}</TableCell>
                       <TableCell>{api.name}</TableCell>
                       <TableCell>{api.category_name ?? '-'}</TableCell>
+                      <TableCell>{api.map_layer_name ?? '-'}</TableCell>
                       <TableCell className="uppercase">{api.http_method}</TableCell>
                       <TableCell>
                         <StatusDotBadge
@@ -370,7 +373,10 @@ export default function MapLayerApiListPage(): JSX.Element {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         apiId={selectedApiId}
-        onEdit={() => { setDetailDialogOpen(false); setFormDialogOpen(true) }}
+        onEdit={() => {
+          setDetailDialogOpen(false)
+          setFormDialogOpen(true)
+        }}
       />
 
       <MapLayerApiFormDialog

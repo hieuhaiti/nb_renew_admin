@@ -43,7 +43,7 @@ export default function AframeScenePage(): JSX.Element {
 
   const spotsQuery = useApiQuery(
     ['spots-all-for-aframe'],
-    () => spotService.getAll({ limit: 100, sortBy: 'name_vi', sortOrder: 'ASC' }),
+    () => spotService.getAll({ limit: 100, sortBy: 'name', sortOrder: 'ASC' }),
     { staleTime: STALE_REF },
     false,
     false

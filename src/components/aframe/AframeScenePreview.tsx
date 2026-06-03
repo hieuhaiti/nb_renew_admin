@@ -23,6 +23,7 @@ interface Props {
   cameraRotation?: Vec3 | object | null
   cameraFov?: number | null
   hotspots?: PreviewHotspot[]
+  selectedHotspotId?: string | null
   height?: string
   className?: string
 }
@@ -48,6 +49,90 @@ const v3s = (v?: Vec3 | object | null, def = '0 0 0'): string => {
   if (!v) return def
   const { x = 0, y = 0, z = 0 } = v as Vec3
   return `${num(x)} ${num(y)} ${num(z)}`
+}
+
+const radToDeg = (v: number): number => Number(((v * 180) / Math.PI).toFixed(3))
+const degToRad = (v: number): number => (v * Math.PI) / 180
+
+interface RequiredVec3 {
+  x: number
+  y: number
+  z: number
+}
+
+function toVec3(v?: Vec3 | object | null, def: RequiredVec3 = { x: 0, y: 0, z: 0 }) {
+  const value = (v ?? {}) as Vec3
+  return {
+    x: num(value.x, def.x),
+    y: num(value.y, def.y),
+    z: num(value.z, def.z),
+  }
+}
+
+function getCameraDebugState(camEl: Element | null) {
+  const cam = camEl as any
+  const obj = cam?.object3D
+  const lookControls = cam?.components?.['look-controls']
+  return {
+    attrPosition: cam?.getAttribute?.('position'),
+    attrRotation: cam?.getAttribute?.('rotation'),
+    attrFov: cam?.getAttribute?.('fov'),
+    objectPosition: obj
+      ? {
+          x: Number(obj.position.x.toFixed(3)),
+          y: Number(obj.position.y.toFixed(3)),
+          z: Number(obj.position.z.toFixed(3)),
+        }
+      : null,
+    objectRotationDeg: obj
+      ? {
+          x: radToDeg(obj.rotation.x),
+          y: radToDeg(obj.rotation.y),
+          z: radToDeg(obj.rotation.z),
+        }
+      : null,
+    lookControls: lookControls
+      ? {
+          hasPitchObject: !!lookControls.pitchObject,
+          hasYawObject: !!lookControls.yawObject,
+          pitchObjectDeg: lookControls.pitchObject
+            ? radToDeg(lookControls.pitchObject.rotation.x)
+            : null,
+          yawObjectDeg: lookControls.yawObject ? radToDeg(lookControls.yawObject.rotation.y) : null,
+        }
+      : null,
+  }
+}
+
+function applyCameraState(
+  camEl: Element,
+  position: Vec3 | object | null | undefined,
+  rotation: Vec3 | object | null | undefined,
+  fov: number
+) {
+  const cam = camEl as any
+  const nextPosition = toVec3(position, { x: 0, y: 1.6, z: 0 })
+  const nextRotation = toVec3(rotation, { x: 0, y: 0, z: 0 })
+
+  camEl.setAttribute('position', `${nextPosition.x} ${nextPosition.y} ${nextPosition.z}`)
+  camEl.setAttribute('rotation', `${nextRotation.x} ${nextRotation.y} ${nextRotation.z}`)
+  camEl.setAttribute('fov', String(fov))
+
+  const lookControls = cam?.components?.['look-controls']
+  if (lookControls?.pitchObject && lookControls?.yawObject) {
+    lookControls.pitchObject.rotation.x = degToRad(nextRotation.x)
+    lookControls.yawObject.rotation.y = degToRad(nextRotation.y)
+    if (lookControls.magicWindowDeltaEuler) {
+      lookControls.magicWindowDeltaEuler.set(0, 0, degToRad(nextRotation.z))
+    }
+    lookControls.updateOrientation?.()
+  } else if (cam?.object3D) {
+    cam.object3D.rotation.set(
+      degToRad(nextRotation.x),
+      degToRad(nextRotation.y),
+      degToRad(nextRotation.z)
+    )
+  }
 }
 
 const normalizeLabel = (label?: string | null): string =>
@@ -213,14 +298,23 @@ function renderHotspots(root: Element, hotspots: PreviewHotspot[]) {
       const sz = num(scl?.z, 1)
 
       const entity = document.createElement('a-entity')
-      entity.setAttribute('position', `${num((pos as Vec3).x)} ${num((pos as Vec3).y, 1.6)} ${num((pos as Vec3).z)}`)
+      entity.setAttribute(
+        'position',
+        `${num((pos as Vec3).x)} ${num((pos as Vec3).y, 1.6)} ${num((pos as Vec3).z)}`
+      )
       entity.setAttribute('scale', `${sx} ${sy} ${sz}`)
 
       const halo = document.createElement('a-entity')
       halo.setAttribute('geometry', 'primitive: torus; radius: 0.18; radiusTubular: 0.012')
-      halo.setAttribute('material', 'color: #38bdf8; opacity: 0.86; transparent: true; shader: flat')
+      halo.setAttribute(
+        'material',
+        'color: #38bdf8; opacity: 0.86; transparent: true; shader: flat'
+      )
       halo.setAttribute('position', '0 0.18 0')
-      halo.setAttribute('animation', 'property: rotation; to: 0 360 0; dur: 2600; loop: true; easing: linear')
+      halo.setAttribute(
+        'animation',
+        'property: rotation; to: 0 360 0; dur: 2600; loop: true; easing: linear'
+      )
 
       const dot = document.createElement('a-entity')
       dot.setAttribute('geometry', 'primitive: sphere; radius: 0.09')
@@ -279,17 +373,35 @@ export default function AframeScenePreview({
   cameraRotation,
   cameraFov,
   hotspots = [],
+  selectedHotspotId,
   height = '360px',
   className,
 }: Props) {
+  const debug = import.meta.env.DEV
   const containerRef = useRef<HTMLDivElement>(null)
   const readyRef = useRef(false)
   const hotspotRootRef = useRef<Element | null>(null)
+  const hotspotsRef = useRef<PreviewHotspot[]>(hotspots)
 
   const src = useMemo(() => (imageUrl ? parseLink(imageUrl) : undefined), [imageUrl])
   const camPos = v3s(cameraPosition, '0 1.6 0')
   const camRot = v3s(cameraRotation, '0 0 0')
   const fov = cameraFov ?? 80
+  const resolvedCameraPosition = useMemo(
+    () => toVec3(cameraPosition, { x: 0, y: 1.6, z: 0 }),
+    [camPos]
+  )
+  const resolvedCameraRotation = useMemo(
+    () => toVec3(cameraRotation, { x: 0, y: 0, z: 0 }),
+    [camRot]
+  )
+  const cameraStateRef = useRef({
+    position: resolvedCameraPosition,
+    rotation: resolvedCameraRotation,
+    fov,
+    camPos,
+    camRot,
+  })
 
   const sceneMarkup = useMemo(
     () =>
@@ -303,8 +415,50 @@ export default function AframeScenePreview({
           `<a-entity id="aframe-hotspots-root"></a-entity>` +
           `</a-scene>`
         : '',
-    [src, height, camPos, camRot, fov]
+    [src, height]
   )
+
+  useEffect(() => {
+    if (!debug) return
+    console.debug('[AframeScenePreview] props changed', {
+      imageUrl,
+      src,
+      cameraPosition,
+      cameraRotation,
+      cameraFov,
+      camPos,
+      camRot,
+      fov,
+      hotspotCount: hotspots.length,
+      selectedHotspotId,
+    })
+  }, [
+    debug,
+    imageUrl,
+    src,
+    cameraPosition,
+    cameraRotation,
+    cameraFov,
+    camPos,
+    camRot,
+    fov,
+    hotspots.length,
+    selectedHotspotId,
+  ])
+
+  useEffect(() => {
+    hotspotsRef.current = hotspots
+  }, [hotspots])
+
+  useEffect(() => {
+    cameraStateRef.current = {
+      position: resolvedCameraPosition,
+      rotation: resolvedCameraRotation,
+      fov,
+      camPos,
+      camRot,
+    }
+  }, [resolvedCameraPosition, resolvedCameraRotation, fov, camPos, camRot])
 
   useEffect(() => {
     if (!src || !containerRef.current || readyRef.current) return
@@ -316,36 +470,104 @@ export default function AframeScenePreview({
         containerRef.current.innerHTML = sceneMarkup
         readyRef.current = true
         hotspotRootRef.current = containerRef.current.querySelector('#aframe-hotspots-root')
+        const camEl = containerRef.current.querySelector('a-camera')
+        if (camEl) {
+          const cameraState = cameraStateRef.current
+          applyCameraState(camEl, cameraState.position, cameraState.rotation, cameraState.fov)
+          requestAnimationFrame(() =>
+            applyCameraState(camEl, cameraState.position, cameraState.rotation, cameraState.fov)
+          )
+        }
+        if (hotspotRootRef.current) {
+          renderHotspots(hotspotRootRef.current, hotspotsRef.current)
+          requestAnimationFrame(() => {
+            if (hotspotRootRef.current) renderHotspots(hotspotRootRef.current, hotspotsRef.current)
+          })
+        }
+        if (debug) {
+          const cameraState = cameraStateRef.current
+          console.debug('[AframeScenePreview] scene mounted', {
+            requested: {
+              camPos: cameraState.camPos,
+              camRot: cameraState.camRot,
+              fov: cameraState.fov,
+            },
+            camera: getCameraDebugState(camEl),
+            hasHotspotRoot: !!hotspotRootRef.current,
+            renderedHotspotCount: hotspotsRef.current.filter(
+              (hotspot) => hotspot.is_active !== false && hotspot.visible !== false
+            ).length,
+          })
+          requestAnimationFrame(() => {
+            console.debug('[AframeScenePreview] scene mounted after frame', {
+              camera: getCameraDebugState(camEl),
+            })
+          })
+        }
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (debug) console.debug('[AframeScenePreview] failed to import aframe', { error })
+      })
 
     return () => {
       readyRef.current = false
       hotspotRootRef.current = null
       if (containerRef.current) containerRef.current.innerHTML = ''
     }
-  }, [sceneMarkup, src])
+  }, [sceneMarkup, src, debug])
 
   useEffect(() => {
     if (!src) return
     const root = hotspotRootRef.current
-    if (!root) return
+    if (!root) {
+      if (debug) {
+        console.debug('[AframeScenePreview] skip hotspot render, root not ready', {
+          hotspotCount: hotspots.length,
+        })
+      }
+      return
+    }
+    if (debug) {
+      console.debug('[AframeScenePreview] render hotspots', {
+        hotspotCount: hotspots.length,
+        visibleHotspotCount: hotspots.filter(
+          (hotspot) => hotspot.is_active !== false && hotspot.visible !== false
+        ).length,
+      })
+    }
     renderHotspots(root, hotspots)
-  }, [hotspots, src])
+  }, [hotspots, src, debug])
 
   useEffect(() => {
     if (!readyRef.current || !containerRef.current) return
     const camEl = containerRef.current.querySelector('a-camera')
     if (!camEl) return
-    camEl.setAttribute('position', camPos)
-    camEl.setAttribute('rotation', camRot)
-    camEl.setAttribute('fov', String(fov))
-  }, [camPos, camRot, fov])
+    if (debug) {
+      console.debug('[AframeScenePreview] before camera apply', {
+        requested: { camPos, camRot, fov },
+        camera: getCameraDebugState(camEl),
+      })
+    }
+    applyCameraState(camEl, resolvedCameraPosition, resolvedCameraRotation, fov)
+    if (debug) {
+      console.debug('[AframeScenePreview] after camera apply', {
+        requested: { camPos, camRot, fov },
+        camera: getCameraDebugState(camEl),
+      })
+      requestAnimationFrame(() => {
+        applyCameraState(camEl, resolvedCameraPosition, resolvedCameraRotation, fov)
+        console.debug('[AframeScenePreview] after camera apply frame', {
+          requested: { camPos, camRot, fov },
+          camera: getCameraDebugState(camEl),
+        })
+      })
+    }
+  }, [camPos, camRot, fov, debug, resolvedCameraPosition, resolvedCameraRotation])
 
   if (!src) {
     return (
       <div
-        className={`bg-muted flex items-center justify-center rounded border text-sm text-muted-foreground ${className ?? ''}`}
+        className={`bg-muted text-muted-foreground flex items-center justify-center rounded border text-sm ${className ?? ''}`}
         style={{ height }}
       >
         Khong co anh 360 do
@@ -354,9 +576,11 @@ export default function AframeScenePreview({
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-[18px] border bg-[#071b2b] ${className ?? ''}`}>
+    <div
+      className={`relative overflow-hidden rounded-[18px] border bg-[#071b2b] ${className ?? ''}`}
+    >
       <div ref={containerRef} style={{ width: '100%', height }} />
-      <div className="pointer-events-none absolute bottom-3 right-3">
+      <div className="pointer-events-none absolute right-3 bottom-3">
         <span
           className="rounded-full px-3 py-1 text-xs font-semibold text-white"
           style={{ background: 'rgba(8, 47, 73, 0.78)' }}

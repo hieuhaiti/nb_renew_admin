@@ -5,7 +5,7 @@ import {
   Building2,
   Newspaper,
   // MessageSquare,
-  // Map,
+  Map,
   Users,
   AlertTriangle,
   ClipboardList,
@@ -87,7 +87,11 @@ export const navConfig: NavItem[] = [
     subItems: [
       { name: 'Doanh nghiệp', path: '/businesses', authen: [...ROLE_GROUPS.MANAGEMENT] },
       { name: 'Đánh giá', path: '/ratings/businesses', authen: [...ROLE_GROUPS.CONTENT] },
-      { name: 'Đánh giá của tôi', path: '/ratings/businesses/my', authen: [...ROLE_GROUPS.ENTERPRISE] },
+      {
+        name: 'Đánh giá của tôi',
+        path: '/ratings/businesses/my',
+        authen: [...ROLE_GROUPS.ENTERPRISE],
+      },
     ],
   },
 
@@ -109,17 +113,17 @@ export const navConfig: NavItem[] = [
     ],
   },
 
-  // {
-  //   icon: <Map />,
-  //   name: 'Bản đồ',
-  //   path: '/map-layers',
-  //   authen: [...ROLE_GROUPS.CATALOG],
-  //   subItems: [
-  //     { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.CATALOG] },
-  //     { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.CATALOG] },
-  //     { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.CATALOG] },
-  //   ],
-  // },
+  {
+    icon: <Map />,
+    name: 'Bản đồ',
+    path: '/map-layers',
+    authen: [...ROLE_GROUPS.CATALOG],
+    subItems: [
+      { name: 'Danh mục bản đồ', path: '/map-admin-categories', authen: [...ROLE_GROUPS.CATALOG] },
+      { name: 'Lớp bản đồ', path: '/map-layers', authen: [...ROLE_GROUPS.CATALOG] },
+      { name: 'API & khóa truy cập', path: '/map-layer-apis', authen: [...ROLE_GROUPS.CATALOG] },
+    ],
+  },
 
   // {
   //   icon: <Plug />,

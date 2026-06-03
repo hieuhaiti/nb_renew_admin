@@ -8,6 +8,7 @@ import {
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import type { MapAdminCategory } from '@/types/api'
 import { formatDateTime } from '@/lib/date'
+import { getMapAdminCategoryName } from '@/lib/mapAdminCategory'
 
 interface Props {
   open: boolean
@@ -17,15 +18,18 @@ interface Props {
 
 export default function MapAdminCategoryDetailDialog({ open, onOpenChange, category }: Props): JSX.Element {
   if (!category) return <></>
+  const categoryName = getMapAdminCategoryName(category)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogTitle>Chi tiết danh mục</DialogTitle>
-        <DialogDescription>{category.name}</DialogDescription>
+        <DialogDescription>{categoryName}</DialogDescription>
 
         <div className="space-y-3 pt-2">
-          <Row label="Tên danh mục" value={category.name} />
+          <Row label="Tên danh mục" value={categoryName} />
+          <Row label="Mã danh mục" value={category.code ?? '-'} />
+          <Row label="Tên tiếng Anh" value={category.name_en ?? '-'} />
           <Row label="Mô tả" value={category.description ?? '-'} />
           <Row
             label="Thứ tự"

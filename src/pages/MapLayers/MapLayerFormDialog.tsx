@@ -3,12 +3,7 @@ import { useEffect } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -25,6 +20,7 @@ import { mapAdminCategoryService, useApiQuery } from '@/service'
 import type { ApiResponse, MapAdminCategoryListData, MapLayer } from '@/types/api'
 import type { MapLayerFormBody } from '@/service/mapLayerService'
 import { STALE_REF } from '@/constant/queryConstant'
+import { getMapAdminCategoryItems, getMapAdminCategoryName } from '@/lib/mapAdminCategory'
 
 const LAYER_TYPES = ['geojson', 'vector', 'raster', 'wms', 'mvt', 'xyz'] as const
 
@@ -77,13 +73,21 @@ export default function MapLayerFormDialog({
 
   const categoryQuery = useApiQuery(
     ['map-admin-categories-ref'],
-    () => mapAdminCategoryService.getAll({ page: 1, limit: 50, sortBy: 'created_at', sortOrder: 'DESC', is_active: true }),
+    () =>
+      mapAdminCategoryService.getAll({
+        page: 1,
+        limit: 50,
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
+        is_active: true,
+      }),
     { staleTime: STALE_REF, enabled: open },
     false,
     false
   )
-  const categories =
-    ((categoryQuery.data as ApiResponse<MapAdminCategoryListData>)?.data?.categories ?? []) as Array<{ id: number; name: string }>
+  const categories = getMapAdminCategoryItems(
+    (categoryQuery.data as ApiResponse<MapAdminCategoryListData>)?.data
+  )
 
   const {
     register,
@@ -112,6 +116,9 @@ export default function MapLayerFormDialog({
           sort_order?: number
           status?: 'active' | 'inactive'
         }
+        const status =
+          l.status ??
+          (typeof l.is_active === 'boolean' ? (l.is_active ? 'active' : 'inactive') : 'active')
         reset({
           code: l.code ?? '',
           name_vi: l.name_vi ?? l.name ?? '',
@@ -123,7 +130,7 @@ export default function MapLayerFormDialog({
           max_zoom: l.max_zoom ?? null,
           is_default_visible: l.is_default_visible ?? true,
           sort_order: l.sort_order ?? 0,
-          status: l.is_active ? 'active' : 'inactive',
+          status,
         })
       } else {
         reset(defaultValues)
@@ -157,7 +164,9 @@ export default function MapLayerFormDialog({
       <DialogContent className="max-w-2xl">
         <DialogTitle>{isEdit ? 'Chỉnh sửa lớp bản đồ' : 'Thêm lớp bản đồ'}</DialogTitle>
         <DialogDescription>
-          {isEdit ? `Cập nhật cấu hình lớp "${layer?.name}"` : 'Thêm lớp dữ liệu bản đồ mới'}
+          {isEdit
+            ? `Cập nhật cấu hình lớp "${layer?.name_vi ?? layer?.name ?? ''}"`
+            : 'Thêm lớp dữ liệu bản đồ mới'}
         </DialogDescription>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
@@ -167,9 +176,7 @@ export default function MapLayerFormDialog({
                 Mã lớp <span className="text-destructive">*</span>
               </Label>
               <Input id="layer_code" {...register('code')} placeholder="vd: OSM_ROAD" />
-              {errors.code && (
-                <p className="text-destructive text-xs">{errors.code.message}</p>
-              )}
+              {errors.code && <p className="text-destructive text-xs">{errors.code.message}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="layer_sort_order">Thứ tự</Label>
@@ -199,7 +206,10 @@ export default function MapLayerFormDialog({
                 Danh mục <span className="text-destructive">*</span>
               </Label>
               <SearchSelect
-                options={categories.map((cat) => ({ value: String(cat.id), label: cat.name }))}
+                options={categories.map((cat) => ({
+                  value: String(cat.id),
+                  label: getMapAdminCategoryName(cat),
+                }))}
                 value={categoryIdStr}
                 onValueChange={(v) => setValue('category_id', parseInt(v, 10))}
                 placeholder="Chọn danh mục"
@@ -235,11 +245,7 @@ export default function MapLayerFormDialog({
             <Label htmlFor="layer_source_url">
               URL nguồn dữ liệu <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="layer_source_url"
-              {...register('source_url')}
-              placeholder="https://..."
-            />
+            <Input id="layer_source_url" {...register('source_url')} placeholder="https://..." />
             {errors.source_url && (
               <p className="text-destructive text-xs">{errors.source_url.message}</p>
             )}

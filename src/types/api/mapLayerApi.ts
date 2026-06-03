@@ -7,6 +7,8 @@ export interface MapLayerApi {
   id: number
   category_id: number
   category_name?: string
+  map_layer_id?: number | null
+  map_layer_name?: string | null
   name: string
   slug: string
   description?: string
@@ -20,12 +22,14 @@ export interface MapLayerApi {
 }
 
 export interface MapLayerApiListData {
-  apis: MapLayerApi[]
+  items?: MapLayerApi[]
+  apis?: MapLayerApi[]
   pagination: import('./index').Pagination
 }
 
 export interface CreateMapLayerApiBody {
   category_id: number
+  map_layer_id?: number
   name: string
   slug: string
   description?: string | null
@@ -36,6 +40,7 @@ export interface CreateMapLayerApiBody {
 
 export interface UpdateMapLayerApiBody {
   category_id?: number
+  map_layer_id?: number
   name?: string
   slug?: string
   description?: string | null

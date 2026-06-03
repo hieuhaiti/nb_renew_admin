@@ -48,14 +48,29 @@ export interface AFrameSceneFormBody {
   is_active?: boolean
 }
 
+export interface AFrameHotspotPosition {
+  x?: number
+  y?: number
+  z?: number
+  pitch?: number
+  yaw?: number
+  distance?: number
+}
+
+export interface AFrameVector3 {
+  x?: number
+  y?: number
+  z?: number
+}
+
 export interface AFrameHotspot {
   id: string
   scene_id: string
   name: string
   description?: string | null
   hotspot_type: string
-  position?: object | null
-  scale?: object | null
+  position?: AFrameHotspotPosition | null
+  scale?: AFrameVector3 | null
   target_scene_id?: string | null
   linked_spot_id?: string | null
   target_url?: string | null
@@ -69,8 +84,8 @@ export interface AFrameHotspotFormBody {
   name: string
   description?: string
   hotspot_type: string
-  position?: object
-  scale?: object
+  position?: AFrameHotspotPosition
+  scale?: AFrameVector3
   target_scene_id?: string
   linked_spot_id?: string
   target_url?: string

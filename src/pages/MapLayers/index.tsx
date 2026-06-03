@@ -51,12 +51,25 @@ const ACTIVE_DOT: Record<string, string> = {
   false: 'bg-muted-foreground',
 }
 
+function getLayerName(layer: MapLayer): string {
+  return layer.name_vi || layer.name || '-'
+}
+
+function getLayerType(layer: MapLayer): string {
+  return layer.layer_type || layer.geometry_type || '-'
+}
+
+function isLayerActive(layer: MapLayer): boolean {
+  if (typeof layer.is_active === 'boolean') return layer.is_active
+  return layer.status === 'active'
+}
+
 export default function MapLayerPage(): JSX.Element {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [geometryFilter, setGeometryFilter] = useState<string>('all')
+  const [layerTypeFilter, setLayerTypeFilter] = useState<string>('all')
 
   const queryParams = {
     page: currentPage,
@@ -64,8 +77,8 @@ export default function MapLayerPage(): JSX.Element {
     sortBy: 'created_at',
     sortOrder: 'DESC' as const,
     ...(searchValue && { search: searchValue }),
-    ...(statusFilter !== 'all' && { is_active: statusFilter === 'true' }),
-    ...(geometryFilter !== 'all' && { geometry_type: geometryFilter }),
+    ...(statusFilter !== 'all' && { status: statusFilter }),
+    ...(layerTypeFilter !== 'all' && { layer_type: layerTypeFilter }),
   }
 
   const dbQuery = useApiQuery(
@@ -77,7 +90,7 @@ export default function MapLayerPage(): JSX.Element {
   )
 
   const data = (dbQuery.data as ApiResponse<MapLayerListData>)?.data
-  const layers = data?.mapLayers ?? []
+  const layers = data?.items ?? data?.mapLayers ?? []
   const pagination = (data?.pagination ?? {}) as Partial<Pagination>
   const lastTotalPagesRef = useRef<number | null>(null)
   if (pagination?.totalPages) lastTotalPagesRef.current = pagination.totalPages
@@ -93,6 +106,7 @@ export default function MapLayerPage(): JSX.Element {
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [layerToDelete, setLayerToDelete] = useState<MapLayer | null>(null)
+  const layerToDeleteName = layerToDelete ? getLayerName(layerToDelete) : ''
 
   const toggleMutation = useApiMutation(
     (id: number) => mapLayerService.toggle(id),
@@ -170,15 +184,15 @@ export default function MapLayerPage(): JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="true">Đang hoạt động</SelectItem>
-                <SelectItem value="false">Ngừng hoạt động</SelectItem>
+                <SelectItem value="active">Đang hoạt động</SelectItem>
+                <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
               </SelectContent>
             </Select>
 
             <Select
-              value={geometryFilter}
+              value={layerTypeFilter}
               onValueChange={(v) => {
-                setGeometryFilter(v)
+                setLayerTypeFilter(v)
                 setCurrentPage(1)
               }}
             >
@@ -186,10 +200,13 @@ export default function MapLayerPage(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Mọi hình học</SelectItem>
-                <SelectItem value="point">Point</SelectItem>
-                <SelectItem value="line">Line</SelectItem>
-                <SelectItem value="polygon">Polygon</SelectItem>
+                <SelectItem value="all">Mọi loại</SelectItem>
+                <SelectItem value="geojson">GeoJSON</SelectItem>
+                <SelectItem value="vector">Vector</SelectItem>
+                <SelectItem value="raster">Raster</SelectItem>
+                <SelectItem value="wms">WMS</SelectItem>
+                <SelectItem value="mvt">MVT</SelectItem>
+                <SelectItem value="xyz">XYZ</SelectItem>
               </SelectContent>
             </Select>
 
@@ -235,7 +252,7 @@ export default function MapLayerPage(): JSX.Element {
               <TableHead className="w-16">ID</TableHead>
               <TableHead>Tên lớp</TableHead>
               <TableHead className="w-32">Danh mục</TableHead>
-              <TableHead className="w-24">Kiểu hình học</TableHead>
+              <TableHead className="w-24">Loại lớp</TableHead>
               <TableHead className="w-28">Trạng thái</TableHead>
               <TableHead className="w-32">Ngày tạo</TableHead>
               <TableHead className="w-28 text-right">Hành động</TableHead>
@@ -272,19 +289,17 @@ export default function MapLayerPage(): JSX.Element {
                 >
                   <TableCell>{layer.id}</TableCell>
                   <TableCell className="max-w-64 font-medium">
-                    <span className="line-clamp-2">{layer.name}</span>
+                    <span className="line-clamp-2">{getLayerName(layer)}</span>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {(layer as MapLayer & { category_name?: string }).category_name || '-'}
                   </TableCell>
-                  <TableCell className="uppercase">
-                    {(layer as MapLayer & { geometry_type?: string }).geometry_type || '-'}
-                  </TableCell>
+                  <TableCell className="uppercase">{getLayerType(layer)}</TableCell>
                   <TableCell>
                     <StatusDotBadge
-                      label={ACTIVE_LABEL[String(layer.is_active)]}
-                      badgeClass={ACTIVE_CLASS[String(layer.is_active)]}
-                      dotClass={ACTIVE_DOT[String(layer.is_active)]}
+                      label={ACTIVE_LABEL[String(isLayerActive(layer))]}
+                      badgeClass={ACTIVE_CLASS[String(isLayerActive(layer))]}
+                      dotClass={ACTIVE_DOT[String(isLayerActive(layer))]}
                     />
                   </TableCell>
                   <TableCell className="text-sm">
@@ -299,9 +314,9 @@ export default function MapLayerPage(): JSX.Element {
                           e.stopPropagation()
                           toggleMutation.mutate(layer.id)
                         }}
-                        title={layer.is_active ? 'Ngừng hoạt động' : 'Kích hoạt'}
+                        title={isLayerActive(layer) ? 'Ngừng hoạt động' : 'Kích hoạt'}
                       >
-                        {layer.is_active ? (
+                        {isLayerActive(layer) ? (
                           <EyeOff className="text-muted-foreground size-4" />
                         ) : (
                           <Eye className="size-4" />
@@ -359,8 +374,8 @@ export default function MapLayerPage(): JSX.Element {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa lớp &quot;{layerToDelete?.name}&quot;? Hành động này
-              không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa lớp &quot;{layerToDeleteName}&quot;? Hành động này không thể
+              hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

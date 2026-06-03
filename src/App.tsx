@@ -11,6 +11,7 @@ import { AppErrorBoundary } from '@/components/common/AppErrorBoundary'
 import ImageLightbox from '@/components/common/ImageLightbox'
 import { ROLE_GROUPS, ROLE_IDS } from '@/constant/roleConstant'
 import 'react-toastify/dist/ReactToastify.css'
+import { lazyWithRetry } from './lib/lazyWithRetry'
 
 const NotFoundPage = lazy(() => import('@/pages/Errors/404NotFoundPage'))
 const BadRequestPage = lazy(() => import('@/pages/Errors/400BadRequestPage'))
@@ -34,11 +35,11 @@ const NewsCommentsPage = lazy(() => import('@/pages/NewsComments'))
 const RatingSpotPage = lazy(() => import('@/pages/Ratings/RatingSpotPage'))
 const RatingBusinessPage = lazy(() => import('@/pages/Ratings/RatingBusinessPage'))
 const RatingMyBusinessPage = lazy(() => import('@/pages/Ratings/RatingMyBusinessPage'))
-// const MapLayerPage = lazy(() => import('@/pages/MapLayers'))
-// const MapLayerApisPage = lazyWithRetry(
-//   () => import('@/pages/MapLayerApis'),
-//   'retry:page:map-layer-apis'
-// )
+const MapLayerPage = lazy(() => import('@/pages/MapLayers'))
+const MapLayerApisPage = lazyWithRetry(
+  () => import('@/pages/MapLayerApis'),
+  'retry:page:map-layer-apis'
+)
 const MapLayerApiPublicPage = lazy(() => import('@/pages/MapLayerApis/MapLayerApiPublicPage'))
 const FeedbackPage = lazy(() => import('@/pages/Feedback'))
 const AuditLogPage = lazy(() => import('@/pages/AuditLog'))
@@ -49,7 +50,7 @@ const GovernanceDepartmentPage = lazy(() => import('@/pages/Governance/Governanc
 const GovernanceEnterprisePage = lazy(() => import('@/pages/Governance/GovernanceEnterprisePage'))
 const VisitorStatisticsPage = lazy(() => import('@/pages/Statistics/VisitorStatistics'))
 const StatisticsPage = lazy(() => import('@/pages/Statistics'))
-// const MapAdminCategoriesPage = lazy(() => import('@/pages/MapAdminCategories'))
+const MapAdminCategoriesPage = lazy(() => import('@/pages/MapAdminCategories'))
 const TourPage = lazy(() => import('@/pages/Tours'))
 const AframeScenePage = lazy(() => import('@/pages/AframeScenes'))
 const CapacityPage = lazy(() => import('@/pages/Capacity'))
@@ -120,9 +121,9 @@ function App() {
                 {/* === Danh mục điểm + Bản đồ — Admin, Sở (Bộ không có quyền backend) === */}
                 <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CATALOG} />}>
                   <Route path="/categories" element={<CategoryPage />} />
-                  {/* <Route path="/map-layers" element={<MapLayerPage />} /> */}
-                  {/* <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} /> */}
-                  {/* <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} /> */}
+                  <Route path="/map-layers" element={<MapLayerPage />} />
+                  <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
+                  <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
                 </Route>
 
                 {/* === Điểm + Sức chứa + Đánh giá — Admin, Bộ, Sở, Đơn vị vận hành === */}
@@ -153,13 +154,30 @@ function App() {
                 </Route>
 
                 {/* === Governance sub-routes — admin có thể xem tất cả; role khác chỉ xem của mình === */}
-                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.MINISTRY]} />}>
+                <Route
+                  element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.MINISTRY]} />}
+                >
                   <Route path="/governance/ministry" element={<GovernanceMinistryPage />} />
                 </Route>
-                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.DEPARTMENT]} />}>
+                <Route
+                  element={
+                    <RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.DEPARTMENT]} />
+                  }
+                >
                   <Route path="/governance/department" element={<GovernanceDepartmentPage />} />
                 </Route>
-                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.SPOT_OPERATOR, ROLE_IDS.TRAVEL_COMPANY, ROLE_IDS.SERVICE_PROVIDER]} />}>
+                <Route
+                  element={
+                    <RoleGuard
+                      allowedRoles={[
+                        ROLE_IDS.SYSTEM_ADMIN,
+                        ROLE_IDS.SPOT_OPERATOR,
+                        ROLE_IDS.TRAVEL_COMPANY,
+                        ROLE_IDS.SERVICE_PROVIDER,
+                      ]}
+                    />
+                  }
+                >
                   <Route path="/governance/enterprise" element={<GovernanceEnterprisePage />} />
                 </Route>
               </Route>

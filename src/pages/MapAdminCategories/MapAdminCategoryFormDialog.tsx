@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { MapAdminCategory } from '@/types/api'
 import type { MapAdminCategoryFormBody } from '@/service/mapAdminCategoryService'
+import { getMapAdminCategoryName } from '@/lib/mapAdminCategory'
 
 const schema = z.object({
   code: z.string().min(1, 'Mã danh mục không được rỗng'),
@@ -69,9 +70,9 @@ export default function MapAdminCategoryFormDialog({
     if (open) {
       if (category) {
         reset({
-          code: (category as MapAdminCategory & { code?: string }).code ?? '',
-          name_vi: (category as MapAdminCategory & { name_vi?: string }).name_vi ?? category.name ?? '',
-          name_en: (category as MapAdminCategory & { name_en?: string }).name_en ?? '',
+          code: category.code ?? '',
+          name_vi: category.name_vi ?? category.name ?? '',
+          name_en: category.name_en ?? '',
           description: category.description ?? '',
           sort_order: category.sort_order ?? 0,
           is_active: category.is_active ?? true,
@@ -99,7 +100,7 @@ export default function MapAdminCategoryFormDialog({
       <DialogContent className="max-w-lg">
         <DialogTitle>{isEdit ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}</DialogTitle>
         <DialogDescription>
-          {isEdit ? `Cập nhật thông tin danh mục "${category?.name}"` : 'Tạo danh mục bản đồ mới'}
+          {isEdit ? `Cập nhật thông tin danh mục "${getMapAdminCategoryName(category)}"` : 'Tạo danh mục bản đồ mới'}
         </DialogDescription>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">

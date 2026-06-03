@@ -34,6 +34,7 @@ import {
 import { Pen, Plus, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
+import { getMapAdminCategoryItems, getMapAdminCategoryName } from '@/lib/mapAdminCategory'
 import { STALE_REF } from '@/constant/queryConstant'
 import MapAdminCategoryFormDialog from './MapAdminCategoryFormDialog'
 import MapAdminCategoryDetailDialog from './MapAdminCategoryDetailDialog'
@@ -72,8 +73,9 @@ export default function MapAdminCategoriesPage(): JSX.Element {
     false
   )
 
-  const categories =
-    ((dbQuery.data as ApiResponse<MapAdminCategoryListData>)?.data?.categories ?? []) as MapAdminCategory[]
+  const data = (dbQuery.data as ApiResponse<MapAdminCategoryListData>)?.data
+  const categories = getMapAdminCategoryItems(data)
+  const total = data?.pagination?.total ?? categories.length
 
   const [selectedCategory, setSelectedCategory] = useState<MapAdminCategory | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
@@ -162,7 +164,7 @@ export default function MapAdminCategoriesPage(): JSX.Element {
             </Button>
           </div>
         }
-        total={categories.length}
+        total={total}
       >
         <Table className="relative">
           <TableHeader className="sticky top-0 z-20">
@@ -206,7 +208,7 @@ export default function MapAdminCategoriesPage(): JSX.Element {
                   }}
                 >
                   <TableCell>{cat.id}</TableCell>
-                  <TableCell className="font-medium">{cat.name}</TableCell>
+                  <TableCell className="font-medium">{getMapAdminCategoryName(cat)}</TableCell>
                   <TableCell className="text-muted-foreground max-w-64 text-sm">
                     <span className="line-clamp-2">{cat.description ?? '-'}</span>
                   </TableCell>
@@ -277,7 +279,7 @@ export default function MapAdminCategoriesPage(): JSX.Element {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa danh mục &quot;{itemToDelete?.name}&quot;? Hành động này
+              Bạn có chắc chắn muốn xóa danh mục &quot;{getMapAdminCategoryName(itemToDelete)}&quot;? Hành động này
               không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>

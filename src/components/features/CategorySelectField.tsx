@@ -9,16 +9,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { mapAdminCategoryService, useApiQuery } from '@/service'
-import type { ApiResponse, MapAdminCategoryListData } from '@/types/api'
+import type { ApiResponse, MapAdminCategory, MapAdminCategoryListData } from '@/types/api'
 import { Loader2, Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { cn } from '@/lib/utils'
-
-interface Category {
-  id: string | number
-  name: string
-  is_active: boolean
-}
+import { getMapAdminCategoryItems, getMapAdminCategoryName } from '@/lib/mapAdminCategory'
 
 interface CategorySelectFieldProps {
   value: string
@@ -68,9 +63,9 @@ export default function CategorySelectField({
     false
   )
 
-  const categories = (
-    (categoryQuery.data as ApiResponse<MapAdminCategoryListData>)?.data?.categories ?? []
-  ).filter((category: Category) => (activeOnly ? category.is_active : true))
+  const categories = getMapAdminCategoryItems(
+    (categoryQuery.data as ApiResponse<MapAdminCategoryListData>)?.data
+  ).filter((category) => (activeOnly ? category.is_active : true))
 
   const isLoading = categoryQuery.isLoading || categoryQuery.isFetching
   const hasItems = categories.length > 0 || includeAllOption
@@ -128,13 +123,13 @@ export default function CategorySelectField({
                     {allOptionLabel}
                   </SelectItem>
                 )}
-                {categories.map((category: Category) => (
+                {categories.map((category: MapAdminCategory) => (
                   <SelectItem
                     key={category.id}
                     value={String(category.id)}
                     className="cursor-pointer"
                   >
-                    {category.name}
+                    {getMapAdminCategoryName(category)}
                   </SelectItem>
                 ))}
               </>
