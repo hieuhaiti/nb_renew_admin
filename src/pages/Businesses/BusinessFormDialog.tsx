@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { BUSINESS_TYPE_OPTIONS } from '@/constant/businessConstant'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ const businessSchema = z.object({
   business_code: z.string().max(50).optional().or(z.literal('')),
   tax_id: z.string().max(50).optional().or(z.literal('')),
   license_number: z.string().max(100).optional().or(z.literal('')),
-  description: z.string().optional().or(z.literal('')),
+  description_vi: z.string().optional().or(z.literal('')),
   logo_url: z.string().url('URL không hợp lệ').optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
   email: z.string().email('Email không hợp lệ').optional().or(z.literal('')),
@@ -43,7 +44,7 @@ const defaultValues: BusinessFormValues = {
   business_code: '',
   tax_id: '',
   license_number: '',
-  description: '',
+  description_vi: '',
   logo_url: '',
   phone: '',
   email: '',
@@ -80,7 +81,11 @@ export default function BusinessFormDialog({
     false,
     false
   )
-  const biz = (dbQuery.data as ApiResponse<{ business: Business }>)?.data?.business ?? null
+  const businessData = (dbQuery.data as ApiResponse<{ business?: Business } | Business>)?.data
+  const biz =
+    businessData && 'business' in businessData
+      ? (businessData.business ?? null)
+      : ((businessData as Business | undefined) ?? null)
   const isEdit = !!biz
 
   const {
@@ -103,7 +108,7 @@ export default function BusinessFormDialog({
         business_code: biz.business_code ?? '',
         tax_id: biz.tax_id ?? '',
         license_number: biz.license_number ?? '',
-        description: biz.description ?? '',
+        description_vi: biz.description_vi ?? biz.description ?? '',
         logo_url: biz.logo_url ?? '',
         phone: biz.phone ?? '',
         email: biz.email ?? '',
@@ -125,7 +130,7 @@ export default function BusinessFormDialog({
       ...(values.business_code && { business_code: values.business_code }),
       ...(values.tax_id && { tax_id: values.tax_id }),
       ...(values.license_number && { license_number: values.license_number }),
-      ...(values.description && { description: values.description }),
+      ...(values.description_vi && { description_vi: values.description_vi }),
       ...(values.logo_url && { logo_url: values.logo_url }),
       ...(values.phone && { phone: values.phone }),
       ...(values.email && { email: values.email }),
@@ -152,7 +157,11 @@ export default function BusinessFormDialog({
               <Label htmlFor="biz_name">
                 Tên doanh nghiệp <span className="text-destructive">*</span>
               </Label>
-              <Input id="biz_name" {...register('business_name')} placeholder="Tên doanh nghiệp..." />
+              <Input
+                id="biz_name"
+                {...register('business_name')}
+                placeholder="Tên doanh nghiệp..."
+              />
               {errors.business_name && (
                 <p className="text-destructive text-xs">{errors.business_name.message}</p>
               )}
@@ -169,12 +178,11 @@ export default function BusinessFormDialog({
                   <SelectValue placeholder="Chọn loại hình" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="san_xuat">Sản xuất</SelectItem>
-                  <SelectItem value="nha_hang">Nhà hàng</SelectItem>
-                  <SelectItem value="lu_hanh">Lữ hành</SelectItem>
-                  <SelectItem value="khu_du_lich">Khu du lịch</SelectItem>
-                  <SelectItem value="ban_le">Bán lẻ</SelectItem>
-                  <SelectItem value="hotel">Khách sạn</SelectItem>
+                  {BUSINESS_TYPE_OPTIONS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {errors.business_type && (
@@ -212,18 +220,14 @@ export default function BusinessFormDialog({
                 {...register('email')}
                 placeholder="contact@example.vn"
               />
-              {errors.email && (
-                <p className="text-destructive text-xs">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-destructive text-xs">{errors.email.message}</p>}
             </div>
           </div>
 
           <div className="space-y-1">
             <Label htmlFor="biz_website">Website</Label>
             <Input id="biz_website" {...register('website')} placeholder="https://example.vn" />
-            {errors.website && (
-              <p className="text-destructive text-xs">{errors.website.message}</p>
-            )}
+            {errors.website && <p className="text-destructive text-xs">{errors.website.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -276,7 +280,7 @@ export default function BusinessFormDialog({
             <Label htmlFor="biz_desc">Mô tả</Label>
             <Textarea
               id="biz_desc"
-              {...register('description')}
+              {...register('description_vi')}
               rows={4}
               placeholder="Mô tả doanh nghiệp..."
             />

@@ -1,9 +1,11 @@
-import type { JSX } from 'react'
+import type { JSX, ReactNode } from 'react'
 import { useState } from 'react'
 import { useApiQuery, auditLogService } from '@/service'
 import type { ApiResponse, VisitorStatsParams } from '@/types/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectTrigger,
@@ -19,19 +21,11 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts'
-import { Users, Globe, Activity, Layers } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Users, Globe, Activity, Layers, RotateCcw, TrendingUp } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { formatPeriod } from '@/lib/date'
+import { cn } from '@/lib/utils'
 
 // ─── Types từ response thực tế ────────────────────────────────────────────────
 
@@ -62,24 +56,39 @@ interface StatsData {
 
 // ─── Components ───────────────────────────────────────────────────────────────
 
+type StatTone = 'primary' | 'info' | 'success' | 'warning'
+
+const STAT_TONE_CLASS: Record<StatTone, { icon: string; bar: string }> = {
+  primary: { icon: 'bg-primary/10 text-primary ring-primary/15', bar: 'bg-primary' },
+  info: { icon: 'bg-info/10 text-info ring-info/15', bar: 'bg-info' },
+  success: { icon: 'bg-success/10 text-success ring-success/15', bar: 'bg-success' },
+  warning: { icon: 'bg-warning/10 text-warning ring-warning/15', bar: 'bg-warning' },
+}
+
 function StatCard({
   icon,
   label,
   value,
-  colorClass = 'text-primary',
+  helper,
+  tone = 'primary',
 }: {
-  icon: JSX.Element
+  icon: ReactNode
   label: string
   value: string | number
-  colorClass?: string
+  helper?: string
+  tone?: StatTone
 }) {
+  const classes = STAT_TONE_CLASS[tone]
+
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className={`bg-muted rounded-full p-3 ${colorClass}`}>{icon}</div>
-        <div>
+    <Card className="border-border/80 overflow-hidden shadow-sm">
+      <CardContent className="relative flex min-h-28 items-start gap-4 p-5">
+        <div className={cn('absolute inset-x-0 top-0 h-1', classes.bar)} />
+        <div className={cn('rounded-xl p-3 ring-1', classes.icon)}>{icon}</div>
+        <div className="min-w-0">
           <p className="typo-label text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold">{value}</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+          {helper && <p className="text-muted-foreground mt-1 text-xs">{helper}</p>}
         </div>
       </CardContent>
     </Card>
@@ -89,12 +98,114 @@ function StatCard({
 const fmt = (v: number | undefined) =>
   v !== undefined && v !== null ? v.toLocaleString('vi-VN') : '-'
 
+const ACTION_VERB_CLASS: Record<string, string> = {
+  create: 'border-success/20 bg-success/10 text-success',
+  update: 'border-primary/20 bg-primary/10 text-primary',
+  delete: 'border-destructive/20 bg-destructive/10 text-destructive',
+  login: 'border-info/20 bg-info/10 text-info',
+  logout: 'border-warning/20 bg-warning/10 text-warning',
+}
+
+function splitAction(action: string) {
+  const parts = action.split('.').filter(Boolean)
+  const verb = parts.pop() ?? action
+  return { module: parts.join('.'), verb }
+}
+
+function ActionBadge({ action }: { action: string }) {
+  const { module, verb } = splitAction(action)
+  const cls = ACTION_VERB_CLASS[verb] ?? 'border-border bg-muted/50 text-muted-foreground'
+
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      {module && (
+        <Badge variant="outline" className="bg-card text-muted-foreground font-mono text-xs">
+          {module}
+        </Badge>
+      )}
+      <Badge variant="outline" className={cn('font-mono text-xs', cls)}>
+        {verb}
+      </Badge>
+    </div>
+  )
+}
+
+function getGroupByLabel(groupBy: 'day' | 'week' | 'month') {
+  if (groupBy === 'day') return 'ngày'
+  if (groupBy === 'month') return 'tháng'
+  return 'tuần'
+}
+
+type TrafficChartKey = 'Hành động' | 'Người dùng'
+
+function TrafficChart({
+  title,
+  description,
+  badgeClassName,
+  dataKey,
+  fill,
+  data,
+}: {
+  title: string
+  description: string
+  badgeClassName: string
+  dataKey: TrafficChartKey
+  fill: string
+  data: Array<{ period: string } & Record<TrafficChartKey, number>>
+}) {
+  return (
+    <Card className="border-border/80 shadow-sm">
+      <CardHeader className="flex flex-col gap-2 pb-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <CardTitle className="typo-section-title">{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </div>
+        <Badge className={badgeClassName}>{dataKey}</Badge>
+      </CardHeader>
+      <CardContent>
+        <div className="h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
+              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="period"
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+                width={36}
+              />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--primary) / 0.06)' }}
+                contentStyle={{
+                  borderColor: 'hsl(var(--border))',
+                  borderRadius: 8,
+                  boxShadow: 'var(--shadow-md)',
+                  fontSize: 12,
+                }}
+                formatter={(value: number | undefined) => (value ?? 0).toLocaleString('vi-VN')}
+              />
+              <Bar dataKey={dataKey} fill={fill} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VisitorStatisticsPage(): JSX.Element {
   const [fromDate, setFromDate] = useState<string>('')
   const [toDate, setToDate] = useState<string>('')
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('week')
+  const isInvalidDateRange = Boolean(fromDate && toDate && fromDate > toDate)
 
   const queryParams: VisitorStatsParams = {
     ...(fromDate && { from_date: fromDate }),
@@ -105,7 +216,7 @@ export default function VisitorStatisticsPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['visitor-statistics', queryParams],
     () => auditLogService.getVisitorStatistics(queryParams),
-    {},
+    { enabled: !isInvalidDateRange },
     false,
     false
   )
@@ -127,53 +238,103 @@ export default function VisitorStatisticsPage(): JSX.Element {
     'Hành động': row.actions,
     'Người dùng': row.unique_users,
   }))
+  const maxActionCount = Math.max(...topActions.map((item) => item.count), 1)
+  const totalActions =
+    overview?.total_actions ?? topActions.reduce((sum, item) => sum + item.count, 0)
+  const groupByLabel = getGroupByLabel(groupBy)
+  const hasActiveFilters = Boolean(fromDate) || Boolean(toDate) || groupBy !== 'week'
+
+  const handleResetFilters = () => {
+    setFromDate('')
+    setToDate('')
+    setGroupBy('week')
+  }
 
   return (
-    <PageLayout title="Thống kê truy cập" description="Tổng quan lưu lượng hành động trong hệ thống">
+    <PageLayout
+      title="Thống kê truy cập"
+      description="Tổng quan lưu lượng hành động, người dùng và IP truy cập trong hệ thống"
+    >
       <div className="space-y-6">
         {/* Filters */}
-        <Card>
-          <CardContent className="flex flex-wrap items-end gap-4 p-5">
-            <div className="space-y-1">
-              <p className="typo-label font-medium">Từ ngày</p>
-              <Input
-                type="date"
-                className="h-9 w-40"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
+        <Card className="border-border/80 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="typo-section-title">Bộ lọc dữ liệu</p>
+                  <Badge className="border-primary/20 bg-primary/10 text-primary">
+                    Theo {groupByLabel}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Dữ liệu được tổng hợp từ nhật ký hệ thống và cập nhật theo bộ lọc thời gian.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <p className="typo-label font-medium">Từ ngày</p>
+                  <Input
+                    type="date"
+                    className="h-9 w-40"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="typo-label font-medium">Đến ngày</p>
+                  <Input
+                    type="date"
+                    className="h-9 w-40"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="typo-label font-medium">Nhóm theo</p>
+                  <Select
+                    value={groupBy}
+                    onValueChange={(v) => setGroupBy(v as 'day' | 'week' | 'month')}
+                  >
+                    <SelectTrigger className="h-9 w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="day">Ngày</SelectItem>
+                      <SelectItem value="week">Tuần</SelectItem>
+                      <SelectItem value="month">Tháng</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {hasActiveFilters && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground h-9 gap-1.5"
+                    onClick={handleResetFilters}
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Xóa lọc
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="typo-label font-medium">Đến ngày</p>
-              <Input
-                type="date"
-                className="h-9 w-40"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
+
+            <div className="mt-4 min-h-5">
+              {isInvalidDateRange && (
+                <p className="text-destructive text-sm">
+                  Ngày bắt đầu không được lớn hơn ngày kết thúc.
+                </p>
+              )}
+              {!isInvalidDateRange && dbQuery.isFetching && (
+                <p className="text-muted-foreground text-xs">Đang tải dữ liệu mới...</p>
+              )}
+              {!isInvalidDateRange && dbQuery.isError && (
+                <p className="text-destructive text-sm">Không thể tải dữ liệu.</p>
+              )}
             </div>
-            <div className="space-y-1">
-              <p className="typo-label font-medium">Nhóm theo</p>
-              <Select
-                value={groupBy}
-                onValueChange={(v) => setGroupBy(v as 'day' | 'week' | 'month')}
-              >
-                <SelectTrigger className="h-9 w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Ngày</SelectItem>
-                  <SelectItem value="week">Tuần</SelectItem>
-                  <SelectItem value="month">Tháng</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {dbQuery.isFetching && (
-              <p className="text-muted-foreground self-end pb-1 text-xs">Đang tải...</p>
-            )}
-            {dbQuery.isError && (
-              <p className="text-destructive self-end pb-1 text-sm">Không thể tải dữ liệu.</p>
-            )}
           </CardContent>
         </Card>
 
@@ -184,25 +345,29 @@ export default function VisitorStatisticsPage(): JSX.Element {
               icon={<Activity className="size-5" />}
               label="Tổng hành động"
               value={fmt(overview.total_actions)}
-              colorClass="text-primary"
+              helper={`Ghi nhận theo ${groupByLabel}`}
+              tone="primary"
             />
             <StatCard
               icon={<Users className="size-5" />}
               label="Người dùng duy nhất"
               value={fmt(overview.unique_users)}
-              colorClass="text-sky-600"
+              helper="Tài khoản có phát sinh log"
+              tone="info"
             />
             <StatCard
               icon={<Globe className="size-5" />}
               label="IP duy nhất"
               value={fmt(overview.unique_ips)}
-              colorClass="text-violet-600"
+              helper="Nguồn truy cập khác nhau"
+              tone="success"
             />
             <StatCard
               icon={<Layers className="size-5" />}
               label="Loại đối tượng"
               value={fmt(overview.entity_types_affected)}
-              colorClass="text-amber-600"
+              helper="Nhóm dữ liệu bị tác động"
+              tone="warning"
             />
           </div>
         )}
@@ -212,7 +377,9 @@ export default function VisitorStatisticsPage(): JSX.Element {
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
               <Activity className="text-muted-foreground size-10" />
-              <p className="text-muted-foreground font-medium">Không có dữ liệu trong khoảng thời gian này</p>
+              <p className="text-muted-foreground font-medium">
+                Không có dữ liệu trong khoảng thời gian này
+              </p>
               <p className="text-muted-foreground text-sm">
                 Thử chọn khoảng thời gian khác hoặc điều chỉnh bộ lọc.
               </p>
@@ -220,60 +387,98 @@ export default function VisitorStatisticsPage(): JSX.Element {
           </Card>
         )}
 
-        {/* Time Series Chart */}
+        {/* Time Series Charts */}
         {chartData.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="typo-section-title">Lưu lượng theo thời gian</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="period" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12 }}
-                    formatter={(value: number | undefined) => (value ?? 0).toLocaleString('vi-VN')}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="Hành động" fill="#0369A1" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="Người dùng" fill="#10B981" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <TrafficChart
+              title="Lưu lượng hành động"
+              description={`Tổng số thao tác được ghi nhận theo từng ${groupByLabel}.`}
+              badgeClassName="border-primary/20 bg-primary/10 text-primary"
+              dataKey="Hành động"
+              fill="hsl(var(--chart-1))"
+              data={chartData}
+            />
+            <TrafficChart
+              title="Lưu lượng người dùng"
+              description={`Số người dùng duy nhất có phát sinh hoạt động theo từng ${groupByLabel}.`}
+              badgeClassName="border-info/20 bg-info/10 text-info"
+              dataKey="Người dùng"
+              fill="hsl(var(--chart-2))"
+              data={chartData}
+            />
+          </div>
         )}
 
         {/* Top Actions Table */}
         {topActions.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="typo-section-title">Hành động nhiều nhất</CardTitle>
+          <Card className="border-border/80 overflow-hidden shadow-sm">
+            <CardHeader className="flex flex-col gap-2 pb-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <CardTitle className="typo-section-title">Hành động nhiều nhất</CardTitle>
+                <CardDescription>
+                  Xếp hạng theo tần suất để nhận diện luồng nghiệp vụ được sử dụng nhiều.
+                </CardDescription>
+              </div>
+              <Badge className="border-success/20 bg-success/10 text-success">
+                <TrendingUp className="mr-1 h-3.5 w-3.5" />
+                {fmt(totalActions)} lượt
+              </Badge>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
+              <Table className="min-w-[720px]">
+                <TableHeader className="bg-muted/40">
                   <TableRow>
-                    <TableHead className="w-10">#</TableHead>
+                    <TableHead className="w-16">#</TableHead>
                     <TableHead>Hành động</TableHead>
                     <TableHead>Loại đối tượng</TableHead>
+                    <TableHead className="w-56">Tỷ trọng</TableHead>
                     <TableHead className="w-28 text-right">Số lần</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topActions.map((item, idx) => (
-                    <TableRow key={`${item.action}-${idx}`}>
-                      <TableCell className="text-muted-foreground typo-table-cell">{idx + 1}</TableCell>
-                      <TableCell className="typo-table-cell font-medium">{item.action}</TableCell>
-                      <TableCell className="text-muted-foreground typo-table-cell">
-                        {item.entity_type ?? '-'}
-                      </TableCell>
-                      <TableCell className="typo-table-cell text-right font-semibold">
-                        {item.count.toLocaleString('vi-VN')}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {topActions.map((item, idx) => {
+                    const percent =
+                      totalActions > 0 ? Math.round((item.count / totalActions) * 100) : 0
+                    const width = Math.max(4, Math.round((item.count / maxActionCount) * 100))
+
+                    return (
+                      <TableRow key={`${item.action}-${idx}`} className="hover:bg-primary/5">
+                        <TableCell className="typo-table-cell">
+                          <span className="bg-muted text-muted-foreground inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
+                            {idx + 1}
+                          </span>
+                        </TableCell>
+                        <TableCell className="typo-table-cell font-medium">
+                          <ActionBadge action={item.action} />
+                        </TableCell>
+                        <TableCell className="typo-table-cell">
+                          {item.entity_type ? (
+                            <Badge variant="outline" className="bg-card text-muted-foreground">
+                              {item.entity_type}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">Toàn hệ thống</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="typo-table-cell">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
+                              <div
+                                className="bg-primary h-full rounded-full"
+                                style={{ width: `${width}%` }}
+                              />
+                            </div>
+                            <span className="text-muted-foreground w-10 text-right text-xs tabular-nums">
+                              {percent}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="typo-table-cell text-right font-semibold tabular-nums">
+                          {item.count.toLocaleString('vi-VN')}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </CardContent>

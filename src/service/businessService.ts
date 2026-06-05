@@ -75,7 +75,7 @@ export default {
 
   /** GET /businesses/me — enterprise user */
   // TODO: Available in Postman but not used by admin UI yet
-  getMe: () => apiClient.get<ApiResponse<Business>>(`${serviceBusinessPath}/me`),
+  getMe: () => apiClient.get<ApiResponse<{ businesses: Business[] }>>(`${serviceBusinessPath}/me`),
 
   /** POST /businesses */
   // TODO: Available in Postman but not used by admin UI yet
@@ -105,16 +105,22 @@ export default {
 
   /** GET /businesses/:businessId/services */
   getServices: (businessId: string) =>
-    apiClient.get<ApiResponse<BusinessServiceItem[]>>(`${serviceBusinessPath}/${businessId}/services`),
+    apiClient.get<ApiResponse<BusinessServiceItem[]>>(
+      `${serviceBusinessPath}/${businessId}/services`
+    ),
 
   /** POST /businesses/:businessId/services */
   createService: (businessId: string, data: BusinessServiceFormBody) =>
-    apiClient.post<ApiResponse<BusinessServiceItem>>(`${serviceBusinessPath}/${businessId}/services`, data),
+    apiClient.post<ApiResponse<BusinessServiceItem>>(
+      `${serviceBusinessPath}/${businessId}/services`,
+      data
+    ),
 
   /** PATCH /businesses/:businessId/services/:serviceId */
   updateService: (businessId: string, serviceId: number, data: Partial<BusinessServiceFormBody>) =>
     apiClient.patch<ApiResponse<BusinessServiceItem>>(
-      `${serviceBusinessPath}/${businessId}/services/${serviceId}`, data
+      `${serviceBusinessPath}/${businessId}/services/${serviceId}`,
+      data
     ),
 
   /** DELETE /businesses/:businessId/services/:serviceId */
@@ -129,12 +135,16 @@ export default {
 
   /** POST /businesses/:businessId/vouchers */
   createVoucher: (businessId: string, data: BusinessVoucherFormBody) =>
-    apiClient.post<ApiResponse<BusinessVoucher>>(`${serviceBusinessPath}/${businessId}/vouchers`, data),
+    apiClient.post<ApiResponse<BusinessVoucher>>(
+      `${serviceBusinessPath}/${businessId}/vouchers`,
+      data
+    ),
 
   /** PATCH /businesses/:businessId/vouchers/:voucherId */
   updateVoucher: (businessId: string, voucherId: number, data: Partial<BusinessVoucherFormBody>) =>
     apiClient.patch<ApiResponse<BusinessVoucher>>(
-      `${serviceBusinessPath}/${businessId}/vouchers/${voucherId}`, data
+      `${serviceBusinessPath}/${businessId}/vouchers/${voucherId}`,
+      data
     ),
 
   /** DELETE /businesses/:businessId/vouchers/:voucherId */
@@ -151,5 +161,7 @@ export default {
   /** POST /businesses/vouchers/validate */
   // TODO: Available in Postman but not used by admin UI yet
   validateVoucher: (code: string) =>
-    apiClient.post<ApiResponse<BusinessVoucher>>(`${serviceBusinessPath}/vouchers/validate`, { code }),
+    apiClient.post<ApiResponse<BusinessVoucher>>(`${serviceBusinessPath}/vouchers/validate`, {
+      code,
+    }),
 }

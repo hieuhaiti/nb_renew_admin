@@ -41,10 +41,11 @@ export function UserMenu() {
           <Button
             variant="ghost"
             size="sm"
-            className="hover:bg-muted h-8 max-w-60 px-2 text-sm"
+            className="hover:bg-muted h-8 max-w-60 justify-start overflow-hidden px-2 text-sm"
             onClick={() => setOpen((v) => !v)}
+            title={displayName}
           >
-            {displayName}
+            <span className="truncate">{displayName}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

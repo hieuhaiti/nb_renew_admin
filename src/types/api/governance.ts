@@ -200,15 +200,19 @@ export interface GovernanceDeptReportSendBody {
 export interface GovernanceEnterpriseReport {
   id: string
   business_id?: string
+  business_name?: string
   report_period?: string
   period_from?: string
   period_to?: string
-  total_revenue_vnd?: number
-  total_bookings?: number
-  total_visitors?: number
-  avg_capacity_pct?: number
+  total_revenue_vnd?: number | string
+  total_bookings?: number | string
+  total_visitors?: number | string
+  avg_capacity_pct?: number | string
   notes?: string
   status?: string
+  submitted_by?: string
+  reviewed_by?: string
+  reviewed_at?: string
   created_at?: string
   updated_at?: string
 }
@@ -233,17 +237,51 @@ export interface GovernanceEnterpriseDashboard {
   avg_rating?: number
   total_bookings?: number
   capacity_pct?: number
-  period?: string
-  [key: string]: any
+  period?:
+    | string
+    | {
+        type?: string
+        year?: number
+        from?: string
+        to?: string
+      }
+  business?: Record<string, unknown>
+  summary?: {
+    total_revenue_vnd?: number | string
+    total_bookings?: number | string
+    total_visitors?: number | string
+    avg_capacity_pct?: number | string
+    report_count?: number | string
+  }
+  revenue_trend?: Array<{
+    period?: string
+    revenue_vnd?: number | string
+    bookings?: number | string
+    visitors?: number | string
+  }>
+  capacity_alerts?: Array<{
+    spot_id?: string
+    name_vi?: string
+    capacity_pct?: number | string
+    status?: string
+    recorded_at?: string
+  }>
+  [key: string]: unknown
 }
 
 export interface GovernanceEnterpriseFeedback {
   id: string
   title?: string
+  content?: string
   description?: string
   status?: string
   priority?: string
+  moderation_status?: string
   distance_km?: number
+  location_text?: string
+  is_location_verified?: boolean
+  responded_at?: string | null
   created_at?: string
-  [key: string]: any
+  updated_at?: string
+  [key: string]: unknown
 }

@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { STALE_REF } from '@/constant/queryConstant'
 import { useAuthStore } from '@/stores/common/useAuthStore'
-import { ROLE_GROUPS } from '@/constant/roleConstant'
+import { canAccessPage, PAGE_ACCESS } from '@/constant/permissionConstant'
 
 const configSchema = z
   .object({
@@ -80,8 +80,8 @@ export default function CapacityConfigFormDialog({
     }
   }, [open, editConfig, form])
 
-  const roleId = useAuthStore((s) => s.user?.role_id)
-  const canAccessRoles = roleId != null && (ROLE_GROUPS.CONTENT as readonly number[]).includes(roleId)
+  const permissions = useAuthStore((s) => s.permissions)
+  const canAccessRoles = canAccessPage(permissions, PAGE_ACCESS.capacityConfigs)
 
   const spotsQuery = useApiQuery(
     ['spots-for-config'],

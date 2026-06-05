@@ -1,13 +1,15 @@
+import type { PageAccess } from '@/constant/permissionConstant'
+
 export type NavItem = {
   name: string
   icon: React.ReactNode
   path: string
   subpath?: string
-  /** role_id[] được phép thấy mục này; falsy hoặc [] → hiển thị cho tất cả */
-  authen?: number[]
+  /** Permission requirement used for dynamic backend-driven access control. */
+  access?: PageAccess
   subItems?: {
     name: string
     path: string
-    authen?: number[]
+    access?: PageAccess
   }[]
 }

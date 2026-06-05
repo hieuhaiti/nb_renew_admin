@@ -7,7 +7,9 @@ export interface Business {
   business_code: string | null
   tax_id: string | null
   license_number: string | null
-  description: string | null
+  description_vi: string | null
+  description_en: string | null
+  description?: string | null
   logo_url: string | null
   phone: string | null
   email: string | null
@@ -56,7 +58,8 @@ export interface BusinessFormBody {
   business_code?: string
   tax_id?: string
   license_number?: string
-  description?: string
+  description_vi?: string
+  description_en?: string
   logo_url?: string
   phone?: string
   email?: string

@@ -1,5 +1,10 @@
 import { useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseMutationOptions,
+} from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useLoadingStore } from '@/stores/common/useLoadingStore'
@@ -58,26 +63,26 @@ export function useApiQuery<T = any>(
   return query
 }
 
-export function useApiMutation<TData = any, TVariables = any>(
+export function useApiMutation<TData = any, TVariables = any, TOnMutateResult = unknown>(
   mutationFn: (body: TVariables) => Promise<TData>,
-  options: Parameters<typeof useMutation>[0] = {},
+  options: UseMutationOptions<TData, any, NoInfer<TVariables>, TOnMutateResult> = {},
   notification = true
 ) {
   const navigate = useNavigate()
   const setLoading = useLoadingStore((s: any) => s.setLoading)
 
-  const mutation = useMutation({
-    mutationFn: mutationFn as any,
+  const mutation = useMutation<TData, any, TVariables, TOnMutateResult>({
+    mutationFn,
     ...options,
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       if (notification && (data as any)?.message) {
         toast.success((data as any).message)
       }
-      ;(options.onSuccess as any)?.(data as any, variables, context)
+      options.onSuccess?.(data, variables, onMutateResult, context)
     },
 
-    onError: (error: any, variables, context) => {
+    onError: (error: any, variables, onMutateResult, context) => {
       const status = error?.status || error?.body?.status || error?.body?.statusCode
 
       // Toast đã được hiện bởi handleResponse() trong apiClient
@@ -90,7 +95,7 @@ export function useApiMutation<TData = any, TVariables = any>(
         return
       }
 
-      ;(options.onError as any)?.(error as any, variables, context)
+      options.onError?.(error, variables, onMutateResult, context)
     },
   })
 

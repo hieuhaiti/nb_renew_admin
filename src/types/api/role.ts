@@ -16,11 +16,14 @@ export interface Role {
 }
 
 export interface RolePermission {
-  id: number
+  id?: number
+  permission_id?: number
+  role_id?: number
   resource: string
   action: string
   name_vi: string | null
   description: string | null
+  granted_at?: string
 }
 
 export interface Permission {
@@ -40,4 +43,10 @@ export interface PermissionListParams {
   page?: number
   limit?: number
   search?: string
+}
+
+export interface RolePermissionsData {
+  role_id: number
+  items: RolePermission[]
+  total: number
 }

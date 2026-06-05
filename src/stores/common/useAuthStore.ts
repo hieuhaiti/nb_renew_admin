@@ -4,9 +4,11 @@ import apiClient from '@/service/common/apiClient'
 import { tokenManager } from '@/lib/tokenManager'
 import { currentRole } from '@/lib/currentRole'
 import authService from '@/service/authService'
+import { getRolePermissionKeys, type AdminPermission } from '@/constant/permissionConstant'
 
 interface AuthState {
   user: User | null
+  permissions: AdminPermission[]
   isAuthenticated: boolean
   isAdmin: boolean
   isInitializing: boolean
@@ -21,18 +23,19 @@ interface AuthState {
     refreshExpiresIn?: string
   }) => void
 
-  /** Fetch /auth/me and populate user (admin only) */
+  /** Fetch /auth/me and populate the current admin session */
   fetchProfile: () => Promise<boolean>
 
   /** Clear all auth state and tokens */
   logout: () => void
 
-  /** Run once on app load – restore session from localStorage */
+  /** Run once on app load and restore session from localStorage */
   initialize: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  permissions: [],
   isAuthenticated: false,
   isAdmin: false,
   isInitializing: true,
@@ -44,30 +47,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (expiresIn) localStorage.setItem('token_expires_in', expiresIn)
     if (refreshExpiresIn) localStorage.setItem('refresh_expires_in', refreshExpiresIn)
     tokenManager.setLoginTimestamp(new Date().toISOString())
-    set({ isAuthenticated: false, isAdmin: false, loggedOut: false })
+    set({ isAuthenticated: false, isAdmin: false, permissions: [], loggedOut: false })
   },
 
   fetchProfile: async () => {
     try {
       const res = await authService.getProfile()
       const user = res?.data?.user ?? null
-      // Roles 1–6 được phép vào admin panel; role 7 (Khách du lịch) bị chặn
-      const isAdmin = !!user && user.role_id != null && user.role_id >= 1 && user.role_id <= 6
 
-      if (!isAdmin) {
+      if (!user) {
         tokenManager.clearAll()
         currentRole.set(undefined)
-        set({ user: null, isAuthenticated: false, isAdmin: false })
+        set({ user: null, permissions: [], isAuthenticated: false, isAdmin: false })
+        return false
+      }
+
+      // Do not call `/governance/admin/roles/:id/permissions` here.
+      // That endpoint is admin-only and will return 403 for normal roles.
+      // The UI uses local role permissions for menu/route guards; backend still enforces each API.
+      const permissions = getRolePermissionKeys(user.role_id)
+      const canEnterAdmin = user.is_active !== false && permissions.length > 0
+
+      if (!canEnterAdmin) {
+        tokenManager.clearAll()
+        currentRole.set(undefined)
+        set({ user: null, permissions: [], isAuthenticated: false, isAdmin: false })
         return false
       }
 
       currentRole.set(user.role_id)
-      set({ user, isAuthenticated: true, isAdmin: true })
+      set({ user, permissions, isAuthenticated: true, isAdmin: true })
       return true
     } catch {
       tokenManager.clearAll()
       currentRole.set(undefined)
-      set({ user: null, isAuthenticated: false, isAdmin: false })
+      set({ user: null, permissions: [], isAuthenticated: false, isAdmin: false })
       return false
     }
   },
@@ -75,7 +89,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     tokenManager.clearAll()
     currentRole.set(undefined)
-    set({ user: null, isAuthenticated: false, isAdmin: false, loggedOut: true })
+    set({ user: null, permissions: [], isAuthenticated: false, isAdmin: false, loggedOut: true })
   },
 
   initialize: async () => {
@@ -84,7 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isInitializing: false })
       return
     }
-    // Token exists – try to fetch profile to verify session
+
     await get().fetchProfile()
     set({ isInitializing: false })
   },

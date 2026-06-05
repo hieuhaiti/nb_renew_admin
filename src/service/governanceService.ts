@@ -1,5 +1,5 @@
 import apiClient from './common/apiClient'
-import type { ApiResponse } from '@/types/api'
+import type { ApiResponse, RolePermissionsData } from '@/types/api'
 import { serviceGovernancePath } from '@/constant/serviceConstant'
 
 export default {
@@ -23,7 +23,9 @@ export default {
 
   /** GET /governance/admin/roles/:roleId/permissions */
   getRolePermissions: (roleId: number) =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/admin/roles/${roleId}/permissions`),
+    apiClient.get<ApiResponse<RolePermissionsData>>(
+      `${serviceGovernancePath}/admin/roles/${roleId}/permissions`
+    ),
 
   /** PUT /governance/admin/roles/:roleId/permissions */
   setRolePermissions: (roleId: number, data: { permission_ids: number[] }) =>

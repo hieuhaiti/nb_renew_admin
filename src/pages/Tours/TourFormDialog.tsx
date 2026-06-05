@@ -365,7 +365,7 @@ export default function TourFormDialog({
     () =>
       spotService.getAll({
         search: debouncedSpotSearch || undefined,
-        limit: 40,
+        limit: 50,
         sortBy: 'name_vi',
         sortOrder: 'ASC',
       }),
@@ -387,8 +387,8 @@ export default function TourFormDialog({
   const handleAddStop = async (day: number) => {
     if (!tourId) return
     const hasTitle = newStopTitleVi.trim()
-    if (!newStopSpotId && !hasTitle) {
-      toast.error('Nhập tên điểm dừng hoặc chọn điểm tham quan')
+    if (!newStopSpotId) {
+      toast.error('Vui lòng chọn điểm tham quan từ danh sách')
       return
     }
     const dayStops = stopsByDay[day] ?? []
@@ -758,7 +758,9 @@ export default function TourFormDialog({
                           <div className="mt-1.5 space-y-2 rounded border border-dashed border-primary/40 bg-primary/5 p-3">
                             {/* Spot search */}
                             <div className="space-y-1">
-                              <Label className="typo-caption">Điểm tham quan (tùy chọn)</Label>
+                              <Label className="typo-caption">
+                                Điểm tham quan <span className="text-destructive">*</span>
+                              </Label>
                               <Input
                                 value={spotSearch}
                                 onChange={(e) => {
@@ -768,7 +770,12 @@ export default function TourFormDialog({
                                 placeholder="Tìm tên điểm TQ..."
                                 className="h-8"
                               />
-                              {debouncedSpotSearch && !newStopSpotId && spotOptions.length > 0 && (
+                              {!newStopSpotId && spotsQuery.isLoading && (
+                                <p className="typo-caption text-muted-foreground">
+                                  Đang tải danh sách điểm tham quan...
+                                </p>
+                              )}
+                              {!newStopSpotId && spotOptions.length > 0 && (
                                 <div className="max-h-32 overflow-y-auto rounded border border-border bg-popover shadow-sm">
                                   {spotOptions.map((spot) => (
                                     <button
@@ -785,6 +792,11 @@ export default function TourFormDialog({
                                   ))}
                                 </div>
                               )}
+                              {!newStopSpotId && !spotsQuery.isLoading && spotOptions.length === 0 && (
+                                <p className="typo-caption text-muted-foreground">
+                                  Không tìm thấy điểm tham quan phù hợp
+                                </p>
+                              )}
                               {newStopSpotId && (
                                 <p className="typo-caption text-primary">✓ Đã chọn điểm tham quan</p>
                               )}
@@ -795,11 +807,7 @@ export default function TourFormDialog({
                               <Input
                                 value={newStopTitleVi}
                                 onChange={(e) => setNewStopTitleVi(e.target.value)}
-                                placeholder={
-                                  newStopSpotId
-                                    ? 'Bỏ trống để dùng tên điểm TQ'
-                                    : 'Bắt buộc nếu không chọn điểm TQ'
-                                }
+                                placeholder="Bỏ trống để dùng tên điểm tham quan"
                                 className="h-8"
                               />
                             </div>
@@ -821,9 +829,7 @@ export default function TourFormDialog({
                                 type="button"
                                 size="sm"
                                 onClick={() => handleAddStop(day)}
-                                disabled={
-                                  isSubmittingStop || (!newStopSpotId && !newStopTitleVi.trim())
-                                }
+                                disabled={isSubmittingStop || !newStopSpotId}
                               >
                                 {isSubmittingStop ? 'Đang thêm...' : 'Thêm'}
                               </Button>

@@ -9,7 +9,13 @@ import { tokenManager } from './lib/tokenManager'
 import { ToastContainer } from 'react-toastify'
 import { AppErrorBoundary } from '@/components/common/AppErrorBoundary'
 import ImageLightbox from '@/components/common/ImageLightbox'
-import { ROLE_GROUPS, ROLE_IDS } from '@/constant/roleConstant'
+import { canAccessPage, PAGE_ACCESS } from '@/constant/permissionConstant'
+import {
+  BUSINESS_APPROVAL_ROLE_IDS,
+  BUSINESS_REGISTRATION_ROLE_IDS,
+} from '@/constant/businessRegistrationConstant'
+import { ROLE_IDS } from '@/constant/roleConstant'
+import { navConfig } from '@/constant/common'
 import 'react-toastify/dist/ReactToastify.css'
 import { lazyWithRetry } from './lib/lazyWithRetry'
 
@@ -58,6 +64,26 @@ const CapacityPage = lazy(() => import('@/pages/Capacity'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const ChangePasswordPage = lazy(() => import('@/pages/ChangePassword'))
 
+function DefaultRedirect() {
+  const permissions = useAuthStore((s) => s.permissions)
+  const firstAllowedItem = navConfig.find((item) => {
+    if (!item.access || !canAccessPage(permissions, item.access)) return false
+    if (!item.subItems?.length) return true
+    return item.subItems.some((sub) => !sub.access || canAccessPage(permissions, sub.access))
+  })
+
+  const firstAllowedSubItem = firstAllowedItem?.subItems?.find(
+    (sub) => !sub.access || canAccessPage(permissions, sub.access)
+  )
+  const fallbackPath = firstAllowedSubItem?.path ?? firstAllowedItem?.path
+
+  if (!fallbackPath || /^https?:\/\//i.test(fallbackPath)) {
+    return <Navigate to="/403" replace />
+  }
+
+  return <Navigate to={fallbackPath} replace />
+}
+
 function App() {
   const location = useLocation()
   const initialize = useAuthStore((s) => s.initialize)
@@ -84,8 +110,8 @@ function App() {
 
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
-                {/* Home redirect theo role — GovernancePage tự redirect đến sub-route tương ứng */}
-                <Route path="/" element={<GovernancePage />} />
+                {/* Home redirect theo permission động từ backend */}
+                <Route path="/" element={<DefaultRedirect />} />
                 <Route path="/governance" element={<GovernancePage />} />
 
                 {/* Hồ sơ cá nhân — tất cả role admin đều truy cập được */}
@@ -95,73 +121,133 @@ function App() {
                 {/* Public map page — không cần role guard */}
                 <Route path="/public/map-layer-apis" element={<MapLayerApiPublicPage />} />
 
-                {/* === Quản trị hệ thống — chỉ role 1 === */}
-                <Route element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN]} />}>
+                {/* === Người dùng: users:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.users} />}>
                   <Route path="/users" element={<UserPage />} />
+                </Route>
+
+                {/* === Vai trò & phân quyền: cần quyền cập nhật role/permission === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.roles} />}>
                   <Route path="/roles" element={<RolePage />} />
-                  <Route path="/audit-logs" element={<AuditLogPage />} />
-                  {/* <Route path="/integrations" element={<IntegrationPage />} /> */}
                   <Route path="/governance/admin" element={<GovernanceAdminPage />} />
                 </Route>
 
-                {/* === Dashboard + Thống kê — Admin, Bộ (Sở bị backend block) === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.NATIONAL} />}>
+                {/* === Nhật ký hệ thống: audit_logs:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.auditLogs} />}>
+                  <Route path="/audit-logs" element={<AuditLogPage />} />
+                  {/* <Route path="/integrations" element={<IntegrationPage />} /> */}
+                </Route>
+
+                {/* === Dashboard truy cập thống kê audit log: audit_logs:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.dashboard} />}>
                   <Route path="/dashboard" element={<VisitorStatisticsPage />} />
+                </Route>
+
+                {/* === Dữ liệu thống kê: analytics:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.statistics} />}>
                   <Route path="/statistics" element={<StatisticsPage />} />
                 </Route>
 
-                {/* === Nội dung — Admin, Bộ, Sở === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.MANAGEMENT} />}>
+                {/* === Vlog: cần quyền quản trị vlogs:create/update/delete === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.vlogs} />}>
                   <Route path="/vlogs" element={<VlogPage />} />
+                </Route>
+
+                {/* === Tin tức: cần quyền quản trị news:create/update/delete === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.news} />}>
                   <Route path="/news" element={<NewsPage />} />
                   <Route path="/news-comments" element={<NewsCommentsPage />} />
+                </Route>
+
+                {/* === Ẩm thực: culinary:* === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.culinary} />}>
+                  <Route path="/culinary" element={<CulinaryPage />} />
+                </Route>
+
+                {/* === Lễ hội: festivals:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.festivals} />}>
+                  <Route path="/festivals" element={<FestivalPage />} />
+                </Route>
+
+                {/* === Doanh nghiệp: businesses:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.businesses} />}>
                   <Route path="/businesses" element={<BusinessPage />} />
                 </Route>
 
-                {/* === Danh mục điểm + Bản đồ — Admin, Sở (Bộ không có quyền backend) === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CATALOG} />}>
+                {/* === Danh mục điểm: cần quyền quản trị spot_categories:create/update/delete === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.categories} />}>
                   <Route path="/categories" element={<CategoryPage />} />
+                </Route>
+
+                {/* === Bản đồ: map_admin:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.mapAdmin} />}>
                   <Route path="/map-layers" element={<MapLayerPage />} />
                   <Route path="/map-admin-categories" element={<MapAdminCategoriesPage />} />
                   <Route path="/map-layer-apis/*" element={<MapLayerApisPage />} />
                 </Route>
 
-                {/* === Điểm + Sức chứa + Đánh giá — Admin, Bộ, Sở, Đơn vị vận hành === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.CONTENT} />}>
+                {/* === Điểm du lịch: spots:read === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.spots} />}>
                   <Route path="/spots" element={<SpotPage />} />
+                </Route>
+
+                {/* === Media/VR/hotspot điểm: spots:update === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.aframeScenes} />}>
                   <Route path="/aframe-scenes" element={<AframeScenePage />} />
-                  <Route path="/culinary" element={<CulinaryPage />} />
-                  <Route path="/festivals" element={<FestivalPage />} />
+                </Route>
+
+                {/* === Sức chứa: cần capacity:create hoặc capacity:update theo scope backend === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.capacity} />}>
                   <Route path="/capacity" element={<CapacityPage />} />
+                </Route>
+
+                {/* === Đánh giá cấp quản lý/đơn vị vận hành === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.ratingSpots} />}>
                   <Route path="/ratings/spots" element={<RatingSpotPage />} />
+                </Route>
+
+                {/* === Đánh giá doanh nghiệp cấp quản lý === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.ratingBusinesses} />}>
                   <Route path="/ratings/businesses" element={<RatingBusinessPage />} />
                 </Route>
 
-                {/* === Tour du lịch — Admin, Bộ, Sở, Đơn vị vận hành, Công ty lữ hành === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.TOUR} />}>
+                {/* === Tour du lịch: tours:* theo scope backend === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.tours} />}>
                   <Route path="/tours" element={<TourPage />} />
                 </Route>
 
-                {/* === OCOP + Phản ánh — tất cả role admin === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.ALL_ADMIN} />}>
+                {/* === OCOP: ocop:* theo scope backend === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.ocop} />}>
                   <Route path="/ocop" element={<OcopPage />} />
+                </Route>
+
+                {/* === Phản ánh: cần feedbacks:update/delete === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.feedbacks} />}>
                   <Route path="/feedbacks" element={<FeedbackPage />} />
                 </Route>
 
                 {/* === Đánh giá doanh nghiệp của tôi — Công ty lữ hành + Dịch vụ === */}
-                <Route element={<RoleGuard allowedRoles={ROLE_GROUPS.ENTERPRISE} />}>
+                <Route element={<RoleGuard access={PAGE_ACCESS.ratingMyBusiness} />}>
                   <Route path="/ratings/businesses/my" element={<RatingMyBusinessPage />} />
                 </Route>
 
-                {/* === Governance sub-routes — admin có thể xem tất cả; role khác chỉ xem của mình === */}
+                {/* === Governance sub-routes theo từng nhóm role nghiệp vụ === */}
                 <Route
-                  element={<RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.MINISTRY]} />}
+                  element={
+                    <RoleGuard
+                      access={PAGE_ACCESS.governance}
+                      allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.MINISTRY]}
+                    />
+                  }
                 >
                   <Route path="/governance/ministry" element={<GovernanceMinistryPage />} />
                 </Route>
                 <Route
                   element={
-                    <RoleGuard allowedRoles={[ROLE_IDS.SYSTEM_ADMIN, ROLE_IDS.DEPARTMENT]} />
+                    <RoleGuard
+                      access={PAGE_ACCESS.governance}
+                      allowedRoles={BUSINESS_APPROVAL_ROLE_IDS}
+                    />
                   }
                 >
                   <Route path="/governance/department" element={<GovernanceDepartmentPage />} />
@@ -169,12 +255,8 @@ function App() {
                 <Route
                   element={
                     <RoleGuard
-                      allowedRoles={[
-                        ROLE_IDS.SYSTEM_ADMIN,
-                        ROLE_IDS.SPOT_OPERATOR,
-                        ROLE_IDS.TRAVEL_COMPANY,
-                        ROLE_IDS.SERVICE_PROVIDER,
-                      ]}
+                      access={PAGE_ACCESS.governance}
+                      allowedRoles={BUSINESS_REGISTRATION_ROLE_IDS}
                     />
                   }
                 >

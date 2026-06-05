@@ -8,6 +8,7 @@ import { Pen } from 'lucide-react'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import RatingsSection from '@/components/common/RatingsSection'
+import { BUSINESS_TYPE_LABEL } from '@/constant/businessConstant'
 
 const STATUS_LABEL: Record<BusinessStatus, string> = {
   pending: 'Chờ duyệt',
@@ -26,15 +27,6 @@ const STATUS_DOT: Record<BusinessStatus, string> = {
   approved: 'bg-success',
   rejected: 'bg-destructive',
   suspended: 'bg-muted-foreground',
-}
-
-const BUSINESS_TYPE_LABEL: Record<string, string> = {
-  san_xuat: 'Sản xuất',
-  nha_hang: 'Nhà hàng',
-  lu_hanh: 'Lữ hành',
-  khu_du_lich: 'Khu du lịch',
-  ban_le: 'Bán lẻ',
-  hotel: 'Khách sạn',
 }
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
@@ -68,7 +60,11 @@ export default function BusinessDetailDialog({
     false,
     false
   )
-  const biz = (dbQuery.data as ApiResponse<{ business: Business }>)?.data?.business ?? null
+  const businessData = (dbQuery.data as ApiResponse<{ business?: Business } | Business>)?.data
+  const biz =
+    businessData && 'business' in businessData
+      ? (businessData.business ?? null)
+      : ((businessData as Business | undefined) ?? null)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,12 +167,8 @@ export default function BusinessDetailDialog({
                 dotClass={STATUS_DOT[biz.status]}
               />
             </Row>
-            {biz.approved_at && (
-              <Row label="Ngày duyệt">{formatDateTime(biz.approved_at)}</Row>
-            )}
-            {biz.approved_by_name && (
-              <Row label="Người duyệt">{biz.approved_by_name}</Row>
-            )}
+            {biz.approved_at && <Row label="Ngày duyệt">{formatDateTime(biz.approved_at)}</Row>}
+            {biz.approved_by_name && <Row label="Người duyệt">{biz.approved_by_name}</Row>}
             {biz.rejection_note && (
               <Row label="Lý do từ chối">
                 <span className="text-destructive">{biz.rejection_note}</span>
@@ -184,8 +176,8 @@ export default function BusinessDetailDialog({
             )}
 
             {/* ── Mô tả ── */}
-            {biz.description && (
-              <Row label="Mô tả">{biz.description}</Row>
+            {(biz.description_vi || biz.description) && (
+              <Row label="Mô tả">{biz.description_vi ?? biz.description}</Row>
             )}
 
             {/* ── Thời gian ── */}

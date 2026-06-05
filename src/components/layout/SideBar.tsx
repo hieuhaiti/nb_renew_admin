@@ -7,10 +7,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { navConfig } from '@/constant/common'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/common/useAuthStore'
+import { canAccessPage, type PageAccess } from '@/constant/permissionConstant'
 
-function canAccess(authen: number[] | undefined, roleId: number | undefined): boolean {
-  if (!authen || authen.length === 0) return true
-  return !!roleId && authen.includes(roleId)
+function canAccess(access: PageAccess | undefined, permissions: readonly string[]): boolean {
+  if (!access) return true
+  return canAccessPage(permissions, access)
 }
 
 export function SideBar() {
@@ -21,8 +22,7 @@ export function SideBar() {
     setExpanded: (isExpanded: boolean) => void
     toggleSidebar: () => void
   }
-  const user = useAuthStore((s) => s.user)
-  const roleId = user?.role_id
+  const permissions = useAuthStore((s) => s.permissions)
   // Track which nav item's submenu is open (accordion: only one at a time)
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
 
@@ -73,15 +73,15 @@ export function SideBar() {
         <div className="space-y-1">
           {navConfig
             .filter((item) => {
-              if (!canAccess(item.authen, roleId)) return false
+              if (!canAccess(item.access, permissions)) return false
               // Ẩn parent nếu có subItems nhưng tất cả đều bị filter
               if (item.subItems && item.subItems.length > 0) {
-                return item.subItems.some((s) => canAccess(s.authen, roleId))
+                return item.subItems.some((s) => canAccess(s.access, permissions))
               }
               return true
             })
             .map((item) => {
-            const visibleSubItems = item.subItems?.filter((s) => canAccess(s.authen, roleId))
+            const visibleSubItems = item.subItems?.filter((s) => canAccess(s.access, permissions))
             const hasSubItems = !!visibleSubItems && visibleSubItems.length > 0
             const isSubItemActive =
               hasSubItems && visibleSubItems!.some((sub) => location.pathname === sub.path)

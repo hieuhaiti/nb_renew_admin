@@ -19,24 +19,3 @@ export const ROLE_IDS = {
 } as const
 
 export type RoleId = (typeof ROLE_IDS)[keyof typeof ROLE_IDS]
-
-/**
- * Nhóm role dùng cho route guard và permission check.
- * Đây là source of truth duy nhất cho tập hợp role — không hardcode [1,2,3] trong App.tsx hay pages.
- */
-export const ROLE_GROUPS = {
-  /** Tất cả role được phép vào admin panel (loại trừ Tourist = 7) */
-  ALL_ADMIN: [1, 2, 3, 4, 5, 6],
-  /** Admin + Bộ + Sở — quản lý nội dung hệ thống và báo cáo */
-  MANAGEMENT: [1, 2, 3],
-  /** Chỉ Admin — danh mục điểm & hạ tầng bản đồ (Bộ và Sở đều bị backend block) */
-  CATALOG: [1],
-  /** Admin + Bộ — dashboard và thống kê cấp quốc gia (Sở bị backend block) */
-  NATIONAL: [1, 2],
-  /** Admin + Bộ + Sở + Đơn vị vận hành — quản lý điểm, nội dung địa phương */
-  CONTENT: [1, 2, 3, 4],
-  /** Admin + Bộ + Sở + Đơn vị vận hành + Công ty lữ hành — quản lý tour */
-  TOUR: [1, 2, 3, 4, 5],
-  /** Công ty lữ hành + Dịch vụ — doanh nghiệp xem đánh giá của mình */
-  ENTERPRISE: [5, 6],
-} as const

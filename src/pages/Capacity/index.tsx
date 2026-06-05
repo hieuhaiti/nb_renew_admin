@@ -38,11 +38,13 @@ import { Input } from '@/components/ui/input'
 import PageLayout from '@/layout/pageLayout'
 import { formatDateTime } from '@/lib/date'
 import { STALE_HOT } from '@/constant/queryConstant'
+import { canAccessPage, PAGE_ACCESS } from '@/constant/permissionConstant'
 import CapacityDetailDialog from './CapacityDetailDialog'
 import CapacityLogFormDialog from './CapacityLogFormDialog'
 import CapacitySettingsFormDialog from './CapacitySettingsFormDialog'
 import CapacityConfigFormDialog from './CapacityConfigFormDialog'
 import { PaginationCustom } from '@/components/features/PaginationCustom'
+import { useAuthStore } from '@/stores/common/useAuthStore'
 
 const CAPACITY_STATUS_LABEL: Record<CapacityStatus, string> = {
   normal: 'Bình thường',
@@ -106,6 +108,8 @@ function ThresholdBar({ busy, near, over }: { busy: number; near: number; over: 
 export default function CapacityPage(): JSX.Element {
   const { capacityBySpotId, wsStatus, initFromSnapshot, connectWS, disconnectWS } =
     useCapacityStore()
+  const permissions = useAuthStore((s) => s.permissions)
+  const canManageAlertConfigs = canAccessPage(permissions, PAGE_ACCESS.capacityConfigs)
 
   const [detailOpen, setDetailOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
@@ -135,7 +139,7 @@ export default function CapacityPage(): JSX.Element {
   const configsQuery = useApiQuery(
     ['capacity-configs'],
     () => capacityService.getConfigs(),
-    { staleTime: STALE_HOT },
+    { staleTime: STALE_HOT, enabled: canManageAlertConfigs },
     false,
     false
   )
@@ -143,7 +147,7 @@ export default function CapacityPage(): JSX.Element {
   const rolesQuery = useApiQuery(
     ['roles'],
     () => roleService.getAll(),
-    { staleTime: STALE_HOT },
+    { staleTime: STALE_HOT, enabled: canManageAlertConfigs },
     false,
     false
   )
@@ -201,11 +205,13 @@ export default function CapacityPage(): JSX.Element {
   }
 
   function openAddConfig() {
+    if (!canManageAlertConfigs) return
     setEditConfig(null)
     setConfigOpen(true)
   }
 
   function openEditConfig(cfg: CapacityConfig) {
+    if (!canManageAlertConfigs) return
     setEditConfig(cfg)
     setConfigOpen(true)
   }
@@ -398,105 +404,106 @@ export default function CapacityPage(): JSX.Element {
         />
       )}
 
-      {/* ── Alert configs section ── */}
-      <div className="mt-8">
-        <div className="mb-3 flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Bell className="text-muted-foreground size-4" />
-              <h2 className="text-base font-semibold">Cấu hình cảnh báo nâng cao</h2>
+      {canManageAlertConfigs && (
+        <div className="mt-8">
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Bell className="text-muted-foreground size-4" />
+                <h2 className="text-base font-semibold">Cấu hình cảnh báo nâng cao</h2>
+              </div>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                Ngưỡng % tải trọng chi tiết cho từng điểm — hệ thống push thông báo đến vai trò quản
+                lý khi lượng khách vượt mức.
+              </p>
             </div>
-            <p className="text-muted-foreground mt-0.5 text-xs">
-              Ngưỡng % tải trọng chi tiết cho từng điểm — hệ thống push thông báo đến vai trò quản
-              lý khi lượng khách vượt mức.
-            </p>
+            <Button size="sm" onClick={openAddConfig} className="shrink-0">
+              <Plus className="mr-1 size-4" />
+              Thêm cấu hình
+            </Button>
           </div>
-          <Button size="sm" onClick={openAddConfig} className="shrink-0">
-            <Plus className="mr-1 size-4" />
-            Thêm cấu hình
-          </Button>
-        </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Điểm tham quan</TableHead>
-                <TableHead>Ngưỡng sức chứa</TableHead>
-                <TableHead>Vai trò nhận báo</TableHead>
-                <TableHead>Cập nhật lúc</TableHead>
-                <TableHead className="text-right">Hành động</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {configsQuery.isLoading ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
-                    Đang tải...
-                  </TableCell>
+                  <TableHead>Điểm tham quan</TableHead>
+                  <TableHead>Ngưỡng sức chứa</TableHead>
+                  <TableHead>Vai trò nhận báo</TableHead>
+                  <TableHead>Cập nhật lúc</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
-              ) : configs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
-                    Chưa có cấu hình cảnh báo nào
-                  </TableCell>
-                </TableRow>
-              ) : (
-                configs.map((cfg) => (
-                  <TableRow key={cfg.id}>
-                    <TableCell>
-                      <p className="font-medium">
-                        {snapshotItems.find((s) => s.spot_id === cfg.spot_id)?.name_vi ??
-                          cfg.spot_id}
-                      </p>
-                      <p className="text-muted-foreground text-xs">{cfg.spot_id}</p>
-                    </TableCell>
-                    <TableCell>
-                      <ThresholdBar
-                        busy={cfg.threshold_busy}
-                        near={cfg.threshold_near}
-                        over={cfg.threshold_over}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {cfg.notify_roles?.length ? (
-                        <div className="flex flex-wrap gap-1">
-                          {cfg.notify_roles.map((id) => {
-                            const role = roles.find((r) => String(r.id) === id)
-                            return (
-                              <span
-                                key={id}
-                                className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs"
-                              >
-                                {role?.name_vi ?? role?.name ?? id}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {formatDateTime(cfg.updated_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditConfig(cfg)}
-                        title="Chỉnh sửa"
-                      >
-                        <Settings className="size-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {configsQuery.isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
+                      Đang tải...
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : configs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
+                      Chưa có cấu hình cảnh báo nào
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  configs.map((cfg) => (
+                    <TableRow key={cfg.id}>
+                      <TableCell>
+                        <p className="font-medium">
+                          {snapshotItems.find((s) => s.spot_id === cfg.spot_id)?.name_vi ??
+                            cfg.spot_id}
+                        </p>
+                        <p className="text-muted-foreground text-xs">{cfg.spot_id}</p>
+                      </TableCell>
+                      <TableCell>
+                        <ThresholdBar
+                          busy={cfg.threshold_busy}
+                          near={cfg.threshold_near}
+                          over={cfg.threshold_over}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {cfg.notify_roles?.length ? (
+                          <div className="flex flex-wrap gap-1">
+                            {cfg.notify_roles.map((id) => {
+                              const role = roles.find((r) => String(r.id) === id)
+                              return (
+                                <span
+                                  key={id}
+                                  className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs"
+                                >
+                                  {role?.name_vi ?? role?.name ?? id}
+                                </span>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {formatDateTime(cfg.updated_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditConfig(cfg)}
+                          title="Chỉnh sửa"
+                        >
+                          <Settings className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Dialogs ── */}
       <CapacityDetailDialog
@@ -526,12 +533,14 @@ export default function CapacityPage(): JSX.Element {
         onSuccess={handleRefresh}
       />
 
-      <CapacityConfigFormDialog
-        open={configOpen}
-        onOpenChange={setConfigOpen}
-        editConfig={editConfig}
-        onSuccess={() => configsQuery.refetch()}
-      />
+      {canManageAlertConfigs && (
+        <CapacityConfigFormDialog
+          open={configOpen}
+          onOpenChange={setConfigOpen}
+          editConfig={editConfig}
+          onSuccess={() => configsQuery.refetch()}
+        />
+      )}
     </PageLayout>
   )
 }

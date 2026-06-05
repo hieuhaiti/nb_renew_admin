@@ -37,15 +37,17 @@ import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { parseLink } from '@/lib/utils'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
+import {
+  BUSINESS_APPROVAL_ROLE_IDS,
+  BUSINESS_REGISTRATION_ROLE_IDS,
+  BUSINESS_REGISTRATION_STATUS_LABEL,
+} from '@/constant/businessRegistrationConstant'
+import { BUSINESS_TYPE_LABEL, BUSINESS_TYPE_OPTIONS } from '@/constant/businessConstant'
+import { useAuthStore } from '@/stores/common/useAuthStore'
 import BusinessDetailDialog from './BusinessDetailDialog'
 import BusinessFormDialog from './BusinessFormDialog'
 
-const STATUS_LABEL: Record<BusinessStatus, string> = {
-  pending: 'Chờ duyệt',
-  approved: 'Đã duyệt',
-  rejected: 'Từ chối',
-  suspended: 'Tạm khóa',
-}
+const STATUS_LABEL: Record<BusinessStatus, string> = BUSINESS_REGISTRATION_STATUS_LABEL
 const STATUS_CLASS: Record<BusinessStatus, string> = {
   pending: 'bg-warning/10 text-warning border-warning/20',
   approved: 'bg-success/10 text-success border-success/20',
@@ -59,8 +61,15 @@ const STATUS_DOT: Record<BusinessStatus, string> = {
   suspended: 'bg-muted-foreground',
 }
 
+function isAllowedRole(roleIds: readonly number[], roleId: number | undefined): boolean {
+  return !!roleId && roleIds.includes(roleId)
+}
+
 export default function BusinessPage(): JSX.Element {
   const openLightbox = useLightboxStore((s) => s.open)
+  const roleId = useAuthStore((s) => s.user?.role_id)
+  const canApproveBusiness = isAllowedRole(BUSINESS_APPROVAL_ROLE_IDS, roleId)
+  const canRegisterBusiness = isAllowedRole(BUSINESS_REGISTRATION_ROLE_IDS, roleId)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -207,12 +216,11 @@ export default function BusinessPage(): JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả loại</SelectItem>
-                <SelectItem value="san_xuat">Sản xuất</SelectItem>
-                <SelectItem value="nha_hang">Nhà hàng</SelectItem>
-                <SelectItem value="lu_hanh">Lữ hành</SelectItem>
-                <SelectItem value="khu_du_lich">Khu du lịch</SelectItem>
-                <SelectItem value="ban_le">Bán lẻ</SelectItem>
-                <SelectItem value="hotel">Khách sạn</SelectItem>
+                {BUSINESS_TYPE_OPTIONS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select
@@ -231,10 +239,12 @@ export default function BusinessPage(): JSX.Element {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
-            <Button size="sm" onClick={() => openForm(null)}>
-              <Plus className="mr-1 size-4" />
-              Thêm mới
-            </Button>
+            {canRegisterBusiness && (
+              <Button size="sm" onClick={() => openForm(null)}>
+                <Plus className="mr-1 size-4" />
+                Thêm mới
+              </Button>
+            )}
           </div>
         }
         total={total}
@@ -293,7 +303,7 @@ export default function BusinessPage(): JSX.Element {
                     {biz.phone && <p className="text-muted-foreground text-xs">{biz.phone}</p>}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {biz.business_type || '-'}
+                    {BUSINESS_TYPE_LABEL[biz.business_type] ?? (biz.business_type || '-')}
                   </TableCell>
                   <TableCell className="text-sm">
                     {biz.owner_name ? (
@@ -325,7 +335,7 @@ export default function BusinessPage(): JSX.Element {
                       >
                         <Pen className="size-4" />
                       </Button>
-                      {biz.status === 'pending' && (
+                      {canApproveBusiness && biz.status === 'pending' && (
                         <>
                           <Button
                             variant="ghost"
@@ -353,7 +363,7 @@ export default function BusinessPage(): JSX.Element {
                           </Button>
                         </>
                       )}
-                      {biz.status === 'approved' && (
+                      {canApproveBusiness && biz.status === 'approved' && (
                         <Button
                           variant="ghost"
                           size="sm"

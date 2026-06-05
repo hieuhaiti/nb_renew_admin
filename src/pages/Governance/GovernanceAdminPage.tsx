@@ -273,7 +273,7 @@ export default function GovernanceAdminPage(): JSX.Element {
   const assignedPermIds: number[] = (() => {
     const d = rolePermsQuery.data?.data
     if (!d || typeof d !== 'object') return []
-    const r = d as Record<string, unknown>
+    const r = d as unknown as Record<string, unknown>
     const list = r.items ?? r.permissions ?? r.data
     if (!Array.isArray(list)) return []
     return (list as Array<{ permission_id?: number; id?: number }>)
