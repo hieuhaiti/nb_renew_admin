@@ -570,7 +570,7 @@ export default function AframeScenePreview({
         className={`bg-muted text-muted-foreground flex items-center justify-center rounded border text-sm ${className ?? ''}`}
         style={{ height }}
       >
-        Khong co anh 360 do
+        Không có ảnh 360 hợp lệ để hiển thị. Vui lòng kiểm tra lại URL ảnh của bạn.
       </div>
     )
   }
@@ -585,7 +585,7 @@ export default function AframeScenePreview({
           className="rounded-full px-3 py-1 text-xs font-semibold text-white"
           style={{ background: 'rgba(8, 47, 73, 0.78)' }}
         >
-          Keo de xoay 360
+          Kéo để xoay ảnh 360
         </span>
       </div>
     </div>
