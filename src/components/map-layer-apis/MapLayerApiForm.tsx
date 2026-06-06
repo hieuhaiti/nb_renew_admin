@@ -239,19 +239,16 @@ export default function MapLayerApiForm({
         </div>
       </div>
 
-      {/* ── Section 3: Endpoint ── */}
-      <SectionHeader icon={Link2} title="Endpoint" />
+      {/* ── Section 3: Đường dẫn công khai ── */}
+      <SectionHeader icon={Link2} title="Đường dẫn công khai" />
       <Separator />
 
       <div className="bg-muted/50 space-y-3 rounded-lg border p-4">
         <div className="space-y-2">
           <Label className="text-muted-foreground text-xs tracking-wider uppercase">
-            Public Endpoint URL
+            URL công khai
           </Label>
           <div className="bg-background flex items-center gap-2 rounded-md border px-3 py-2">
-            <span className="bg-muted text-muted-foreground rounded px-2 py-0.5 text-xs font-semibold">
-              GET
-            </span>
             <code className="text-foreground flex-1 truncate text-sm">
               {form.watch('endpoint_url') || '/api/public/map/...'}
             </code>
@@ -259,9 +256,9 @@ export default function MapLayerApiForm({
           <div className="flex items-start gap-1.5">
             <Info className="text-muted-foreground mt-0.5 h-3 w-3 shrink-0" />
             <FieldHint>
-              Tự động tạo từ slug theo mẫu{' '}
+              Tự động tạo theo slug với mẫu{' '}
               <code className="bg-muted rounded px-1 font-mono text-xs">/api/public/map/:slug</code>
-              . Thay đổi slug sẽ cập nhật endpoint.
+              . Thay đổi slug sẽ cập nhật đường dẫn.
             </FieldHint>
           </div>
         </div>

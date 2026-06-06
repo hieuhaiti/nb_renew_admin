@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import {
   Users,
   FileText,
@@ -183,9 +184,7 @@ export default function GovernanceAdminPage(): JSX.Element {
       unique_visitors: d?.unique_visitors as number | undefined,
       avg_duration_seconds: d?.avg_duration_seconds as number | undefined,
       bounce_rate_pct: d?.bounce_rate_pct as number | undefined,
-      timeline: Array.isArray(d?.timeline)
-        ? (d!.timeline as GovernanceTrafficTimelineItem[])
-        : [],
+      timeline: Array.isArray(d?.timeline) ? (d!.timeline as GovernanceTrafficTimelineItem[]) : [],
       top_actions: Array.isArray(d?.top_actions)
         ? (d!.top_actions as GovernanceTrafficData['top_actions'])
         : [],
@@ -557,11 +556,23 @@ export default function GovernanceAdminPage(): JSX.Element {
                         <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                         <Tooltip
                           contentStyle={{ fontSize: 12 }}
-                          formatter={(value: number | undefined) => (value ?? 0).toLocaleString('vi-VN')}
+                          formatter={(value: number | undefined) =>
+                            (value ?? 0).toLocaleString('vi-VN')
+                          }
                         />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Bar dataKey="visits" name="Lượt truy cập" fill="#6366f1" radius={[3, 3, 0, 0]} />
-                        <Bar dataKey="unique_visitors" name="Khách duy nhất" fill="#10b981" radius={[3, 3, 0, 0]} />
+                        <Bar
+                          dataKey="visits"
+                          name="Lượt truy cập"
+                          fill="#6366f1"
+                          radius={[3, 3, 0, 0]}
+                        />
+                        <Bar
+                          dataKey="unique_visitors"
+                          name="Khách duy nhất"
+                          fill="#10b981"
+                          radius={[3, 3, 0, 0]}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -648,10 +659,9 @@ export default function GovernanceAdminPage(): JSX.Element {
                 </Card>
               )}
 
-              {(trafficData.timeline?.length ?? 0) === 0 &&
-                (trafficData.total_visits == null) && (
-                  <p className="text-muted-foreground text-sm">Không có dữ liệu lưu lượng.</p>
-                )}
+              {(trafficData.timeline?.length ?? 0) === 0 && trafficData.total_visits == null && (
+                <p className="text-muted-foreground text-sm">Không có dữ liệu lưu lượng.</p>
+              )}
             </div>
           )}
         </TabsContent>
@@ -818,24 +828,21 @@ export default function GovernanceAdminPage(): JSX.Element {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <Label className="shrink-0">Chọn vai trò</Label>
-                <Select
+                <SearchSelect
+                  options={roles.map((r) => ({
+                    value: String(r.id),
+                    label: r.name_vi,
+                  }))}
                   value={selectedRoleId}
                   onValueChange={(v) => {
                     setSelectedRoleId(v)
                     setSelectedPermIds([])
                   }}
-                >
-                  <SelectTrigger className="w-56">
-                    <SelectValue placeholder="-- Chọn vai trò --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((r) => (
-                      <SelectItem key={r.id} value={String(r.id)}>
-                        {r.name_vi}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="-- Chọn vai trò --"
+                  searchPlaceholder="Tìm vai trò..."
+                  className="w-56"
+                  disabled={rolesQuery.isLoading}
+                />
               </div>
 
               {selectedRoleId && (

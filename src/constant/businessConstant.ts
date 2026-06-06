@@ -3,15 +3,27 @@ export const BUSINESS_TYPE_OPTIONS = [
   { value: 'tour', label: 'Lữ hành' },
   { value: 'transport', label: 'Vận chuyển' },
   { value: 'restaurant', label: 'Nhà hàng' },
-  { value: 'service_provider', label: 'Dịch vụ du lịch' },
   { value: 'entertainment', label: 'Trải nghiệm/giải trí' },
-  { value: 'san_xuat', label: 'Sản xuất/OCOP' },
-  { value: 'nha_hang', label: 'Nhà hàng' },
-  { value: 'ban_le', label: 'Bán lẻ đặc sản' },
-  { value: 'lu_hanh', label: 'Lữ hành' },
-  { value: 'khu_du_lich', label: 'Khu du lịch' },
+  { value: 'other', label: 'Khác' },
 ] as const
+
+export type BusinessType = (typeof BUSINESS_TYPE_OPTIONS)[number]['value']
 
 export const BUSINESS_TYPE_LABEL = Object.fromEntries(
   BUSINESS_TYPE_OPTIONS.map((item) => [item.value, item.label])
 ) as Record<string, string>
+
+const LEGACY_BUSINESS_TYPE_MAP: Record<string, BusinessType> = {
+  service_provider: 'other',
+  san_xuat: 'other',
+  nha_hang: 'restaurant',
+  ban_le: 'other',
+  lu_hanh: 'tour',
+  khu_du_lich: 'other',
+}
+
+export function normalizeBusinessType(value: string | null | undefined): BusinessType {
+  if (!value) return 'other'
+  if (BUSINESS_TYPE_OPTIONS.some((item) => item.value === value)) return value as BusinessType
+  return LEGACY_BUSINESS_TYPE_MAP[value] ?? 'other'
+}

@@ -23,7 +23,10 @@ export interface User {
 
 export interface UserRole {
   id: number
-  name: string
+  name?: string
+  code?: string
+  name_vi?: string
+  name_en?: string
   description?: string
   permissions?: Record<string, string[]> & {
     map_layer_apis?: string[]

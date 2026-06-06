@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import {
   Select,
   SelectTrigger,
@@ -18,7 +19,10 @@ import {
 
 const createSchema = z.object({
   email: z.string().email('Email không hợp lệ').max(100, 'Email không được quá 100 ký tự'),
-  password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự').max(128, 'Mật khẩu không được quá 128 ký tự'),
+  password: z
+    .string()
+    .min(6, 'Mật khẩu tối thiểu 6 ký tự')
+    .max(128, 'Mật khẩu không được quá 128 ký tự'),
   full_name: z.string().max(100).optional().or(z.literal('')),
   phone: z
     .string()
@@ -73,9 +77,7 @@ function normalizeRoles(data: unknown): Role[] {
   }
 
   const normalizeRoleList = (items: unknown[]): Role[] =>
-    items
-      .map(normalizeRoleItem)
-      .filter((role): role is Role => role !== null)
+    items.map(normalizeRoleItem).filter((role): role is Role => role !== null)
 
   if (Array.isArray(data)) return normalizeRoleList(data)
 
@@ -113,7 +115,7 @@ export default function UserFormDialog({
   )
   const rawData = (dbQuery.data as ApiResponse<User | { user: User }>)?.data
   const user =
-    rawData && 'id' in rawData ? (rawData as User) : (rawData as { user?: User })?.user ?? null
+    rawData && 'id' in rawData ? (rawData as User) : ((rawData as { user?: User })?.user ?? null)
   const isEdit = !!user
 
   const rolesQuery = useApiQuery(['roles'], () => roleService.getAll(), {}, false, false)
@@ -245,21 +247,18 @@ export default function UserFormDialog({
               <Label htmlFor="role_id">
                 Vai trò <span className="text-destructive">*</span>
               </Label>
-              <Select
+              <SearchSelect
+                options={roles.map((role: Role) => ({
+                  value: role.id.toString(),
+                  label: role.name,
+                }))}
                 value={watch('role_id')?.toString() || ''}
                 onValueChange={(v) => setValue('role_id', parseInt(v))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn vai trò" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role: Role) => (
-                    <SelectItem key={role.id} value={role.id.toString()}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Chọn vai trò"
+                searchPlaceholder="Tìm vai trò..."
+                className="w-full"
+                disabled={rolesQuery.isLoading}
+              />
               {errors.role_id && (
                 <p className="text-destructive text-sm">{errors.role_id.message}</p>
               )}

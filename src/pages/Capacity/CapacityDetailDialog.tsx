@@ -23,6 +23,7 @@ const CAPACITY_STATUS_LABEL: Record<CapacityStatus, string> = {
   near_full: 'Gần đầy',
   overloaded: 'Quá tải',
   closed: 'Đóng cửa',
+  unknown: 'Chưa có dữ liệu',
 }
 const CAPACITY_STATUS_CLASS: Record<CapacityStatus, string> = {
   normal: 'bg-success/10 text-success border-success/20',
@@ -31,6 +32,7 @@ const CAPACITY_STATUS_CLASS: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
   closed: 'bg-muted/40 text-muted-foreground border-border',
+  unknown: 'bg-muted text-muted-foreground border-border',
 }
 const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   normal: 'bg-success',
@@ -39,6 +41,7 @@ const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500',
   overloaded: 'bg-destructive',
   closed: 'bg-muted-foreground',
+  unknown: 'bg-muted-foreground',
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -101,8 +104,8 @@ interface Props {
   onOpenChange: (open: boolean) => void
   item: CapacityState | null
   spotName: string
-  onLog: () => void
-  onSettings: () => void
+  onLog?: () => void
+  onSettings?: () => void
 }
 
 export default function CapacityDetailDialog({
@@ -190,18 +193,26 @@ export default function CapacityDetailDialog({
                   {pct != null ? (
                     <div className="flex items-center gap-2">
                       <CapacityBar pct={pct} />
-                      <span className="rounded border border-info/30 bg-info/10 px-1 py-px text-[10px] text-info-foreground">Tự tính</span>
+                      <span className="border-info/30 bg-info/10 text-info-foreground rounded border px-1 py-px text-[10px]">
+                        Tự tính
+                      </span>
                     </div>
-                  ) : '-'}
+                  ) : (
+                    '-'
+                  )}
                 </Row>
                 <Row label="Trạng thái">{statusBadge(item.status)}</Row>
                 <Row label="Ngưỡng cảnh báo">
                   {item.alert_threshold_pct != null ? (
                     <div className="flex items-center gap-2">
                       <span className="tabular-nums">{item.alert_threshold_pct}%</span>
-                      <span className="rounded border border-warning/30 bg-warning/10 px-1 py-px text-[10px] text-warning">Cố định</span>
+                      <span className="border-warning/30 bg-warning/10 text-warning rounded border px-1 py-px text-[10px]">
+                        Cố định
+                      </span>
                     </div>
-                  ) : '-'}
+                  ) : (
+                    '-'
+                  )}
                 </Row>
                 <Row label="Cập nhật lúc">{formatDateTime(item.recorded_at)}</Row>
               </div>
@@ -219,7 +230,7 @@ export default function CapacityDetailDialog({
             ) : (
               <div className="max-h-72 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-muted-foreground sticky top-0 bg-background text-xs">
+                  <thead className="text-muted-foreground bg-background sticky top-0 text-xs">
                     <tr>
                       <th className="pb-1 text-left font-medium">Thời gian</th>
                       <th className="pb-1 text-right font-medium">Khách</th>
@@ -268,7 +279,7 @@ export default function CapacityDetailDialog({
             ) : (
               <div className="max-h-72 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-muted-foreground sticky top-0 bg-background text-xs">
+                  <thead className="text-muted-foreground bg-background sticky top-0 text-xs">
                     <tr>
                       <th className="pb-1 text-left font-medium">Ngày</th>
                       <th className="pb-1 text-right font-medium">TB khách</th>
@@ -311,13 +322,9 @@ export default function CapacityDetailDialog({
             ) : (
               <div className="max-h-72 space-y-2 overflow-y-auto">
                 {altList.map((alt) => {
-                  const altPct =
-                    alt.capacity_pct != null ? parseFloat(alt.capacity_pct) : null
+                  const altPct = alt.capacity_pct != null ? parseFloat(alt.capacity_pct) : null
                   return (
-                    <div
-                      key={alt.id}
-                      className="rounded-md border px-3 py-2"
-                    >
+                    <div key={alt.id} className="rounded-md border px-3 py-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-sm font-medium">{alt.name_vi}</p>
@@ -345,16 +352,22 @@ export default function CapacityDetailDialog({
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-1">
-          <Button variant="outline" size="sm" onClick={onLog}>
-            <ClipboardList className="mr-1 size-4" />
-            Ghi nhận
-          </Button>
-          <Button variant="outline" size="sm" onClick={onSettings}>
-            <Settings className="mr-1 size-4" />
-            Cài đặt
-          </Button>
-        </div>
+        {(onLog || onSettings) && (
+          <div className="flex justify-end gap-2 pt-1">
+            {onLog && (
+              <Button variant="outline" size="sm" onClick={onLog}>
+                <ClipboardList className="mr-1 size-4" />
+                Ghi nhận
+              </Button>
+            )}
+            {onSettings && (
+              <Button variant="outline" size="sm" onClick={onSettings}>
+                <Settings className="mr-1 size-4" />
+                Cài đặt
+              </Button>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

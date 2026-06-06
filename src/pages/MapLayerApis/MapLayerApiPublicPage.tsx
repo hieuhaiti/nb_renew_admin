@@ -20,7 +20,7 @@ export default function MapLayerApiPublicPage() {
   return (
     <PageLayout
       title="Kiểm tra Public Map Layer API"
-      description="Kiểm tra endpoint GET /map-layer-apis/:slug?apikey=... và xem dữ liệu map_layers"
+      description="Kiểm tra Public Map Layer API và xem dữ liệu lớp bản đồ"
     >
       <Tabs
         value={currentTab}
@@ -43,12 +43,12 @@ export default function MapLayerApiPublicPage() {
               <CardTitle className="text-xl">Cách dùng Public Test</CardTitle>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusDotBadge
-                  label="Method: GET"
+                  label="Truy cập công khai"
                   badgeClass="bg-secondary text-secondary-foreground border border-secondary"
                   dotClass="bg-secondary-foreground"
                 />
                 <StatusDotBadge
-                  label="/map-layer-apis/:slug?apikey=..."
+                  label="Theo slug và API key"
                   badgeClass="border border-input bg-background text-foreground"
                   dotClass="bg-foreground"
                 />
@@ -65,7 +65,7 @@ export default function MapLayerApiPublicPage() {
               <div className="bg-muted/30 rounded-md border p-3">
                 <p className="font-medium">Bước 2</p>
                 <p className="text-muted-foreground mt-1">
-                  Chuyển qua tab <b>Test API</b>, bấm nút <b>Kiểm tra API</b> để gọi endpoint.
+                  Chuyển qua tab <b>Test API</b>, bấm nút <b>Kiểm tra API</b> để xem dữ liệu.
                 </p>
               </div>
 

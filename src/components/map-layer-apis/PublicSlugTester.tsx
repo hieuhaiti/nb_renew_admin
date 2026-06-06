@@ -92,11 +92,9 @@ export default function PublicSlugTester() {
               <ShieldCheck className="h-5 w-5" />
               Kiểm tra API Public
             </CardTitle>
-            <Badge variant="secondary">GET</Badge>
+            <Badge variant="secondary">Public</Badge>
           </div>
-          <CardDescription>
-            Nhập `slug` và `apikey` để gọi endpoint public theo thời gian thực.
-          </CardDescription>
+          <CardDescription>Nhập `slug` và `apikey` để kiểm tra dữ liệu công khai.</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -125,7 +123,7 @@ export default function PublicSlugTester() {
             </div>
 
             <div className="bg-background/70 rounded-lg border p-3">
-              <p className="text-muted-foreground text-xs font-medium">Xem trước endpoint</p>
+              <p className="text-muted-foreground text-xs font-medium">Đường dẫn kiểm thử</p>
               <p className="text-foreground mt-1 font-mono text-xs break-all">{endpointPreview}</p>
             </div>
 
@@ -163,7 +161,7 @@ export default function PublicSlugTester() {
           </div>
           <CardDescription className="inline-flex items-center gap-2">
             <Link2 className="h-4 w-4" />
-            Dữ liệu lấy từ endpoint public theo slug + apikey
+            Dữ liệu trả về theo slug và apikey
           </CardDescription>
         </CardHeader>
 

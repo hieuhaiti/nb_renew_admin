@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useApiQuery, useApiMutation, businessService } from '@/service'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import type {
@@ -44,6 +44,10 @@ import {
 } from '@/constant/businessRegistrationConstant'
 import { BUSINESS_TYPE_LABEL, BUSINESS_TYPE_OPTIONS } from '@/constant/businessConstant'
 import { useAuthStore } from '@/stores/common/useAuthStore'
+import {
+  BUSINESS_REPRESENTATIVE_ROLE_CODES,
+  BUSINESS_REPRESENTATIVE_ROLE_IDS,
+} from '@/constant/roleConstant'
 import BusinessDetailDialog from './BusinessDetailDialog'
 import BusinessFormDialog from './BusinessFormDialog'
 
@@ -65,11 +69,43 @@ function isAllowedRole(roleIds: readonly number[], roleId: number | undefined): 
   return !!roleId && roleIds.includes(roleId)
 }
 
+function isAllowedRoleCode(
+  roleCodes: readonly string[],
+  roleCode: string | null | undefined
+): boolean {
+  return !!roleCode && roleCodes.includes(roleCode)
+}
+
+function getTotalPages(total: number, limit: number): number {
+  return Math.max(1, Math.ceil(total / limit))
+}
+
+function paginate<T>(items: T[], page: number, limit: number): T[] {
+  const start = (page - 1) * limit
+  return items.slice(start, start + limit)
+}
+
+function matchesKeyword(keyword: string, ...values: unknown[]): boolean {
+  if (!keyword) return true
+  const source = values
+    .filter((value) => value != null)
+    .join(' ')
+    .toLowerCase()
+
+  return source.includes(keyword.toLowerCase())
+}
+
 export default function BusinessPage(): JSX.Element {
   const openLightbox = useLightboxStore((s) => s.open)
-  const roleId = useAuthStore((s) => s.user?.role_id)
+  const user = useAuthStore((s) => s.user)
+  const roleId = user?.role_id
+  const roleCode = user?.role_code ?? user?.role?.code
+  const shouldUseMyBusinessesApi =
+    isAllowedRole(BUSINESS_REPRESENTATIVE_ROLE_IDS, roleId) ||
+    isAllowedRoleCode(BUSINESS_REPRESENTATIVE_ROLE_CODES, roleCode)
   const canApproveBusiness = isAllowedRole(BUSINESS_APPROVAL_ROLE_IDS, roleId)
-  const canRegisterBusiness = isAllowedRole(BUSINESS_REGISTRATION_ROLE_IDS, roleId)
+  const canRegisterBusiness =
+    isAllowedRole(BUSINESS_REGISTRATION_ROLE_IDS, roleId) || shouldUseMyBusinessesApi
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -96,21 +132,54 @@ export default function BusinessPage(): JSX.Element {
     ...(searchValue && { search: searchValue }),
   }
 
-  const dbQuery = useApiQuery(
-    ['businesses', queryParams],
-    () => businessService.getAll(queryParams),
+  const dbQuery = useApiQuery<ApiResponse<BusinessListData | { businesses: Business[] }>>(
+    ['businesses', shouldUseMyBusinessesApi ? 'me' : queryParams],
+    () =>
+      shouldUseMyBusinessesApi ? businessService.getMe() : businessService.getAll(queryParams),
     { staleTime: STALE_DEFAULT },
     false,
     false
   )
 
-  const data = (dbQuery.data as ApiResponse<BusinessListData>)?.data
-  const items = data?.items ?? []
-  const pagination = (data?.pagination ?? {}) as Partial<Pagination>
+  const data = dbQuery.data?.data
+  const allMyBusinessItems = useMemo(() => {
+    if (!data || !('businesses' in data)) return []
+
+    return data.businesses.filter((biz) => {
+      const matchedStatus = statusFilter === 'all' || biz.status === statusFilter
+      const matchedType = businessTypeFilter === 'all' || biz.business_type === businessTypeFilter
+
+      return (
+        matchedStatus &&
+        matchedType &&
+        matchesKeyword(
+          searchValue,
+          biz.business_name,
+          biz.business_code,
+          biz.tax_id,
+          biz.license_number,
+          biz.owner_name,
+          biz.phone,
+          biz.email,
+          biz.address_vi
+        )
+      )
+    })
+  }, [businessTypeFilter, data, searchValue, statusFilter])
+
+  const apiListData = data && 'items' in data ? data : undefined
+  const items = shouldUseMyBusinessesApi
+    ? paginate(allMyBusinessItems, currentPage, limit)
+    : (apiListData?.items ?? [])
+  const pagination = (apiListData?.pagination ?? {}) as Partial<Pagination>
   const lastTotalPagesRef = useRef<number | null>(null)
-  if (pagination?.totalPages) lastTotalPagesRef.current = pagination.totalPages
-  const totalPages = pagination?.totalPages ?? lastTotalPagesRef.current ?? 1
-  const total = pagination?.total ?? 0
+  if (!shouldUseMyBusinessesApi && pagination?.totalPages) {
+    lastTotalPagesRef.current = pagination.totalPages
+  }
+  const totalPages = shouldUseMyBusinessesApi
+    ? getTotalPages(allMyBusinessItems.length, limit)
+    : (pagination?.totalPages ?? lastTotalPagesRef.current ?? 1)
+  const total = shouldUseMyBusinessesApi ? allMyBusinessItems.length : (pagination?.total ?? 0)
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages)
@@ -242,7 +311,7 @@ export default function BusinessPage(): JSX.Element {
             {canRegisterBusiness && (
               <Button size="sm" onClick={() => openForm(null)}>
                 <Plus className="mr-1 size-4" />
-                Thêm mới
+                {isAllowedRole(BUSINESS_REGISTRATION_ROLE_IDS, roleId) ? 'Đăng ký' : 'Thêm mới'}
               </Button>
             )}
           </div>
@@ -377,6 +446,21 @@ export default function BusinessPage(): JSX.Element {
                           <Ban className="text-warning size-4" />
                         </Button>
                       )}
+                      {canApproveBusiness &&
+                        (biz.status === 'suspended' || biz.status === 'rejected') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleApprove(biz.id)
+                            }}
+                            title="Duyệt mở lại"
+                            disabled={approvalMutation.isPending}
+                          >
+                            <Check className="text-success size-4" />
+                          </Button>
+                        )}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -27,6 +27,8 @@ const InternalServerErrorPage = lazy(() => import('@/pages/Errors/500InternalSer
 const ServiceUnavailablePage = lazy(() => import('@/pages/Errors/503ServiceUnavailablePage'))
 
 const LoginPage = lazy(() => import('@/pages/Login'))
+const PrivacyPolicyPage = lazy(() => import('@/pages/Public/PrivacyPolicyPage'))
+const SupportPage = lazy(() => import('@/pages/Public/SupportPage'))
 const UserPage = lazy(() => import('@/pages/User'))
 const RolePage = lazy(() => import('@/pages/Roles'))
 const CategoryPage = lazy(() => import('@/pages/Category'))
@@ -54,12 +56,14 @@ const GovernanceAdminPage = lazy(() => import('@/pages/Governance/GovernanceAdmi
 const GovernanceMinistryPage = lazy(() => import('@/pages/Governance/GovernanceMinistryPage'))
 const GovernanceDepartmentPage = lazy(() => import('@/pages/Governance/GovernanceDepartmentPage'))
 const GovernanceEnterprisePage = lazy(() => import('@/pages/Governance/GovernanceEnterprisePage'))
+const GovernanceReportsPage = lazy(() => import('@/pages/Governance/GovernanceReportsPage'))
 const VisitorStatisticsPage = lazy(() => import('@/pages/Statistics/VisitorStatistics'))
 const StatisticsPage = lazy(() => import('@/pages/Statistics'))
 const MapAdminCategoriesPage = lazy(() => import('@/pages/MapAdminCategories'))
 const TourPage = lazy(() => import('@/pages/Tours'))
 const AframeScenePage = lazy(() => import('@/pages/AframeScenes'))
 const CapacityPage = lazy(() => import('@/pages/Capacity'))
+const RouteCapacityPage = lazy(() => import('@/pages/Capacity/RouteCapacityPage'))
 // const IntegrationPage = lazy(() => import('@/pages/Integrations'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const ChangePasswordPage = lazy(() => import('@/pages/ChangePassword'))
@@ -107,6 +111,8 @@ function App() {
             <Route path="/403" element={<ForbiddenPage />} />
             <Route path="/500" element={<InternalServerErrorPage />} />
             <Route path="/503" element={<ServiceUnavailablePage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/support" element={<SupportPage />} />
 
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
@@ -196,9 +202,12 @@ function App() {
                   <Route path="/aframe-scenes" element={<AframeScenePage />} />
                 </Route>
 
-                {/* === Sức chứa: cần capacity:create hoặc capacity:update theo scope backend === */}
-                <Route element={<RoleGuard access={PAGE_ACCESS.capacity} />}>
+                {/* === Sức chứa điểm: mở trang bằng spots_capacity:read, thao tác ghi/sửa kiểm tra riêng trong page === */}
+                <Route element={<RoleGuard access={PAGE_ACCESS.spots_capacity} />}>
                   <Route path="/capacity" element={<CapacityPage />} />
+                </Route>
+                <Route element={<RoleGuard access={PAGE_ACCESS.tour_capacity} />}>
+                  <Route path="/capacity/routes" element={<RouteCapacityPage />} />
                 </Route>
 
                 {/* === Đánh giá cấp quản lý/đơn vị vận hành === */}
@@ -261,6 +270,21 @@ function App() {
                   }
                 >
                   <Route path="/governance/enterprise" element={<GovernanceEnterprisePage />} />
+                </Route>
+                <Route
+                  element={
+                    <RoleGuard
+                      access={PAGE_ACCESS.governance}
+                      allowedRoles={[
+                        ROLE_IDS.SYSTEM_ADMIN,
+                        ROLE_IDS.MINISTRY,
+                        ...BUSINESS_APPROVAL_ROLE_IDS,
+                        ...BUSINESS_REGISTRATION_ROLE_IDS,
+                      ]}
+                    />
+                  }
+                >
+                  <Route path="/governance/reports" element={<GovernanceReportsPage />} />
                 </Route>
               </Route>
             </Route>

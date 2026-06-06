@@ -78,11 +78,11 @@ export default function MapLayerApiDetailDialog({
               <span className="col-span-2">{api.category_name ?? `#${api.category_id}`}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">Endpoint URL:</span>
+              <span className="font-semibold">Đường dẫn:</span>
               <span className="col-span-2 font-mono text-sm break-all">{api.endpoint_url}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold">HTTP Method:</span>
+              <span className="font-semibold">Phương thức:</span>
               <span className="col-span-2">{api.http_method}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">

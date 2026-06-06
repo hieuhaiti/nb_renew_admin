@@ -39,6 +39,7 @@ const STATUS_LABEL: Record<CapacityStatus, string> = {
   near_full: 'Gần đầy',
   overloaded: 'Quá tải',
   closed: 'Đóng cửa',
+  unknown: 'Chưa có dữ liệu',
 }
 const STATUS_CLASS: Record<CapacityStatus, string> = {
   normal: 'bg-success/10 text-success border-success/20',
@@ -47,6 +48,7 @@ const STATUS_CLASS: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
   closed: 'bg-muted/40 text-muted-foreground border-border',
+  unknown: 'bg-muted text-muted-foreground border-border',
 }
 const STATUS_DOT: Record<CapacityStatus, string> = {
   normal: 'bg-success',
@@ -55,6 +57,7 @@ const STATUS_DOT: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500',
   overloaded: 'bg-destructive',
   closed: 'bg-muted-foreground',
+  unknown: 'bg-muted-foreground',
 }
 
 function predictStatus(pct: number): CapacityStatus {

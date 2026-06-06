@@ -53,6 +53,7 @@ const CAPACITY_STATUS_LABEL: Record<CapacityStatus, string> = {
   near_full: 'Gần đầy',
   overloaded: 'Quá tải',
   closed: 'Đóng cửa',
+  unknown: 'Chưa có dữ liệu',
 }
 const CAPACITY_STATUS_CLASS: Record<CapacityStatus, string> = {
   normal: 'bg-success/10 text-success border-success/20',
@@ -61,6 +62,7 @@ const CAPACITY_STATUS_CLASS: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
   closed: 'bg-muted/40 text-muted-foreground border-border',
+  unknown: 'bg-muted text-muted-foreground border-border',
 }
 const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   normal: 'bg-success',
@@ -69,6 +71,7 @@ const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   near_full: 'bg-orange-500',
   overloaded: 'bg-destructive',
   closed: 'bg-muted-foreground',
+  unknown: 'bg-muted-foreground',
 }
 
 function ThresholdBar({ busy, near, over }: { busy: number; near: number; over: number }) {
@@ -109,6 +112,9 @@ export default function CapacityPage(): JSX.Element {
   const { capacityBySpotId, wsStatus, initFromSnapshot, connectWS, disconnectWS } =
     useCapacityStore()
   const permissions = useAuthStore((s) => s.permissions)
+  const canLogCapacity = canAccessPage(permissions, PAGE_ACCESS.spotsCapacityCreate)
+  const canUpdateCapacity = canAccessPage(permissions, PAGE_ACCESS.spotsCapacityUpdate)
+  const canManageCapacity = canAccessPage(permissions, PAGE_ACCESS.spotsCapacityManage)
   const canManageAlertConfigs = canAccessPage(permissions, PAGE_ACCESS.capacityConfigs)
 
   const [detailOpen, setDetailOpen] = useState(false)
@@ -178,6 +184,7 @@ export default function CapacityPage(): JSX.Element {
 
   const configs: CapacityConfig[] =
     (configsQuery.data as unknown as ApiResponse<CapacityConfigsData>)?.data?.configs ?? []
+  const capacityTableColSpan = canManageCapacity ? 7 : 6
 
   function getSpotName(item: CapacityState) {
     return item.name_vi ?? item.spot_id
@@ -193,12 +200,14 @@ export default function CapacityPage(): JSX.Element {
   }
 
   function openLog(item: CapacityState) {
+    if (!canLogCapacity) return
     setActiveItem(item)
     setDetailOpen(false)
     setLogOpen(true)
   }
 
   function openSettings(item: CapacityState) {
+    if (!canUpdateCapacity) return
     setActiveItem(item)
     setDetailOpen(false)
     setSettingsOpen(true)
@@ -247,7 +256,10 @@ export default function CapacityPage(): JSX.Element {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSearchInput(''); setCurrentPage(1) }}
+                onClick={() => {
+                  setSearchInput('')
+                  setCurrentPage(1)
+                }}
                 className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 p-2"
               >
                 <X className="h-4 w-4" />
@@ -288,25 +300,34 @@ export default function CapacityPage(): JSX.Element {
               <TableHead className="text-right">Tỷ lệ (%)</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Cập nhật lúc</TableHead>
-              <TableHead className="w-28 text-right">Hành động</TableHead>
+              {canManageCapacity && <TableHead className="w-28 text-right">Hành động</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {snapshotQuery.isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
+                <TableCell
+                  colSpan={capacityTableColSpan}
+                  className="text-muted-foreground py-8 text-center"
+                >
                   Đang tải...
                 </TableCell>
               </TableRow>
             ) : snapshotQuery.isError ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-destructive py-8 text-center">
+                <TableCell
+                  colSpan={capacityTableColSpan}
+                  className="text-destructive py-8 text-center"
+                >
                   Đã xảy ra lỗi, vui lòng thử lại
                 </TableCell>
               </TableRow>
             ) : displayItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
+                <TableCell
+                  colSpan={capacityTableColSpan}
+                  className="text-muted-foreground py-8 text-center"
+                >
                   Không có dữ liệu sức chứa
                 </TableCell>
               </TableRow>
@@ -368,26 +389,32 @@ export default function CapacityPage(): JSX.Element {
                     <TableCell className="text-muted-foreground text-sm">
                       {formatDateTime(item.recorded_at)}
                     </TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openLog(item)}
-                          title="Ghi nhận lượt khách"
-                        >
-                          <ClipboardList className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openSettings(item)}
-                          title="Cài đặt sức chứa"
-                        >
-                          <Settings className="size-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {canManageCapacity && (
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-end gap-1">
+                          {canLogCapacity && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openLog(item)}
+                              title="Ghi nhận lượt khách"
+                            >
+                              <ClipboardList className="size-4" />
+                            </Button>
+                          )}
+                          {canUpdateCapacity && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openSettings(item)}
+                              title="Cài đặt sức chứa"
+                            >
+                              <Settings className="size-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })
@@ -511,27 +538,31 @@ export default function CapacityPage(): JSX.Element {
         onOpenChange={setDetailOpen}
         item={activeItem}
         spotName={activeItem ? getSpotName(activeItem) : ''}
-        onLog={() => openLog(activeItem!)}
-        onSettings={() => openSettings(activeItem!)}
+        onLog={canLogCapacity ? () => activeItem && openLog(activeItem) : undefined}
+        onSettings={canUpdateCapacity ? () => activeItem && openSettings(activeItem) : undefined}
       />
 
-      <CapacityLogFormDialog
-        open={logOpen}
-        onOpenChange={setLogOpen}
-        spotId={activeItem?.spot_id ?? null}
-        spotName={activeItem ? getSpotName(activeItem) : ''}
-        current={activeItem}
-        onSuccess={handleRefresh}
-      />
+      {canLogCapacity && (
+        <CapacityLogFormDialog
+          open={logOpen}
+          onOpenChange={setLogOpen}
+          spotId={activeItem?.spot_id ?? null}
+          spotName={activeItem ? getSpotName(activeItem) : ''}
+          current={activeItem}
+          onSuccess={handleRefresh}
+        />
+      )}
 
-      <CapacitySettingsFormDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        spotId={activeItem?.spot_id ?? null}
-        spotName={activeItem ? getSpotName(activeItem) : ''}
-        current={activeItem}
-        onSuccess={handleRefresh}
-      />
+      {canUpdateCapacity && (
+        <CapacitySettingsFormDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          spotId={activeItem?.spot_id ?? null}
+          spotName={activeItem ? getSpotName(activeItem) : ''}
+          current={activeItem}
+          onSuccess={handleRefresh}
+        />
+      )}
 
       {canManageAlertConfigs && (
         <CapacityConfigFormDialog

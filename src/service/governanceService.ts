@@ -6,8 +6,7 @@ export default {
   // ─── Admin ────────────────────────────────────────────────────────────────
 
   /** GET /governance/admin/dashboard */
-  getDashboard: () =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/admin/dashboard`),
+  getDashboard: () => apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/admin/dashboard`),
 
   /** GET /governance/admin/traffic */
   getTraffic: (params?: { days?: number; group_by?: string }) =>
@@ -18,8 +17,12 @@ export default {
     apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/admin/permissions`, params),
 
   /** POST /governance/admin/permissions */
-  createPermission: (data: { resource: string; action: string; name_vi: string; description?: string }) =>
-    apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/admin/permissions`, data),
+  createPermission: (data: {
+    resource: string
+    action: string
+    name_vi: string
+    description?: string
+  }) => apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/admin/permissions`, data),
 
   /** GET /governance/admin/roles/:roleId/permissions */
   getRolePermissions: (roleId: number) =>
@@ -37,29 +40,54 @@ export default {
   // ─── Ministry ─────────────────────────────────────────────────────────────
 
   /** GET /governance/ministry/overview */
-  getMinistryOverview: (params?: { from_date?: string; to_date?: string }) =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/ministry/overview`, params),
+  getMinistryOverview: (params?: {
+    from_date?: string
+    to_date?: string
+    page?: number
+    limit?: number
+  }) => apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/ministry/overview`, params),
 
   /** GET /governance/ministry/capacity-alerts */
-  getMinistryCapacityAlerts: (params?: { province_code?: string; statuses?: string; limit?: number }) =>
+  getMinistryCapacityAlerts: (params?: {
+    province_code?: string
+    statuses?: string
+    limit?: number
+  }) =>
     apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/ministry/capacity-alerts`, params),
 
   /** GET /governance/ministry/conservation-summary */
   getMinistryConservationSummary: (params?: { province_code?: string; days?: number }) =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/ministry/conservation-summary`, params),
+    apiClient.get<ApiResponse<any>>(
+      `${serviceGovernancePath}/ministry/conservation-summary`,
+      params
+    ),
 
   // ─── Department ───────────────────────────────────────────────────────────
 
   /** GET /governance/department/registrations/businesses */
-  getDepartmentBusinessRegistrations: (params?: { page?: number; limit?: number; status?: string; province_code?: string }) =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/department/registrations/businesses`, params),
+  getDepartmentBusinessRegistrations: (params?: {
+    page?: number
+    limit?: number
+    status?: string
+    province_code?: string
+  }) =>
+    apiClient.get<ApiResponse<any>>(
+      `${serviceGovernancePath}/department/registrations/businesses`,
+      params
+    ),
 
   /** GET /governance/department/registrations/spots */
   getDepartmentSpotRegistrations: (params?: Record<string, any>) =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/department/registrations/spots`, params),
+    apiClient.get<ApiResponse<any>>(
+      `${serviceGovernancePath}/department/registrations/spots`,
+      params
+    ),
 
   /** PATCH /governance/department/registrations/businesses/:businessId */
-  approveDepartmentBusiness: (businessId: string, data: { status: string; rejection_note?: string }) =>
+  approveDepartmentBusiness: (
+    businessId: string,
+    data: { status: string; rejection_note?: string }
+  ) =>
     apiClient.patch<ApiResponse<any>>(
       `${serviceGovernancePath}/department/registrations/businesses/${businessId}`,
       data
@@ -82,7 +110,10 @@ export default {
 
   /** GET /governance/department/conservation-summary */
   getDepartmentConservationSummary: (params?: Record<string, any>) =>
-    apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/department/conservation-summary`, params),
+    apiClient.get<ApiResponse<any>>(
+      `${serviceGovernancePath}/department/conservation-summary`,
+      params
+    ),
 
   /** POST /governance/department/reports */
   createDepartmentReport: (data: {
@@ -94,16 +125,21 @@ export default {
     file_format?: string
     file_size_kb?: number
     sent_to_roles?: number[]
-  }) =>
-    apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/department/reports`, data),
+  }) => apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/department/reports`, data),
 
   /** GET /governance/department/reports */
   getDepartmentReports: (params?: Record<string, any>) =>
     apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/department/reports`, params),
 
   /** POST /governance/department/reports/:reportId/send */
-  sendDepartmentReport: (reportId: string, data: { target_roles?: number[]; title_vi?: string; body_vi?: string }) =>
-    apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/department/reports/${reportId}/send`, data),
+  sendDepartmentReport: (
+    reportId: string,
+    data: { target_roles?: number[]; title_vi?: string; body_vi?: string }
+  ) =>
+    apiClient.post<ApiResponse<any>>(
+      `${serviceGovernancePath}/department/reports/${reportId}/send`,
+      data
+    ),
 
   // ─── Enterprise ───────────────────────────────────────────────────────────
 
@@ -119,8 +155,7 @@ export default {
     avg_capacity_pct?: number
     notes?: string
     status?: string
-  }) =>
-    apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/enterprise/reports`, data),
+  }) => apiClient.post<ApiResponse<any>>(`${serviceGovernancePath}/enterprise/reports`, data),
 
   /** GET /governance/enterprise/reports */
   getEnterpriseReports: (params?: Record<string, any>) =>
@@ -141,7 +176,10 @@ export default {
     ),
 
   /** GET /governance/enterprise/businesses/:businessId/feedbacks */
-  getEnterpriseFeedbacks: (businessId: string, params?: { page?: number; limit?: number; radius_km?: number }) =>
+  getEnterpriseFeedbacks: (
+    businessId: string,
+    params?: { page?: number; limit?: number; radius_km?: number }
+  ) =>
     apiClient.get<ApiResponse<any>>(
       `${serviceGovernancePath}/enterprise/businesses/${businessId}/feedbacks`,
       params

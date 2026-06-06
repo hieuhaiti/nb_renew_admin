@@ -14,6 +14,7 @@ import {
 import { authService } from '@/service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { z } from 'zod'
 import { useAuthStore } from '@/stores/common/useAuthStore'
@@ -24,8 +25,20 @@ type FormValues = {
   password: string
 }
 
+const QUICK_LOGIN_PASSWORD = 'Password123@'
+
+// TODO: Remove quick-login demo accounts before production release.
+const QUICK_LOGIN_ACCOUNTS = [
+  { label: 'Admin', email: 'admin@gmail.com' },
+  { label: 'Bộ VHTTDL', email: 'bovhttdl.vietnam@gmail.com' },
+  { label: 'Sở VHTTDL Ninh Bình', email: 'sovhttdl.ninhbinh@gmail.com' },
+  { label: 'Vận hành Tràng An', email: 'trangan.site.operator@gmail.com' },
+  { label: 'Lữ hành Tràng An', email: 'trangan.heritage.travel@gmail.com' },
+  { label: 'Dịch vụ Tam Cốc', email: 'tamcoc.tourism.service@gmail.com' },
+] as const
+
 export default function Login() {
-  const { register, handleSubmit } = useForm<FormValues>({
+  const { register, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: { login: '', password: '' },
   })
 
@@ -101,6 +114,13 @@ export default function Login() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  async function handleQuickLogin(login: string) {
+    const credentials = { login, password: QUICK_LOGIN_PASSWORD }
+    setValue('login', credentials.login)
+    setValue('password', credentials.password)
+    await onSubmit(credentials)
   }
 
   return (
@@ -197,6 +217,40 @@ export default function Login() {
                 >
                   {isLoading ? 'Đang xác thực...' : 'Truy cập hệ thống'}
                 </Button>
+
+                <div className="border-border/70 bg-muted/30 rounded-2xl border p-3">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <p className="typo-label text-muted-foreground font-semibold">
+                      Truy cập nhanh
+                    </p>
+                    <Badge className="bg-primary/10 text-primary border-primary/20">
+                      Demo
+                    </Badge>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {QUICK_LOGIN_ACCOUNTS.map((account) => (
+                      <Button
+                        key={account.email}
+                        type="button"
+                        variant="outline"
+                        disabled={isLoading}
+                        className="h-auto justify-start rounded-xl px-3 py-2 text-left"
+                        onClick={() => {
+                          void handleQuickLogin(account.email)
+                        }}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold">
+                            {account.label}
+                          </span>
+                          <span className="text-muted-foreground block truncate text-xs">
+                            {account.email}
+                          </span>
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </form>
             </CardContent>
           </Card>

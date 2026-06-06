@@ -1,6 +1,13 @@
 import type { Pagination } from './index'
 
-export type CapacityStatus = 'normal' | 'busy' | 'near_full' | 'overloaded' | 'closed' | 'moderate'
+export type CapacityStatus =
+  | 'normal'
+  | 'busy'
+  | 'near_full'
+  | 'overloaded'
+  | 'closed'
+  | 'moderate'
+  | 'unknown'
 
 export interface CapacityState {
   spot_id: string
@@ -120,6 +127,67 @@ export interface CapacityConfigBody {
   threshold_near: number
   threshold_over: number
   notify_roles?: string[] | null
+}
+
+export interface TourCapacitySettingsBody {
+  max_guests: number
+}
+
+export interface TourCapacitySettingsData {
+  max_guests: number | null
+}
+
+export interface RouteCapacityTour {
+  id: string
+  name_vi?: string | null
+  name_en?: string | null
+  name?: string | null
+  slug?: string | null
+  status?: string | null
+  duration_days?: number | null
+  max_guests?: number | null
+  province_code?: string | null
+}
+
+export interface RouteCapacityStop {
+  stop_id?: string
+  spot_id?: string | null
+  business_id?: string | null
+  name_vi?: string | null
+  title_vi?: string | null
+  description_vi?: string | null
+  stop_order?: number | null
+  day_number?: number | null
+  planned_duration_min?: number | null
+  visitor_count?: number | null
+  observed_visitors?: number | null
+  max_capacity?: number | null
+  capacity_pct?: number | string | null
+  capacity_status?: CapacityStatus | null
+  recorded_at?: string | null
+  geojson?: { type: string; coordinates: [number, number] } | null
+}
+
+export interface RouteCapacitySummary {
+  total_stops?: number
+  spot_stop_count?: number
+  capacity_tracked_stops?: number
+  stops_without_capacity_data?: number
+  stops_without_max_capacity?: number
+  total_current_visitors?: number
+  total_observed_visitors?: number
+  total_max_capacity?: number
+  route_capacity_pct?: number | string | null
+  avg_capacity_pct?: number | string | null
+  bottleneck_capacity_pct?: number | string | null
+  bottleneck_stop?: RouteCapacityStop | null
+  status?: CapacityStatus
+}
+
+export interface RouteCapacityData {
+  tour?: RouteCapacityTour
+  summary?: RouteCapacitySummary
+  stops?: RouteCapacityStop[]
 }
 
 // Realtime event payloads from SSE / WebSocket

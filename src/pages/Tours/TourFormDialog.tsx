@@ -37,8 +37,8 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import useDeepEffect from '@/hooks/useDeepEffect'
-import { useDebounce } from '@/hooks/useDebounce'
 import { STALE_REF } from '@/constant/queryConstant'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -122,19 +122,21 @@ function SortableStopItem({ stop, isFirst, isLast, onDelete, isDeleting }: Sorta
         type="button"
         {...attributes}
         {...listeners}
-        className="shrink-0 cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+        className="text-muted-foreground shrink-0 cursor-grab touch-none active:cursor-grabbing"
       >
         <GripVertical className="h-4 w-4" />
       </button>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="typo-caption shrink-0 rounded bg-muted px-1 font-mono text-muted-foreground">
+          <span className="typo-caption bg-muted text-muted-foreground shrink-0 rounded px-1 font-mono">
             {stop.stop_order}
           </span>
           <span className="typo-body-sm truncate font-medium">{stop.title_vi || '—'}</span>
         </div>
         {stop.planned_duration_min != null && (
-          <span className="typo-caption text-muted-foreground">{stop.planned_duration_min} phút</span>
+          <span className="typo-caption text-muted-foreground">
+            {stop.planned_duration_min} phút
+          </span>
         )}
       </div>
       <button
@@ -144,7 +146,7 @@ function SortableStopItem({ stop, isFirst, isLast, onDelete, isDeleting }: Sorta
         className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-50"
         title="Xóa điểm dừng"
       >
-        <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+        <Trash2 className="text-muted-foreground hover:text-destructive h-3.5 w-3.5" />
       </button>
     </div>
   )
@@ -174,7 +176,7 @@ function TagInput({ items, placeholder, onAdd, onRemove }: TagInputProps) {
       {items.map((item, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 rounded border border-border bg-card px-2 py-1"
+          className="border-border bg-card flex items-center gap-2 rounded border px-2 py-1"
         >
           <span className="typo-body-sm flex-1">{item}</span>
           <button
@@ -234,7 +236,7 @@ export default function TourFormDialog({
   )
   const rawData = (dbQuery.data as ApiResponse<Tour | { tour: Tour }>)?.data
   const tour =
-    rawData && 'id' in rawData ? (rawData as Tour) : (rawData as { tour?: Tour })?.tour ?? null
+    rawData && 'id' in rawData ? (rawData as Tour) : ((rawData as { tour?: Tour })?.tour ?? null)
   const isEdit = !!tour
 
   // ── Stops state ───────────────────────────────────────────────────────────
@@ -273,9 +275,7 @@ export default function TourFormDialog({
   // ── Per-day grouping ──────────────────────────────────────────────────────
   const days = Array.from(new Set(stops.map((s) => s.day_number))).sort((a, b) => a - b)
   const stopsByDay = days.reduce<Record<number, TourStop[]>>((acc, day) => {
-    acc[day] = stops
-      .filter((s) => s.day_number === day)
-      .sort((a, b) => a.stop_order - b.stop_order)
+    acc[day] = stops.filter((s) => s.day_number === day).sort((a, b) => a.stop_order - b.stop_order)
     return acc
   }, {})
 
@@ -355,17 +355,13 @@ export default function TourFormDialog({
   const [newStopSpotId, setNewStopSpotId] = useState('')
   const [newStopTitleVi, setNewStopTitleVi] = useState('')
   const [newStopDuration, setNewStopDuration] = useState('')
-  const [spotSearch, setSpotSearch] = useState('')
   const [isSubmittingStop, setIsSubmittingStop] = useState(false)
 
-  const debouncedSpotSearch = useDebounce(spotSearch.trim(), 500)
-
   const spotsQuery = useApiQuery(
-    ['spots', 'for-stop', debouncedSpotSearch],
+    ['spots', 'for-stop'],
     () =>
       spotService.getAll({
-        search: debouncedSpotSearch || undefined,
-        limit: 50,
+        limit: 100,
         sortBy: 'name_vi',
         sortOrder: 'ASC',
       }),
@@ -381,7 +377,6 @@ export default function TourFormDialog({
     setNewStopSpotId('')
     setNewStopTitleVi('')
     setNewStopDuration('')
-    setSpotSearch('')
   }
 
   const handleAddStop = async (day: number) => {
@@ -534,18 +529,14 @@ export default function TourFormDialog({
                       if (!isEdit) setValue('slug', slugify(e.target.value))
                     }}
                   />
-                  {errors.name && (
-                    <p className="text-destructive text-xs">{errors.name.message}</p>
-                  )}
+                  {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="tour_slug">
                     Slug <span className="text-destructive">*</span>
                   </Label>
                   <Input id="tour_slug" {...register('slug')} placeholder="kham-pha-trang-an" />
-                  {errors.slug && (
-                    <p className="text-destructive text-xs">{errors.slug.message}</p>
-                  )}
+                  {errors.slug && <p className="text-destructive text-xs">{errors.slug.message}</p>}
                 </div>
               </div>
 
@@ -592,11 +583,7 @@ export default function TourFormDialog({
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="tour_end">Điểm kết thúc</Label>
-                  <Input
-                    id="tour_end"
-                    {...register('end_location_vi')}
-                    placeholder="Ninh Bình"
-                  />
+                  <Input id="tour_end" {...register('end_location_vi')} placeholder="Ninh Bình" />
                 </div>
               </div>
 
@@ -682,11 +669,11 @@ export default function TourFormDialog({
               <div className="flex w-[40%] flex-col border-l pl-4">
                 <div className="typo-section-title mb-0.5">
                   Điểm dừng{' '}
-                  <span className="typo-meta font-normal text-muted-foreground">
+                  <span className="typo-meta text-muted-foreground font-normal">
                     ({stops.length})
                   </span>
                 </div>
-                <p className="typo-caption mb-3 text-muted-foreground">
+                <p className="typo-caption text-muted-foreground mb-3">
                   Kéo thả để sắp xếp trong ngày
                 </p>
 
@@ -702,7 +689,7 @@ export default function TourFormDialog({
                         {/* Day header */}
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="typo-caption rounded bg-primary px-2 py-0.5 font-semibold text-primary-foreground">
+                            <span className="typo-caption bg-primary text-primary-foreground rounded px-2 py-0.5 font-semibold">
                               Ngày {day}
                             </span>
                             <span className="typo-caption text-muted-foreground">
@@ -712,7 +699,7 @@ export default function TourFormDialog({
                           <button
                             type="button"
                             onClick={() => (isOpenAdd ? setAddingToDay(null) : openAddForm(day))}
-                            className="flex items-center gap-1 typo-caption text-muted-foreground hover:text-foreground"
+                            className="typo-caption text-muted-foreground hover:text-foreground flex items-center gap-1"
                           >
                             {isOpenAdd ? (
                               <X className="h-3.5 w-3.5" />
@@ -748,57 +735,39 @@ export default function TourFormDialog({
                         </DndContext>
 
                         {dayStops.length === 0 && (
-                          <p className="typo-caption py-2 text-center text-muted-foreground">
+                          <p className="typo-caption text-muted-foreground py-2 text-center">
                             Chưa có điểm dừng
                           </p>
                         )}
 
                         {/* Inline add form */}
                         {isOpenAdd && (
-                          <div className="mt-1.5 space-y-2 rounded border border-dashed border-primary/40 bg-primary/5 p-3">
+                          <div className="border-primary/40 bg-primary/5 mt-1.5 space-y-2 rounded border border-dashed p-3">
                             {/* Spot search */}
                             <div className="space-y-1">
                               <Label className="typo-caption">
                                 Điểm tham quan <span className="text-destructive">*</span>
                               </Label>
-                              <Input
-                                value={spotSearch}
-                                onChange={(e) => {
-                                  setSpotSearch(e.target.value)
-                                  if (!e.target.value) setNewStopSpotId('')
-                                }}
-                                placeholder="Tìm tên điểm TQ..."
-                                className="h-8"
+                              <SearchSelect
+                                options={spotOptions.map((spot) => ({
+                                  value: spot.id,
+                                  label: spot.name_vi || spot.name || spot.id,
+                                }))}
+                                value={newStopSpotId}
+                                onValueChange={setNewStopSpotId}
+                                placeholder={
+                                  spotsQuery.isLoading
+                                    ? 'Đang tải điểm tham quan...'
+                                    : 'Chọn điểm tham quan'
+                                }
+                                searchPlaceholder="Tìm tên điểm tham quan..."
+                                disabled={spotsQuery.isLoading}
+                                className="h-8 w-full"
                               />
-                              {!newStopSpotId && spotsQuery.isLoading && (
-                                <p className="typo-caption text-muted-foreground">
-                                  Đang tải danh sách điểm tham quan...
-                                </p>
-                              )}
-                              {!newStopSpotId && spotOptions.length > 0 && (
-                                <div className="max-h-32 overflow-y-auto rounded border border-border bg-popover shadow-sm">
-                                  {spotOptions.map((spot) => (
-                                    <button
-                                      type="button"
-                                      key={spot.id}
-                                      onClick={() => {
-                                        setNewStopSpotId(spot.id)
-                                        setSpotSearch(spot.name_vi || spot.name || '')
-                                      }}
-                                      className="typo-body-sm w-full px-3 py-1.5 text-left hover:bg-muted"
-                                    >
-                                      {spot.name_vi || spot.name || spot.id}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                              {!newStopSpotId && !spotsQuery.isLoading && spotOptions.length === 0 && (
-                                <p className="typo-caption text-muted-foreground">
-                                  Không tìm thấy điểm tham quan phù hợp
-                                </p>
-                              )}
                               {newStopSpotId && (
-                                <p className="typo-caption text-primary">✓ Đã chọn điểm tham quan</p>
+                                <p className="typo-caption text-primary">
+                                  ✓ Đã chọn điểm tham quan
+                                </p>
                               )}
                             </div>
 

@@ -16,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { BUSINESS_TYPE_OPTIONS } from '@/constant/businessConstant'
+import { BUSINESS_TYPE_OPTIONS, normalizeBusinessType } from '@/constant/businessConstant'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ export default function BusinessFormDialog({
     if (biz) {
       reset({
         business_name: biz.business_name,
-        business_type: biz.business_type ?? '',
+        business_type: normalizeBusinessType(biz.business_type),
         business_code: biz.business_code ?? '',
         tax_id: biz.tax_id ?? '',
         license_number: biz.license_number ?? '',
@@ -126,7 +126,7 @@ export default function BusinessFormDialog({
   const handleFormSubmit: SubmitHandler<BusinessFormValues> = (values) => {
     const body: Partial<BusinessFormBody> = {
       business_name: values.business_name,
-      business_type: values.business_type,
+      business_type: normalizeBusinessType(values.business_type),
       ...(values.business_code && { business_code: values.business_code }),
       ...(values.tax_id && { tax_id: values.tax_id }),
       ...(values.license_number && { license_number: values.license_number }),

@@ -91,6 +91,7 @@ export interface GovernanceMinistryOverview {
   period?: { fromDate?: string; toDate?: string }
   aggregate?: GovernanceMinistryAggregate
   provinces?: GovernanceMinistryProvince[]
+  pagination?: import('./index').Pagination
   overload_alerts?: { total: number; items: GovernanceCapacityAlert[] }
   conservation_monitoring?: { total: number; items: GovernanceConservationItem[] }
   [key: string]: any
@@ -174,6 +175,7 @@ export interface GovernanceDeptReport {
   file_format?: string
   sent_to_roles?: number[]
   status?: string
+  generated_at?: string
   created_at?: string
   updated_at?: string
 }

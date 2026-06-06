@@ -17,7 +17,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchSelect } from '@/components/common/SearchSelect'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -38,15 +38,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Check, ChevronDown, MessagesSquare, Pen, Trash2 } from 'lucide-react'
+import { Check, MessagesSquare, Pen, Trash2 } from 'lucide-react'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import NewsCommentDetailDialog from './NewsCommentDetailDialog'
 import NewsCommentFormDialog from './NewsCommentFormDialog'
 import { formatDate } from '@/lib/date'
 import { STALE_HOT, STALE_DEFAULT } from '@/constant/queryConstant'
-import { cn } from '@/lib/utils'
 
 const APPROVED_LABEL: Record<string, string> = {
   true: 'Đã duyệt',
@@ -63,10 +61,7 @@ const APPROVED_DOT: Record<string, string> = {
 
 export default function NewsComments(): JSX.Element {
   // ── News picker ────────────────────────────────────────────────────────────
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [pickerSearch, setPickerSearch] = useState('')
   const [activeNewsId, setActiveNewsId] = useState<string>('')
-  const [activeNewsTitle, setActiveNewsTitle] = useState<string>('')
 
   const newsListQuery = useApiQuery(
     ['news-picker'],
@@ -76,9 +71,10 @@ export default function NewsComments(): JSX.Element {
     false
   )
   const allNews: News[] = (newsListQuery.data as ApiResponse<NewsListData>)?.data?.items ?? []
-  const filteredNews = pickerSearch.trim()
-    ? allNews.filter((n) => n.title.toLowerCase().includes(pickerSearch.toLowerCase()))
-    : allNews
+  const newsOptions = allNews.map((news) => ({
+    value: news.id,
+    label: news.title,
+  }))
 
   // ── Comments query ─────────────────────────────────────────────────────────
   const [searchValue, setSearchValue] = useState<string>('')
@@ -151,11 +147,8 @@ export default function NewsComments(): JSX.Element {
     true
   )
 
-  function selectNews(news: News) {
-    setActiveNewsId(news.id)
-    setActiveNewsTitle(news.title)
-    setPickerOpen(false)
-    setPickerSearch('')
+  function selectNews(newsId: string) {
+    setActiveNewsId(newsId)
     setCurrentPage(1)
   }
 
@@ -175,58 +168,16 @@ export default function NewsComments(): JSX.Element {
     <PageLayout title="Bình luận tin tức" description="Quản lý bình luận theo bài viết">
       {/* ── News picker ── */}
       <div className="mb-4">
-        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={pickerOpen}
-              className="w-full max-w-lg justify-between"
-            >
-              <span className={cn('truncate', !activeNewsTitle && 'text-muted-foreground')}>
-                {activeNewsTitle || 'Chọn bài viết để xem bình luận...'}
-              </span>
-              <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-            <div className="p-2">
-              <Input
-                placeholder="Tìm tiêu đề bài viết..."
-                value={pickerSearch}
-                onChange={(e) => setPickerSearch(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className="max-h-64 overflow-y-auto">
-              {newsListQuery.isLoading ? (
-                <p className="text-muted-foreground p-3 text-center text-sm">Đang tải...</p>
-              ) : filteredNews.length === 0 ? (
-                <p className="text-muted-foreground p-3 text-center text-sm">Không tìm thấy</p>
-              ) : (
-                filteredNews.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    className={cn(
-                      'hover:bg-accent flex w-full items-start gap-2 px-3 py-2 text-left text-sm',
-                      activeNewsId === n.id && 'bg-accent'
-                    )}
-                    onClick={() => selectNews(n)}
-                  >
-                    <Check
-                      className={cn(
-                        'mt-0.5 size-4 shrink-0',
-                        activeNewsId === n.id ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    <span className="line-clamp-2">{n.title}</span>
-                  </button>
-                ))
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <SearchSelect
+          options={newsOptions}
+          value={activeNewsId}
+          onValueChange={selectNews}
+          placeholder="Chọn bài viết để xem bình luận..."
+          searchPlaceholder="Tìm tiêu đề bài viết..."
+          className="w-full max-w-lg"
+          isLoading={newsListQuery.isLoading}
+          emptyMessage="Không tìm thấy bài viết"
+        />
       </div>
 
       <ToolTableCustom

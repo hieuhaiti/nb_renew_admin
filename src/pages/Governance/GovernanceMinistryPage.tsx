@@ -1,5 +1,5 @@
 import type { JSX, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useApiQuery, governanceService } from '@/service'
 import type {
   ApiResponse,
@@ -7,9 +7,9 @@ import type {
   GovernanceConservationItem,
   GovernanceMinistryOverview,
   GovernanceMinistryProvince,
+  Pagination,
 } from '@/types/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,17 +32,7 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { MapPin, Building2, AlertTriangle, TreePine, TrendingUp, RefreshCw } from 'lucide-react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import PageLayout from '@/layout/pageLayout'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
 import { formatDate } from '@/lib/date'
@@ -80,6 +70,8 @@ const STAT_TONE_CLASS: Record<StatTone, { icon: string; bar: string }> = {
     bar: 'bg-destructive',
   },
 }
+
+const LIMIT_OPTIONS = [10, 20, 50]
 
 function toNumber(value: unknown): number {
   const parsed = Number(value ?? 0)
@@ -126,6 +118,10 @@ function normalizeProvinces(provinces: GovernanceMinistryProvince[]) {
   }))
 }
 
+function getTotalPages(total: number, limit: number): number {
+  return Math.max(1, Math.ceil(total / limit))
+}
+
 function StatCard({
   icon,
   label,
@@ -156,21 +152,78 @@ function StatCard({
   )
 }
 
-function ProvincePerformanceChart({ provinces }: { provinces: GovernanceMinistryProvince[] }) {
+type ProvinceChartMetric = 'spots' | 'serviceUnits' | 'newBusinesses' | 'revenue'
+
+const PROVINCE_CHARTS: Array<{
+  metric: ProvinceChartMetric
+  title: string
+  description: string
+  dataName: string
+  color: string
+  formatter: (value: unknown) => string
+}> = [
+  {
+    metric: 'spots',
+    title: 'Điểm du lịch',
+    description: 'Các tỉnh/thành có số điểm du lịch cao nhất trong trang dữ liệu hiện tại.',
+    dataName: 'Điểm du lịch',
+    color: 'hsl(var(--chart-1))',
+    formatter: formatNumber,
+  },
+  {
+    metric: 'serviceUnits',
+    title: 'Đơn vị dịch vụ',
+    description: 'So sánh số cơ sở dịch vụ du lịch được ghi nhận theo địa phương.',
+    dataName: 'Đơn vị dịch vụ',
+    color: 'hsl(var(--chart-2))',
+    formatter: formatNumber,
+  },
+  {
+    metric: 'newBusinesses',
+    title: 'Doanh nghiệp mới',
+    description: 'Doanh nghiệp phát sinh mới trong kỳ lọc theo từng tỉnh/thành.',
+    dataName: 'Doanh nghiệp mới',
+    color: 'hsl(var(--chart-3))',
+    formatter: formatNumber,
+  },
+  {
+    metric: 'revenue',
+    title: 'Doanh thu',
+    description: 'Doanh thu báo cáo theo tỉnh/thành trong khoảng thời gian đã chọn.',
+    dataName: 'Doanh thu',
+    color: 'hsl(var(--chart-4))',
+    formatter: formatCurrency,
+  },
+]
+
+function ProvinceMetricChart({
+  provinces,
+  metric,
+  title,
+  description,
+  dataName,
+  color,
+  formatter,
+}: {
+  provinces: GovernanceMinistryProvince[]
+  metric: ProvinceChartMetric
+  title: string
+  description: string
+  dataName: string
+  color: string
+  formatter: (value: unknown) => string
+}) {
   const chartData = normalizeProvinces(provinces)
-    .filter(
-      (item) =>
-        item.spots > 0 || item.serviceUnits > 0 || item.newBusinesses > 0 || item.revenue > 0
-    )
-    .sort((a, b) => b.revenue - a.revenue || b.spots - a.spots)
+    .filter((item) => item[metric] > 0)
+    .sort((a, b) => b[metric] - a[metric])
     .slice(0, 8)
 
   if (chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="typo-section-title">Hiệu suất tỉnh/thành</CardTitle>
-          <CardDescription>Chưa có tỉnh/thành phát sinh dữ liệu trong kỳ đã chọn.</CardDescription>
+          <CardTitle className="typo-section-title">{title}</CardTitle>
+          <CardDescription>Chưa có dữ liệu {title.toLowerCase()} trong kỳ đã chọn.</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -179,33 +232,22 @@ function ProvincePerformanceChart({ provinces }: { provinces: GovernanceMinistry
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="typo-section-title">Hiệu suất tỉnh/thành nổi bật</CardTitle>
-        <CardDescription>
-          So sánh điểm du lịch, đơn vị dịch vụ, doanh nghiệp mới và doanh thu báo cáo.
-        </CardDescription>
+        <CardTitle className="typo-section-title">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="h-80 w-full">
+      <CardContent>
+        <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="province" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis
-                yAxisId="count"
                 tick={{ fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
+                tickFormatter={metric === 'revenue' ? formatCompactCurrency : undefined}
                 allowDecimals={false}
-                width={36}
-              />
-              <YAxis
-                yAxisId="revenue"
-                orientation="right"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                width={48}
-                tickFormatter={formatCompactCurrency}
+                width={metric === 'revenue' ? 52 : 36}
               />
               <Tooltip
                 contentStyle={{
@@ -214,52 +256,17 @@ function ProvincePerformanceChart({ provinces }: { provinces: GovernanceMinistry
                   boxShadow: 'var(--shadow-md)',
                   fontSize: 12,
                 }}
-                formatter={(value, name) => {
-                  if (name === 'Doanh thu') return [formatCurrency(value), name]
-                  return [formatNumber(value), name]
-                }}
+                formatter={(value, name) => [formatter(value), name]}
               />
               <Bar
-                yAxisId="count"
-                dataKey="spots"
-                name="Điểm DL"
-                fill="hsl(var(--chart-1))"
+                dataKey={metric}
+                name={dataName}
+                fill={color}
                 radius={[4, 4, 0, 0]}
                 barSize={22}
               />
-              <Bar
-                yAxisId="count"
-                dataKey="serviceUnits"
-                name="Đơn vị DV"
-                fill="hsl(var(--chart-2))"
-                radius={[4, 4, 0, 0]}
-                barSize={22}
-              />
-              <Bar
-                yAxisId="count"
-                dataKey="newBusinesses"
-                name="DN mới"
-                fill="hsl(var(--chart-3))"
-                radius={[4, 4, 0, 0]}
-                barSize={22}
-              />
-              <Line
-                yAxisId="revenue"
-                type="monotone"
-                dataKey="revenue"
-                name="Doanh thu"
-                stroke="hsl(var(--chart-4))"
-                strokeWidth={2.5}
-                dot={{ r: 3, strokeWidth: 2 }}
-              />
-            </ComposedChart>
+            </BarChart>
           </ResponsiveContainer>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge className="bg-primary/10 text-primary border-primary/20">Điểm du lịch</Badge>
-          <Badge className="bg-info/10 text-info border-info/20">Đơn vị dịch vụ</Badge>
-          <Badge className="bg-success/10 text-success border-success/20">Doanh nghiệp mới</Badge>
-          <Badge className="bg-warning/10 text-warning border-warning/20">Doanh thu</Badge>
         </div>
       </CardContent>
     </Card>
@@ -400,10 +407,19 @@ export default function GovernanceMinistryPage(): JSX.Element {
 
   const [fromDate, setFromDate] = useState(thirtyDaysAgo)
   const [toDate, setToDate] = useState(today)
+  const [provincePage, setProvincePage] = useState(1)
+  const [provinceLimit, setProvinceLimit] = useState(10)
+
+  const overviewParams = {
+    from_date: fromDate,
+    to_date: toDate,
+    page: provincePage,
+    limit: provinceLimit,
+  }
 
   const overviewQuery = useApiQuery<ApiResponse<GovernanceMinistryOverview>>(
-    ['governance-ministry-overview', fromDate, toDate],
-    () => governanceService.getMinistryOverview({ from_date: fromDate, to_date: toDate }),
+    ['governance-ministry-overview', overviewParams],
+    () => governanceService.getMinistryOverview(overviewParams),
     { staleTime: STALE_DEFAULT },
     false,
     false
@@ -412,11 +428,26 @@ export default function GovernanceMinistryPage(): JSX.Element {
   const overviewData = overviewQuery.data?.data ?? {}
   const aggregate = overviewData.aggregate ?? {}
   const provinces = overviewData.provinces ?? []
+  const provincePagination = (overviewData.pagination ?? {}) as Partial<Pagination> & {
+    total_pages?: number
+    pages?: number
+  }
+  const lastProvinceTotalPagesRef = useRef<number | null>(null)
+  const provinceTotalPagesFromApi = Number(
+    provincePagination.totalPages ?? provincePagination.total_pages ?? provincePagination.pages
+  )
+  if (Number.isFinite(provinceTotalPagesFromApi) && provinceTotalPagesFromApi > 0) {
+    lastProvinceTotalPagesRef.current = provinceTotalPagesFromApi
+  }
+  const provinceTotalPages =
+    lastProvinceTotalPagesRef.current ??
+    getTotalPages(Number(provincePagination.total ?? provinces.length), provinceLimit)
+  const provinceTotal = Number(provincePagination.total ?? provinces.length)
   const overloadAlerts = overviewData.overload_alerts ?? { total: 0, items: [] }
   const conservationMonitoring = overviewData.conservation_monitoring ?? { total: 0, items: [] }
-  const activeProvinceCount = normalizeProvinces(provinces).filter(
-    (item) => item.spots > 0 || item.serviceUnits > 0 || item.newBusinesses > 0 || item.revenue > 0
-  ).length
+  useEffect(() => {
+    if (provincePage > provinceTotalPages) setProvincePage(provinceTotalPages)
+  }, [provincePage, provinceTotalPages])
 
   const [capacityStatus, setCapacityStatus] = useState('all')
   const [capacityLimit, setCapacityLimit] = useState('50')
@@ -482,7 +513,10 @@ export default function GovernanceMinistryPage(): JSX.Element {
                   <Input
                     type="date"
                     value={fromDate}
-                    onChange={(event) => setFromDate(event.target.value)}
+                    onChange={(event) => {
+                      setFromDate(event.target.value)
+                      setProvincePage(1)
+                    }}
                     className="w-44"
                   />
                 </div>
@@ -491,7 +525,10 @@ export default function GovernanceMinistryPage(): JSX.Element {
                   <Input
                     type="date"
                     value={toDate}
-                    onChange={(event) => setToDate(event.target.value)}
+                    onChange={(event) => {
+                      setToDate(event.target.value)
+                      setProvincePage(1)
+                    }}
                     className="w-44"
                   />
                 </div>
@@ -518,7 +555,7 @@ export default function GovernanceMinistryPage(): JSX.Element {
               icon={<MapPin className="size-5" />}
               label="Điểm tham quan"
               value={formatNumber(aggregate.total_spots)}
-              helper={`${activeProvinceCount} tỉnh/thành có dữ liệu`}
+              helper={`${formatNumber(provinceTotal)} tỉnh/thành trong danh sách`}
               tone="primary"
             />
             <StatCard
@@ -558,57 +595,104 @@ export default function GovernanceMinistryPage(): JSX.Element {
             />
           </div>
 
+          <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+            {PROVINCE_CHARTS.map((chart) => (
+              <ProvinceMetricChart key={chart.metric} provinces={provinces} {...chart} />
+            ))}
+          </div>
+
           <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-            <ProvincePerformanceChart provinces={provinces} />
+            <ConservationPanel items={conservationMonitoring.items ?? []} />
             <AlertPressurePanel alerts={overloadAlerts.items ?? []} />
           </div>
 
-          <ConservationPanel items={conservationMonitoring.items ?? []} />
+          <ToolTableCustom
+            searchValue=""
+            setSearchValue={() => {}}
+            dataUpdatedAt={overviewQuery.dataUpdatedAt}
+            onRefresh={() => overviewQuery.refetch()}
+            isRefreshing={overviewQuery.isFetching && !overviewQuery.isLoading}
+            total={provinceTotal}
+            filter={
+              <Select
+                value={`${provinceLimit}`}
+                onValueChange={(value) => {
+                  setProvinceLimit(Number(value))
+                  setProvincePage(1)
+                }}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIMIT_OPTIONS.map((limit) => (
+                    <SelectItem key={limit} value={`${limit}`}>
+                      {limit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            }
+            pagination={{
+              currentPage: provincePage,
+              totalPages: provinceTotalPages,
+              onPageChange: setProvincePage,
+            }}
+          >
+            <div className="mb-4">
+              <p className="typo-section-title">Thống kê theo tỉnh/thành</p>
+              <p className="typo-meta text-muted-foreground">
+                Bảng chi tiết giữ lại để rà soát số liệu từng địa phương sau khi xem biểu đồ.
+              </p>
+            </div>
 
-          {provinces.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="typo-section-title">Thống kê theo tỉnh/thành</CardTitle>
-                <CardDescription>
-                  Bảng chi tiết giữ lại để rà soát số liệu từng địa phương sau khi xem biểu đồ.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tỉnh/Thành</TableHead>
-                      <TableHead className="text-right">Điểm DL</TableHead>
-                      <TableHead className="text-right">Đơn vị DV</TableHead>
-                      <TableHead className="text-right">DN mới</TableHead>
-                      <TableHead className="text-right">Doanh thu</TableHead>
+            <Table className="relative">
+              <TableHeader className="sticky top-0 z-20">
+                <TableRow>
+                  <TableHead>Tỉnh/Thành</TableHead>
+                  <TableHead className="text-right">Điểm DL</TableHead>
+                  <TableHead className="text-right">Đơn vị DV</TableHead>
+                  <TableHead className="text-right">DN mới</TableHead>
+                  <TableHead className="text-right">Doanh thu</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {overviewQuery.isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-muted-foreground text-center">
+                      Đang tải...
+                    </TableCell>
+                  </TableRow>
+                ) : provinces.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-muted-foreground text-center">
+                      Không có dữ liệu tỉnh/thành
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  provinces.map((province, index) => (
+                    <TableRow key={province.province_code ?? index}>
+                      <TableCell className="typo-table-cell font-medium">
+                        {province.province_name}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-right">
+                        {formatNumber(province.spot_count)}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-right">
+                        {formatNumber(province.service_unit_count)}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-right">
+                        {formatNumber(province.new_business_count)}
+                      </TableCell>
+                      <TableCell className="typo-table-cell text-right font-semibold">
+                        {formatCurrency(province.reported_revenue_vnd)}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {provinces.map((province) => (
-                      <TableRow key={province.province_code}>
-                        <TableCell className="typo-table-cell font-medium">
-                          {province.province_name}
-                        </TableCell>
-                        <TableCell className="typo-table-cell text-right">
-                          {formatNumber(province.spot_count)}
-                        </TableCell>
-                        <TableCell className="typo-table-cell text-right">
-                          {formatNumber(province.service_unit_count)}
-                        </TableCell>
-                        <TableCell className="typo-table-cell text-right">
-                          {formatNumber(province.new_business_count)}
-                        </TableCell>
-                        <TableCell className="typo-table-cell text-right font-semibold">
-                          {formatCurrency(province.reported_revenue_vnd)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </ToolTableCustom>
 
           {overviewQuery.isLoading && (
             <p className="text-muted-foreground text-sm">Đang tải dữ liệu tổng quan...</p>

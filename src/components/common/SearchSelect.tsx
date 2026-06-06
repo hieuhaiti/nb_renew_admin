@@ -17,6 +17,10 @@ interface SearchSelectProps {
   searchPlaceholder?: string
   className?: string
   disabled?: boolean
+  isLoading?: boolean
+  emptyMessage?: string
+  filterOptions?: boolean
+  onSearchChange?: (value: string) => void
 }
 
 export function SearchSelect({
@@ -27,28 +31,41 @@ export function SearchSelect({
   searchPlaceholder = 'Tìm kiếm...',
   className,
   disabled,
+  isLoading = false,
+  emptyMessage = 'Không có kết quả',
+  filterOptions = true,
+  onSearchChange,
 }: SearchSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const triggerRef = useRef<HTMLButtonElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const filtered = search.trim()
-    ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
-    : options
+  const filtered =
+    filterOptions && search.trim()
+      ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+      : options
 
   const selectedLabel = options.find((o) => o.value === value)?.label
 
   function handleOpenChange(o: boolean) {
     setOpen(o)
-    if (!o) setSearch('')
-    else setTimeout(() => inputRef.current?.focus(), 30)
+    if (!o) {
+      setSearch('')
+      onSearchChange?.('')
+    } else setTimeout(() => inputRef.current?.focus(), 30)
   }
 
   function handleSelect(val: string) {
     onValueChange(val)
     setOpen(false)
     setSearch('')
+    onSearchChange?.('')
+  }
+
+  function handleSearchChange(nextSearch: string) {
+    setSearch(nextSearch)
+    onSearchChange?.(nextSearch)
   }
 
   return (
@@ -59,7 +76,7 @@ export function SearchSelect({
           type="button"
           disabled={disabled}
           className={cn(
-            'flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            'border-input bg-background ring-offset-background focus:ring-ring flex h-10 items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
             !selectedLabel && 'text-muted-foreground',
             className
           )}
@@ -77,21 +94,25 @@ export function SearchSelect({
           <Input
             ref={inputRef}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
             className="h-8 text-sm"
           />
         </div>
         <div className="max-h-60 overflow-y-auto py-1">
-          {filtered.length === 0 ? (
-            <div className="text-muted-foreground py-2 text-center text-sm">Không có kết quả</div>
+          {isLoading && filtered.length === 0 ? (
+            <div className="text-muted-foreground py-2 text-center text-sm">
+              Đang tải dữ liệu...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-muted-foreground py-2 text-center text-sm">{emptyMessage}</div>
           ) : (
             filtered.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 className={cn(
-                  'flex w-full cursor-default items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
+                  'hover:bg-accent hover:text-accent-foreground flex w-full cursor-default items-center px-3 py-2 text-sm',
                   opt.value === value && 'bg-accent/50 font-medium'
                 )}
                 onClick={() => handleSelect(opt.value)}

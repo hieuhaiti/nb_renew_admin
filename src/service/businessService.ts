@@ -75,7 +75,8 @@ export default {
 
   /** GET /businesses/me — enterprise user */
   // TODO: Available in Postman but not used by admin UI yet
-  getMe: () => apiClient.get<ApiResponse<{ businesses: Business[] }>>(`${serviceBusinessPath}/me`),
+  getMe: (params?: Pick<BusinessListParams, 'status'>) =>
+    apiClient.get<ApiResponse<{ businesses: Business[] }>>(`${serviceBusinessPath}/me`, params),
 
   /** POST /businesses */
   // TODO: Available in Postman but not used by admin UI yet

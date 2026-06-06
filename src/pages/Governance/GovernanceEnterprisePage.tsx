@@ -66,6 +66,7 @@ import { formatDate, formatDateTime } from '@/lib/date'
 import { STALE_DEFAULT, STALE_REF } from '@/constant/queryConstant'
 import { BUSINESS_TYPE_LABEL } from '@/constant/businessConstant'
 import BusinessFormDialog from '@/pages/Businesses/BusinessFormDialog'
+import { useAuthStore } from '@/stores/common/useAuthStore'
 
 type EnterpriseBusiness = Business & {
   description_vi?: string | null
@@ -409,12 +410,14 @@ function BusinessHeader({
   selectedBusinessId,
   onBusinessChange,
   isLoading,
+  roleName,
 }: {
   businesses: EnterpriseBusiness[]
   selectedBusiness?: EnterpriseBusiness
   selectedBusinessId: string
   onBusinessChange: (value: string) => void
   isLoading: boolean
+  roleName: string
 }) {
   return (
     <Card className="overflow-hidden">
@@ -425,7 +428,7 @@ function BusinessHeader({
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="bg-primary/10 text-primary border-primary/20">
-                    Đơn vị cung cấp dịch vụ du lịch
+                    {roleName}
                   </Badge>
                   {selectedBusiness?.status && getStatusBadge(selectedBusiness.status)}
                 </div>
@@ -738,6 +741,9 @@ function CapacityAlerts({
 }
 
 export default function GovernanceEnterprisePage(): JSX.Element {
+  const user = useAuthStore((state) => state.user)
+  const roleName =
+    user?.role?.name_vi ?? user?.role_name ?? user?.role?.name ?? 'Đơn vị du lịch'
   const [selectedBusinessId, setSelectedBusinessId] = useState('')
   const [dashboardPeriod, setDashboardPeriod] = useState('month')
   const [reportSearch, setReportSearch] = useState('')
@@ -951,8 +957,8 @@ export default function GovernanceEnterprisePage(): JSX.Element {
 
   return (
     <PageLayout
-      title="Điều hành đơn vị dịch vụ"
-      description="Không gian quản trị dành cho đơn vị cung cấp dịch vụ du lịch: theo dõi cơ sở, báo cáo hoạt động và phản ánh lân cận."
+      title={roleName}
+      description={`Không gian quản trị dành cho ${roleName.toLowerCase()}: theo dõi cơ sở, báo cáo hoạt động và phản ánh lân cận.`}
     >
       <div className="space-y-6">
         {businessesQuery.isError ? (
@@ -989,6 +995,7 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                 setFeedbackPage(1)
               }}
               isLoading={businessesQuery.isLoading}
+              roleName={roleName}
             />
 
             <Tabs defaultValue="overview" className="space-y-4">

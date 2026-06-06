@@ -12,11 +12,15 @@ import {
   BarChart2,
   Navigation,
   Gauge,
+  ShoppingBag,
+  ShieldCheck,
+  LifeBuoy,
   // Plug,
   Database,
 } from 'lucide-react'
 import type { NavItem } from '@/types/common/index'
 import { combineAccess, PAGE_ACCESS } from '@/constant/permissionConstant'
+import { BUSINESS_REPRESENTATIVE_ROLE_IDS, ROLE_IDS } from '@/constant/roleConstant'
 
 // Sidebar chỉ đọc PAGE_ACCESS: page nào cần permission nào.
 // Role -> permission nằm trong permissionConstant.ts; không gọi endpoint admin-only tại đây.
@@ -36,6 +40,10 @@ const businessAccess = combineAccess(
   PAGE_ACCESS.ratingMyBusiness
 )
 
+const businessRepresentativeRoleNames = Object.fromEntries(
+  BUSINESS_REPRESENTATIVE_ROLE_IDS.map((roleId) => [roleId, 'Doanh nghiệp của tôi'])
+) as Partial<Record<number, string>>
+
 export const navConfig: NavItem[] = [
   {
     icon: <LayoutDashboard />,
@@ -50,6 +58,10 @@ export const navConfig: NavItem[] = [
     name: 'Quản trị nâng cao',
     path: '/governance',
     access: PAGE_ACCESS.governance,
+    subItems: [
+      { name: 'Tổng quan', path: '/governance', access: PAGE_ACCESS.governance },
+      { name: 'Báo cáo', path: '/governance/reports', access: PAGE_ACCESS.governance },
+    ],
   },
 
   {
@@ -66,6 +78,9 @@ export const navConfig: NavItem[] = [
   {
     icon: <MapPin />,
     name: 'Điểm du lịch',
+    roleNames: {
+      [ROLE_IDS.SERVICE_PROVIDER]: 'Dịch vụ',
+    },
     path: '/spots',
     access: tourismAccess,
     subItems: [
@@ -74,9 +89,16 @@ export const navConfig: NavItem[] = [
       { name: 'Cảnh VR A-Frame', path: '/aframe-scenes', access: PAGE_ACCESS.aframeScenes },
       { name: 'Ẩm thực', path: '/culinary', access: PAGE_ACCESS.culinary },
       { name: 'Lễ hội & sự kiện', path: '/festivals', access: PAGE_ACCESS.festivals },
-      { name: 'Sản phẩm OCOP', path: '/ocop', access: PAGE_ACCESS.ocop },
       { name: 'Đánh giá', path: '/ratings/spots', access: PAGE_ACCESS.ratingSpots },
     ],
+  },
+
+  // /ocop - trang quản trị sản phẩm OCOP, cần quyền thao tác ocop:create/update/delete
+  {
+    icon: <ShoppingBag />,
+    name: 'Sản phẩm OCOP',
+    path: '/ocop',
+    access: PAGE_ACCESS.ocop,
   },
 
   // /tours - trang quản trị tour, cần quyền thao tác tours:create/update/delete
@@ -87,12 +109,16 @@ export const navConfig: NavItem[] = [
     access: PAGE_ACCESS.tours,
   },
 
-  // /capacity - trang cập nhật sức chứa, cần capacity:create hoặc capacity:update
+  // /capacity - xem sức chứa điểm bằng spots_capacity:read; thao tác ghi/sửa kiểm tra riêng trong page
   {
     icon: <Gauge />,
     name: 'Sức chứa điểm đến',
     path: '/capacity',
     access: PAGE_ACCESS.capacity,
+    subItems: [
+      { name: 'Điểm đến', path: '/capacity', access: PAGE_ACCESS.spots_capacity },
+      { name: 'Tuyến du lịch', path: '/capacity/routes', access: PAGE_ACCESS.tour_capacity },
+    ],
   },
 
   {
@@ -101,7 +127,12 @@ export const navConfig: NavItem[] = [
     path: '/businesses',
     access: businessAccess,
     subItems: [
-      { name: 'Doanh nghiệp', path: '/businesses', access: PAGE_ACCESS.businesses },
+      {
+        name: 'Doanh nghiệp',
+        path: '/businesses',
+        access: PAGE_ACCESS.businesses,
+        roleNames: businessRepresentativeRoleNames,
+      },
       { name: 'Đánh giá', path: '/ratings/businesses', access: PAGE_ACCESS.ratingBusinesses },
       {
         name: 'Đánh giá của tôi',
@@ -168,6 +199,18 @@ export const navConfig: NavItem[] = [
     name: 'Dữ liệu thống kê',
     path: '/statistics',
     access: PAGE_ACCESS.statistics,
+  },
+
+  {
+    icon: <ShieldCheck />,
+    name: 'Chính sách bảo mật',
+    path: 'https://dulich.tourismpj.pro.vn/privacy-policy',
+  },
+
+  {
+    icon: <LifeBuoy />,
+    name: 'Hỗ trợ',
+    path: 'https://dulich.tourismpj.pro.vn/support',
   },
 
   // {

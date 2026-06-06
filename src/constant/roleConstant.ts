@@ -18,4 +18,27 @@ export const ROLE_IDS = {
   TOURIST: 7,
 } as const
 
+export const ROLE_CODES = {
+  SYSTEM_ADMIN: 'system_admin',
+  MINISTRY: 'ministry_manager',
+  DEPARTMENT: 'department_manager',
+  SPOT_OPERATOR: 'spot_operator',
+  TRAVEL_COMPANY: 'travel_company',
+  SERVICE_PROVIDER: 'service_provider',
+  TOURIST: 'tourist',
+} as const
+
+export const BUSINESS_REPRESENTATIVE_ROLE_IDS = [
+  ROLE_IDS.SPOT_OPERATOR,
+  ROLE_IDS.TRAVEL_COMPANY,
+  ROLE_IDS.SERVICE_PROVIDER,
+] as const
+
+export const BUSINESS_REPRESENTATIVE_ROLE_CODES = [
+  ROLE_CODES.SPOT_OPERATOR,
+  ROLE_CODES.TRAVEL_COMPANY,
+  ROLE_CODES.SERVICE_PROVIDER,
+] as const
+
 export type RoleId = (typeof ROLE_IDS)[keyof typeof ROLE_IDS]
+export type RoleCode = (typeof ROLE_CODES)[keyof typeof ROLE_CODES]
