@@ -29,6 +29,7 @@ import { SearchSelect } from '@/components/common/SearchSelect'
 import { Crown, Trash2, Upload } from 'lucide-react'
 import { parseLink } from '@/lib/utils'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 const spotSchema = z.object({
   name_vi: z.string().min(1, 'Tên tiếng Việt không được để trống').max(255),
@@ -100,6 +101,7 @@ export default function SpotFormDialog({
 }: SpotFormDialogProps) {
   const openLightbox = useLightboxStore((s) => s.open)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
 
   const dbQuery = useApiQuery(
     ['spot', spotId],
@@ -183,7 +185,7 @@ export default function SpotFormDialog({
         slug: spot.slug || '',
         description_vi: spot.description_vi || '',
         address_vi: spot.address_vi || '',
-        province_code: spot.province_code || '',
+        province_code: canEditProvinceCode ? spot.province_code || '' : provinceCode,
         latitude: spot.latitude ?? undefined,
         longitude: spot.longitude ?? undefined,
         phone: spot.phone || '',
@@ -199,11 +201,14 @@ export default function SpotFormDialog({
         has_audio_guide: spot.has_audio_guide,
       })
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, province_code: canEditProvinceCode ? '' : provinceCode })
     }
-  }, [spot, reset, open])
+  }, [spot, reset, open, canEditProvinceCode, provinceCode])
 
   const handleFormSubmit: SubmitHandler<SpotFormValues> = (formData) => {
+    const submittedProvinceCode = canEditProvinceCode
+      ? formData.province_code?.trim()
+      : provinceCode
     const payload: SpotFormBody = {
       name_vi: formData.name_vi,
       ...(formData.category_id != null && { category_id: formData.category_id }),
@@ -211,7 +216,7 @@ export default function SpotFormDialog({
       ...(formData.slug?.trim() && { slug: formData.slug }),
       ...(formData.description_vi?.trim() && { description_vi: formData.description_vi }),
       ...(formData.address_vi?.trim() && { address_vi: formData.address_vi }),
-      ...(formData.province_code?.trim() && { province_code: formData.province_code }),
+      ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
       ...(formData.latitude != null && { latitude: formData.latitude }),
       ...(formData.longitude != null && { longitude: formData.longitude }),
       ...(formData.phone?.trim() && { phone: formData.phone }),
@@ -289,7 +294,12 @@ export default function SpotFormDialog({
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="spot_province">Mã tỉnh</Label>
-              <Input id="spot_province" {...register('province_code')} placeholder="Mã tỉnh" />
+              <Input
+                id="spot_province"
+                {...register('province_code')}
+                placeholder="Mã tỉnh"
+                disabled={!canEditProvinceCode}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="spot_lat">Vĩ độ</Label>

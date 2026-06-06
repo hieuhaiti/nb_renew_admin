@@ -65,6 +65,7 @@ import { z } from 'zod'
 import { formatDate, formatDateTime } from '@/lib/date'
 import { STALE_DEFAULT, STALE_REF } from '@/constant/queryConstant'
 import { BUSINESS_TYPE_LABEL } from '@/constant/businessConstant'
+import { ROLE_IDS } from '@/constant/roleConstant'
 import BusinessFormDialog from '@/pages/Businesses/BusinessFormDialog'
 import { useAuthStore } from '@/stores/common/useAuthStore'
 
@@ -582,7 +583,7 @@ function RevenueTrend({
         </div>
 
         <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={320} minWidth={0} minHeight={320}>
             <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="enterpriseRevenueFill" x1="0" y1="0" x2="0" y2="1">
@@ -742,6 +743,9 @@ function CapacityAlerts({
 
 export default function GovernanceEnterprisePage(): JSX.Element {
   const user = useAuthStore((state) => state.user)
+  const roleId = user?.role_id ?? user?.role?.id
+  const hideCapacityAlerts =
+    roleId === ROLE_IDS.SERVICE_PROVIDER || roleId === ROLE_IDS.TRAVEL_COMPANY
   const roleName =
     user?.role?.name_vi ?? user?.role_name ?? user?.role?.name ?? 'Đơn vị du lịch'
   const [selectedBusinessId, setSelectedBusinessId] = useState('')
@@ -1084,9 +1088,13 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                   />
                 </div>
 
-                <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+                <div
+                  className={
+                    hideCapacityAlerts ? 'grid gap-4' : 'grid gap-4 xl:grid-cols-[1.25fr_0.75fr]'
+                  }
+                >
                   <RevenueTrend items={revenueTrend} />
-                  <CapacityAlerts alerts={capacityAlerts} />
+                  {!hideCapacityAlerts && <CapacityAlerts alerts={capacityAlerts} />}
                 </div>
 
                 <Card>

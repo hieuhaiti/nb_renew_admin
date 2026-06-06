@@ -103,9 +103,9 @@ export interface GovernanceCapacityAlert {
   province_code?: string
   province_name?: string
   status?: string
-  visitor_count?: number
-  max_capacity?: number
-  capacity_pct?: number
+  visitor_count?: number | string
+  max_capacity?: number | string
+  capacity_pct?: number | string
   recorded_at?: string
   [key: string]: any
 }
@@ -114,8 +114,8 @@ export interface GovernanceConservationItem {
   conservation_id?: string
   conservation_name?: string
   province_name?: string
-  detected_changes?: number
-  total_change_area_ha?: number
+  detected_changes?: number | string
+  total_change_area_ha?: number | string
   latest_analyzed_at?: string
   [key: string]: any
 }

@@ -2,12 +2,22 @@ import { useRef } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { spotService, useApiQuery, useApiMutation } from '@/service'
-import type { ApiResponse, Spot } from '@/types/api'
+import { spotService, tourService, useApiQuery, useApiMutation } from '@/service'
+import type { ApiResponse, Spot, Tour, TourListData } from '@/types/api'
 import type { SpotMedia } from '@/service/spotService'
 import { parseLink } from '@/lib/utils'
 import { formatDateTime } from '@/lib/date'
-import { Star, Trash2, Crown, Upload, Pen } from 'lucide-react'
+import {
+  CalendarDays,
+  MapPin,
+  Star,
+  Trash2,
+  Crown,
+  Upload,
+  Pen,
+  Users,
+  Sparkles,
+} from 'lucide-react'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
 import RatingsSection from '@/components/common/RatingsSection'
 
@@ -30,6 +40,35 @@ function formatPrice(value: unknown): string {
   const num = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(num)) return '-'
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num)
+}
+
+function formatTourRating(value: unknown): string | null {
+  if (value == null) return null
+  const num = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(num)) return null
+  return num.toFixed(2)
+}
+
+function getTourStatusLabel(status: Tour['status']): string {
+  const labels: Partial<Record<Tour['status'], string>> = {
+    active: 'Đang mở',
+    published: 'Đã xuất bản',
+    draft: 'Bản nháp',
+    inactive: 'Tạm ẩn',
+    archived: 'Lưu trữ',
+  }
+
+  return labels[status] ?? status
+}
+
+function getTourStatusVariant(status: Tour['status']): 'default' | 'secondary' | 'outline' {
+  if (status === 'active' || status === 'published') return 'default'
+  if (status === 'draft') return 'outline'
+  return 'secondary'
+}
+
+function getTourRouteLabel(tour: Tour): string {
+  return [tour.start_location_vi, tour.end_location_vi].filter(Boolean).join(' - ')
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -67,6 +106,21 @@ export default function SpotDetailDialog({
     false
   )
   const media: SpotMedia[] = (mediaQuery.data as any)?.data?.media ?? []
+
+  const suggestedToursQuery = useApiQuery<ApiResponse<TourListData>>(
+    ['spot-suggested-tours', spotId],
+    () =>
+      tourService.getAll({
+        page: 1,
+        limit: 5,
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
+      }),
+    { enabled: !!spotId && open, staleTime: 0 },
+    false,
+    false
+  )
+  const suggestedTours: Tour[] = suggestedToursQuery.data?.data?.tours ?? []
 
   const uploadMutation = useApiMutation(
     (fd: FormData) => spotService.uploadMediaBatch(spotId!, fd),
@@ -322,6 +376,128 @@ export default function SpotDetailDialog({
                         </Button>
                       </div>
                       {m.title_vi && <div className="truncate p-1 text-xs">{m.title_vi}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 border-t pt-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary grid size-8 place-items-center rounded-md">
+                    <Sparkles className="size-4" />
+                  </span>
+                  <div>
+                    <p className="font-semibold">Tuyến du lịch gợi ý</p>
+                    {!suggestedToursQuery.isLoading && suggestedTours.length > 0 && (
+                      <p className="text-muted-foreground text-xs">
+                        {suggestedTours.length.toLocaleString('vi-VN')} tuyến phù hợp
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {suggestedToursQuery.isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="border-border/70 bg-muted/30 flex flex-col gap-3 rounded-md border p-2 sm:flex-row"
+                    >
+                      <div className="bg-muted h-28 w-full shrink-0 animate-pulse rounded sm:h-20 sm:w-28" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
+                        <div className="bg-muted h-3 w-full animate-pulse rounded" />
+                        <div className="bg-muted h-3 w-4/5 animate-pulse rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : suggestedTours.length === 0 ? (
+                <div className="border-border/70 bg-muted/30 text-muted-foreground rounded-md border p-3 text-sm">
+                  Chưa có tuyến du lịch gợi ý
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {suggestedTours.map((tour) => (
+                    <div
+                      key={tour.id}
+                      className="border-border/70 bg-card flex flex-col gap-3 rounded-md border p-2.5 sm:flex-row"
+                    >
+                      {tour.cover_image_url ? (
+                        <img
+                          src={parseLink(tour.cover_image_url)}
+                          alt={tour.name}
+                          className="h-36 w-full shrink-0 rounded object-cover sm:h-24 sm:w-32"
+                        />
+                      ) : (
+                        <div className="bg-muted h-36 w-full shrink-0 rounded border sm:h-24 sm:w-32" />
+                      )}
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="line-clamp-2 text-sm leading-5 font-semibold">
+                              {tour.name}
+                            </p>
+                            <p className="text-primary mt-0.5 text-sm font-semibold">
+                              {formatPrice(tour.price_from_vnd)}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            <Badge variant={getTourStatusVariant(tour.status)}>
+                              {getTourStatusLabel(tour.status)}
+                            </Badge>
+                            {tour.is_featured && <Badge variant="outline">Nổi bật</Badge>}
+                          </div>
+                        </div>
+                        {tour.description_vi && (
+                          <p className="text-muted-foreground line-clamp-2 text-xs leading-5">
+                            {tour.description_vi}
+                          </p>
+                        )}
+                        <div className="text-muted-foreground grid grid-cols-1 gap-x-3 gap-y-1 text-xs sm:grid-cols-2">
+                          <span className="inline-flex min-w-0 items-center gap-1">
+                            <CalendarDays className="size-3" />
+                            {tour.duration_days} ngày
+                          </span>
+                          <span className="inline-flex min-w-0 items-center gap-1">
+                            <Users className="size-3" />
+                            {tour.max_guests != null
+                              ? `${tour.max_guests.toLocaleString('vi-VN')} khách`
+                              : 'Không giới hạn'}
+                          </span>
+                          {getTourRouteLabel(tour) && (
+                            <span className="inline-flex min-w-0 items-center gap-1 sm:col-span-2">
+                              <MapPin className="size-3 shrink-0" />
+                              <span className="truncate">{getTourRouteLabel(tour)}</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 border-t pt-2 text-xs">
+                          <span className="text-muted-foreground truncate">
+                            {tour.business_name ?? tour.province_name ?? '-'}
+                          </span>
+                          {formatTourRating(tour.rating_avg) && (
+                            <span className="inline-flex shrink-0 items-center gap-1 font-medium">
+                              <Star className="text-warning size-3 fill-current" />
+                              {formatTourRating(tour.rating_avg)}
+                              <span className="text-muted-foreground">
+                                ({tour.rating_count.toLocaleString('vi-VN')})
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                        {tour.includes && tour.includes.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {tour.includes.slice(0, 3).map((item) => (
+                              <Badge key={item} variant="outline" className="text-xs font-normal">
+                                {item}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

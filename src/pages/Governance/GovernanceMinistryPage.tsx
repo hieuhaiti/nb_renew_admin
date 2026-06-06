@@ -1,5 +1,5 @@
 import type { JSX, ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApiQuery, governanceService } from '@/service'
 import type {
   ApiResponse,
@@ -7,7 +7,6 @@ import type {
   GovernanceConservationItem,
   GovernanceMinistryOverview,
   GovernanceMinistryProvince,
-  Pagination,
 } from '@/types/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -118,6 +117,15 @@ function normalizeProvinces(provinces: GovernanceMinistryProvince[]) {
   }))
 }
 
+type ProvincePagination = {
+  page?: number | string
+  limit?: number | string
+  total?: number | string
+  totalPages?: number | string
+  total_pages?: number | string
+  pages?: number | string
+}
+
 function getTotalPages(total: number, limit: number): number {
   return Math.max(1, Math.ceil(total / limit))
 }
@@ -204,6 +212,7 @@ function ProvinceMetricChart({
   dataName,
   color,
   formatter,
+  isVisible = true,
 }: {
   provinces: GovernanceMinistryProvince[]
   metric: ProvinceChartMetric
@@ -212,11 +221,10 @@ function ProvinceMetricChart({
   dataName: string
   color: string
   formatter: (value: unknown) => string
+  isVisible?: boolean
 }) {
   const chartData = normalizeProvinces(provinces)
-    .filter((item) => item[metric] > 0)
-    .sort((a, b) => b[metric] - a[metric])
-    .slice(0, 8)
+  const hasValue = chartData.some((item) => item[metric] > 0)
 
   if (chartData.length === 0) {
     return (
@@ -225,6 +233,11 @@ function ProvinceMetricChart({
           <CardTitle className="typo-section-title">{title}</CardTitle>
           <CardDescription>Chưa có dữ liệu {title.toLowerCase()} trong kỳ đã chọn.</CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="border-border bg-muted/30 flex h-72 items-center justify-center rounded-lg border">
+            <p className="typo-meta text-muted-foreground">Không có tỉnh/thành để hiển thị.</p>
+          </div>
+        </CardContent>
       </Card>
     )
   }
@@ -236,37 +249,50 @@ function ProvinceMetricChart({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="province" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={metric === 'revenue' ? formatCompactCurrency : undefined}
-                allowDecimals={false}
-                width={metric === 'revenue' ? 52 : 36}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderColor: 'hsl(var(--border))',
-                  borderRadius: 8,
-                  boxShadow: 'var(--shadow-md)',
-                  fontSize: 12,
-                }}
-                formatter={(value, name) => [formatter(value), name]}
-              />
-              <Bar
-                dataKey={metric}
-                name={dataName}
-                fill={color}
-                radius={[4, 4, 0, 0]}
-                barSize={22}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        {!hasValue && (
+          <p className="typo-meta text-muted-foreground mb-3">
+            Trang này chưa có số liệu phát sinh, vẫn hiển thị các tỉnh/thành để đối chiếu.
+          </p>
+        )}
+        <div className="h-72 min-h-72 w-full min-w-0">
+          {isVisible && (
+            <ResponsiveContainer width="100%" height={288} minWidth={0} minHeight={288}>
+              <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="province"
+                  tick={{ fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={metric === 'revenue' ? formatCompactCurrency : undefined}
+                  allowDecimals={false}
+                  domain={hasValue ? undefined : [0, 1]}
+                  width={metric === 'revenue' ? 52 : 36}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: 8,
+                    boxShadow: 'var(--shadow-md)',
+                    fontSize: 12,
+                  }}
+                  formatter={(value, name) => [formatter(value), name]}
+                />
+                <Bar
+                  dataKey={metric}
+                  name={dataName}
+                  fill={color}
+                  radius={[4, 4, 0, 0]}
+                  barSize={22}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -338,7 +364,13 @@ function AlertPressurePanel({ alerts }: { alerts: GovernanceCapacityAlert[] }) {
   )
 }
 
-function ConservationPanel({ items }: { items: GovernanceConservationItem[] }) {
+function ConservationPanel({
+  items,
+  isVisible = true,
+}: {
+  items: GovernanceConservationItem[]
+  isVisible?: boolean
+}) {
   const chartData = items.map((item) => ({
     name: item.conservation_name ?? '-',
     changes: toNumber(item.detected_changes),
@@ -362,38 +394,44 @@ function ConservationPanel({ items }: { items: GovernanceConservationItem[] }) {
             </p>
           </div>
         ) : (
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={36} />
-                <Tooltip
-                  contentStyle={{
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: 8,
-                    boxShadow: 'var(--shadow-md)',
-                    fontSize: 12,
-                  }}
-                  formatter={(value, name) => {
-                    if (name === 'Diện tích') return [`${toNumber(value).toFixed(2)} ha`, name]
-                    return [formatNumber(value), name]
-                  }}
-                />
-                <Bar
-                  dataKey="area"
-                  name="Diện tích"
-                  fill="hsl(var(--chart-3))"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="changes"
-                  name="Biến động"
-                  fill="hsl(var(--chart-4))"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-72 min-h-72 w-full min-w-0">
+            {isVisible && (
+              <ResponsiveContainer width="100%" height={288} minWidth={0} minHeight={288}>
+                <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid
+                    stroke="hsl(var(--border))"
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={36} />
+                  <Tooltip
+                    contentStyle={{
+                      borderColor: 'hsl(var(--border))',
+                      borderRadius: 8,
+                      boxShadow: 'var(--shadow-md)',
+                      fontSize: 12,
+                    }}
+                    formatter={(value, name) => {
+                      if (name === 'Diện tích') return [`${toNumber(value).toFixed(2)} ha`, name]
+                      return [formatNumber(value), name]
+                    }}
+                  />
+                  <Bar
+                    dataKey="area"
+                    name="Diện tích"
+                    fill="hsl(var(--chart-3))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="changes"
+                    name="Biến động"
+                    fill="hsl(var(--chart-4))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         )}
       </CardContent>
@@ -407,6 +445,7 @@ export default function GovernanceMinistryPage(): JSX.Element {
 
   const [fromDate, setFromDate] = useState(thirtyDaysAgo)
   const [toDate, setToDate] = useState(today)
+  const [activeTab, setActiveTab] = useState('overview')
   const [provincePage, setProvincePage] = useState(1)
   const [provinceLimit, setProvinceLimit] = useState(10)
 
@@ -428,21 +467,25 @@ export default function GovernanceMinistryPage(): JSX.Element {
   const overviewData = overviewQuery.data?.data ?? {}
   const aggregate = overviewData.aggregate ?? {}
   const provinces = overviewData.provinces ?? []
-  const provincePagination = (overviewData.pagination ?? {}) as Partial<Pagination> & {
-    total_pages?: number
-    pages?: number
-  }
-  const lastProvinceTotalPagesRef = useRef<number | null>(null)
+  const provincePagination = (overviewData.pagination ?? {}) as ProvincePagination
+  const hasProvincePagination = Object.values(provincePagination).some(
+    (value) => value !== undefined && value !== null
+  )
   const provinceTotalPagesFromApi = Number(
     provincePagination.totalPages ?? provincePagination.total_pages ?? provincePagination.pages
   )
-  if (Number.isFinite(provinceTotalPagesFromApi) && provinceTotalPagesFromApi > 0) {
-    lastProvinceTotalPagesRef.current = provinceTotalPagesFromApi
-  }
+  const provinceTotal =
+    hasProvincePagination && provincePagination.total !== undefined
+      ? toNumber(provincePagination.total)
+      : provinces.length
   const provinceTotalPages =
-    lastProvinceTotalPagesRef.current ??
-    getTotalPages(Number(provincePagination.total ?? provinces.length), provinceLimit)
-  const provinceTotal = Number(provincePagination.total ?? provinces.length)
+    Number.isFinite(provinceTotalPagesFromApi) && provinceTotalPagesFromApi > 0
+      ? provinceTotalPagesFromApi
+      : getTotalPages(provinceTotal, provinceLimit)
+  const shouldPaginateProvincesLocally = !hasProvincePagination && provinces.length > provinceLimit
+  const displayedProvinces = shouldPaginateProvincesLocally
+    ? provinces.slice((provincePage - 1) * provinceLimit, provincePage * provinceLimit)
+    : provinces
   const overloadAlerts = overviewData.overload_alerts ?? { total: 0, items: [] }
   const conservationMonitoring = overviewData.conservation_monitoring ?? { total: 0, items: [] }
   useEffect(() => {
@@ -491,7 +534,7 @@ export default function GovernanceMinistryPage(): JSX.Element {
       title="Bộ VHTTDL - Quản trị nâng cao"
       description="Tổng quan du lịch quốc gia, cảnh báo sức chứa và giám sát bảo tồn"
     >
-      <Tabs defaultValue="overview" className="flex flex-col gap-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-4">
         <TabsList className="w-fit">
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="capacity">Cảnh báo sức chứa</TabsTrigger>
@@ -597,12 +640,20 @@ export default function GovernanceMinistryPage(): JSX.Element {
 
           <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
             {PROVINCE_CHARTS.map((chart) => (
-              <ProvinceMetricChart key={chart.metric} provinces={provinces} {...chart} />
+              <ProvinceMetricChart
+                key={chart.metric}
+                provinces={displayedProvinces}
+                isVisible={activeTab === 'overview'}
+                {...chart}
+              />
             ))}
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-            <ConservationPanel items={conservationMonitoring.items ?? []} />
+            <ConservationPanel
+              items={conservationMonitoring.items ?? []}
+              isVisible={activeTab === 'overview'}
+            />
             <AlertPressurePanel alerts={overloadAlerts.items ?? []} />
           </div>
 
@@ -663,14 +714,14 @@ export default function GovernanceMinistryPage(): JSX.Element {
                       Đang tải...
                     </TableCell>
                   </TableRow>
-                ) : provinces.length === 0 ? (
+                ) : displayedProvinces.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-muted-foreground text-center">
                       Không có dữ liệu tỉnh/thành
                     </TableCell>
                   </TableRow>
                 ) : (
-                  provinces.map((province, index) => (
+                  displayedProvinces.map((province, index) => (
                     <TableRow key={province.province_code ?? index}>
                       <TableCell className="typo-table-cell font-medium">
                         {province.province_name}
@@ -920,7 +971,7 @@ export default function GovernanceMinistryPage(): JSX.Element {
             />
           </div>
 
-          <ConservationPanel items={conservItems} />
+          <ConservationPanel items={conservItems} isVisible={activeTab === 'conservation'} />
 
           <ToolTableCustom
             searchValue=""

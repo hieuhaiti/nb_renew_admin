@@ -2,8 +2,7 @@ import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, spotService, spotCategoryService } from '@/service'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
-import { useAuthStore } from '@/stores/common/useAuthStore'
-import { ROLE_IDS } from '@/constant/roleConstant'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 import type {
   Spot,
   SpotListData,
@@ -81,8 +80,7 @@ function formatRatingAvg(value: unknown): string | null {
 
 export default function SpotPage(): JSX.Element {
   const openLightbox = useLightboxStore((s) => s.open)
-  const roleId = useAuthStore((s) => s.user?.role_id)
-  const isDepartment = roleId === ROLE_IDS.DEPARTMENT
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -96,6 +94,7 @@ export default function SpotPage(): JSX.Element {
     categoryFilter !== 'all' ? Number.parseInt(categoryFilter, 10) : Number.NaN
   const parsedRatingMin = ratingMinFilter.trim() ? Number.parseFloat(ratingMinFilter) : Number.NaN
   const trimmedProvinceCode = provinceCodeFilter.trim()
+  const scopedProvinceCode = canEditProvinceCode ? trimmedProvinceCode : provinceCode
 
   const queryParams = {
     page: currentPage,
@@ -104,7 +103,7 @@ export default function SpotPage(): JSX.Element {
     sortOrder: 'DESC' as const,
     ...(statusFilter !== 'all' && { status: statusFilter as SpotStatus }),
     ...(!Number.isNaN(parsedCategoryId) && { category_id: parsedCategoryId }),
-    ...(trimmedProvinceCode && { province_code: trimmedProvinceCode }),
+    ...(scopedProvinceCode && { province_code: scopedProvinceCode }),
     ...(featuredFilter !== 'all' && { is_featured: featuredFilter === 'true' }),
     ...(!Number.isNaN(parsedRatingMin) && { rating_min: parsedRatingMin }),
     ...(searchValue && { search: searchValue }),
@@ -113,7 +112,7 @@ export default function SpotPage(): JSX.Element {
   const dbQuery = useApiQuery(
     ['spots', queryParams],
     () => spotService.getAll(queryParams),
-    { staleTime: STALE_DEFAULT, enabled: !isDepartment || !!trimmedProvinceCode },
+    { staleTime: STALE_DEFAULT, enabled: canEditProvinceCode || !!scopedProvinceCode },
     false,
     false
   )
@@ -231,13 +230,15 @@ export default function SpotPage(): JSX.Element {
               className="w-48"
             />
             <Input
-              value={provinceCodeFilter}
+              value={canEditProvinceCode ? provinceCodeFilter : provinceCode}
               onChange={(e) => {
+                if (!canEditProvinceCode) return
                 setProvinceCodeFilter(e.target.value)
                 setCurrentPage(1)
               }}
-              placeholder={isDepartment ? 'Mã tỉnh *' : 'Mã tỉnh'}
-              className={`w-28${isDepartment && !trimmedProvinceCode ? ' border-warning' : ''}`}
+              placeholder="Mã tỉnh"
+              disabled={!canEditProvinceCode}
+              className={`w-28${!canEditProvinceCode && !scopedProvinceCode ? ' border-warning' : ''}`}
             />
             <Select
               value={featuredFilter}
@@ -316,10 +317,10 @@ export default function SpotPage(): JSX.Element {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isDepartment && !trimmedProvinceCode ? (
+            {!canEditProvinceCode && !scopedProvinceCode ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
-                  Vui lòng nhập <span className="font-medium">Mã tỉnh</span> để tải danh sách điểm tham quan
+                  Tài khoản hiện tại chưa có <span className="font-medium">Mã tỉnh</span> trong hồ sơ.
                 </TableCell>
               </TableRow>
             ) : dbQuery.isLoading ? (

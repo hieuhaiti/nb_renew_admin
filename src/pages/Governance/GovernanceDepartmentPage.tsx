@@ -5,7 +5,6 @@ import type {
   ApiResponse,
   GovernanceDeptBusinessReg,
   GovernanceDeptSpotReg,
-  GovernanceDeptFeedback,
   GovernanceDeptReport,
   GovernanceDeptReportCreateBody,
   GovernanceDeptReportSendBody,
@@ -52,8 +51,9 @@ import {
   Building2,
   Check,
   FileText,
+  Mail,
   MapPin,
-  MessageSquareWarning,
+  Phone,
   Plus,
   RefreshCw,
   Send,
@@ -90,6 +90,15 @@ const REG_STATUS_BADGE: Record<string, string> = {
   active: 'bg-success/10 text-success border-success/20',
   rejected: 'bg-destructive/10 text-destructive border-destructive/20',
   suspended: 'bg-muted/40 text-muted-foreground border-border',
+}
+
+const BUSINESS_TYPE_LABEL: Record<string, string> = {
+  tour: 'Lữ hành',
+  hotel: 'Lưu trú',
+  restaurant: 'Ẩm thực',
+  transport: 'Vận chuyển',
+  shopping: 'Mua sắm',
+  service: 'Dịch vụ',
 }
 
 const CAPACITY_STATUS_LABEL: Record<string, string> = {
@@ -200,6 +209,156 @@ function StatCard({
   )
 }
 
+function BusinessInfoItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode
+  label: string
+  value?: ReactNode
+}) {
+  return (
+    <div className="bg-muted/30 rounded-md p-3">
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <div className="typo-body-sm mt-1 min-w-0 font-medium break-words">{value || '-'}</div>
+    </div>
+  )
+}
+
+function getBusinessName(biz: GovernanceDeptBusinessReg): string {
+  return biz.business_name ?? biz.name ?? '-'
+}
+
+function getBusinessAddress(biz: GovernanceDeptBusinessReg): string {
+  return biz.address_vi ?? biz.address ?? '-'
+}
+
+function getBusinessLocation(biz: GovernanceDeptBusinessReg): string {
+  return [biz.ward_name, biz.province_name].filter(Boolean).join(', ') || biz.province_code || '-'
+}
+
+function BusinessRegistrationCard({
+  biz,
+  onApprove,
+  onReject,
+  isPending,
+}: {
+  biz: GovernanceDeptBusinessReg
+  onApprove: (biz: GovernanceDeptBusinessReg) => void
+  onReject: (biz: GovernanceDeptBusinessReg) => void
+  isPending: boolean
+}) {
+  const status = biz.status ?? 'pending'
+  const businessType = String(biz.business_type ?? '')
+  const canReview = status === 'pending'
+
+  return (
+    <Card className="border-border/80 overflow-hidden shadow-sm">
+      <CardContent className="space-y-4 p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="typo-section-title min-w-0 truncate">{getBusinessName(biz)}</h3>
+              <StatusDotBadge
+                label={REG_STATUS_LABEL[status] ?? status}
+                dotClass={REG_STATUS_DOT[status] ?? 'bg-muted-foreground'}
+                badgeClass={
+                  REG_STATUS_BADGE[status] ?? 'bg-muted/40 text-muted-foreground border-border'
+                }
+              />
+              {businessType && (
+                <Badge className="bg-primary/10 text-primary border-primary/20">
+                  {BUSINESS_TYPE_LABEL[businessType] ?? businessType}
+                </Badge>
+              )}
+            </div>
+            <p className="typo-body-sm text-muted-foreground line-clamp-2">
+              {biz.description_vi || getBusinessAddress(biz)}
+            </p>
+          </div>
+
+          {canReview && (
+            <div className="flex shrink-0 gap-2">
+              <Button
+                size="sm"
+                onClick={() => onApprove(biz)}
+                disabled={isPending}
+                className="gap-1.5"
+              >
+                <Check className="size-4" />
+                Duyệt
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onReject(biz)}
+                disabled={isPending}
+              >
+                <X className="text-destructive size-4" />
+                Từ chối
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <BusinessInfoItem
+            icon={<FileText className="size-4" />}
+            label="Mã / MST"
+            value={
+              <span>
+                {biz.business_code ?? '-'}
+                {biz.tax_id && <span className="text-muted-foreground"> · {biz.tax_id}</span>}
+              </span>
+            }
+          />
+          <BusinessInfoItem
+            icon={<Building2 className="size-4" />}
+            label="Chủ sở hữu"
+            value={biz.owner_name ?? biz.owner_id}
+          />
+          <BusinessInfoItem
+            icon={<MapPin className="size-4" />}
+            label="Địa bàn"
+            value={getBusinessLocation(biz)}
+          />
+          <BusinessInfoItem
+            icon={<FileText className="size-4" />}
+            label="Giấy phép"
+            value={biz.license_number}
+          />
+          <BusinessInfoItem icon={<Mail className="size-4" />} label="Email" value={biz.email} />
+          <BusinessInfoItem
+            icon={<Phone className="size-4" />}
+            label="Điện thoại"
+            value={biz.phone}
+          />
+          <BusinessInfoItem
+            icon={<MapPin className="size-4" />}
+            label="Địa chỉ"
+            value={getBusinessAddress(biz)}
+          />
+          <BusinessInfoItem
+            icon={<RefreshCw className="size-4" />}
+            label="Cập nhật"
+            value={biz.updated_at ? formatDate(biz.updated_at) : formatDate(biz.created_at)}
+          />
+        </div>
+
+        {status === 'rejected' && biz.rejection_note && (
+          <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-md border p-3 text-sm">
+            {biz.rejection_note}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 function RegistrationStatusChart({
   businesses,
   spots,
@@ -233,7 +392,7 @@ function RegistrationStatusChart({
       </CardHeader>
       <CardContent>
         <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={288} minWidth={0} minHeight={288}>
             <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="status" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
@@ -268,65 +427,6 @@ function RegistrationStatusChart({
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function FeedbackStatusChart({ feedbacks }: { feedbacks: GovernanceDeptFeedback[] }) {
-  const chartData = [
-    { status: 'Chờ xử lý', value: countByStatus(feedbacks, 'pending') },
-    { status: 'Đang xử lý', value: countByStatus(feedbacks, 'in_progress') },
-    { status: 'Đã xử lý', value: countByStatus(feedbacks, 'resolved') },
-    { status: 'Đã đóng', value: countByStatus(feedbacks, 'closed') },
-  ].filter((item) => item.value > 0)
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="typo-section-title">Tình trạng phản ánh</CardTitle>
-        <CardDescription>Nhìn nhanh khối lượng xử lý phản ánh người dân.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {chartData.length === 0 ? (
-          <div className="border-border bg-muted/30 rounded-lg border p-4">
-            <p className="typo-body-sm font-semibold">Chưa có phản ánh trong kỳ</p>
-            <p className="typo-meta text-muted-foreground">
-              Bảng phản ánh sẽ cập nhật khi có dữ liệu mới.
-            </p>
-          </div>
-        ) : (
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="status" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: 8,
-                    boxShadow: 'var(--shadow-md)',
-                    fontSize: 12,
-                  }}
-                  formatter={(value) => formatNumber(value)}
-                />
-                <Bar
-                  dataKey="value"
-                  name="Phản ánh"
-                  fill="hsl(var(--chart-4))"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
@@ -420,7 +520,7 @@ function ConservationChart({
           </div>
         ) : (
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={288} minWidth={0} minHeight={288}>
               <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
@@ -544,6 +644,28 @@ export default function GovernanceDepartmentPage(): JSX.Element {
     'data',
     'registrations',
   ])
+  const [bizSearch, setBizSearch] = useState('')
+  const filteredBizRegs = bizRegs.filter((biz) => {
+    const haystack = [
+      biz.business_name,
+      biz.name,
+      biz.business_code,
+      biz.tax_id,
+      biz.license_number,
+      biz.owner_name,
+      biz.email,
+      biz.phone,
+      biz.address_vi,
+      biz.address,
+      biz.province_name,
+      biz.ward_name,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+
+    return haystack.includes(bizSearch.trim().toLowerCase())
+  })
 
   const [bizToReject, setBizToReject] = useState<GovernanceDeptBusinessReg | null>(null)
   const approveBizMutation = useApiMutation(
@@ -588,20 +710,6 @@ export default function GovernanceDepartmentPage(): JSX.Element {
     },
     true
   )
-
-  // ── Feedbacks ─────────────────────────────────────────────────────────────
-  const feedbackQuery = useApiQuery<ApiResponse<any>>(
-    ['governance-dept-feedbacks'],
-    () => governanceService.getDepartmentFeedbacks({ limit: 50 }),
-    { staleTime: STALE_DEFAULT },
-    false,
-    false
-  )
-  const feedbacks: GovernanceDeptFeedback[] = normalizeList(feedbackQuery.data?.data, [
-    'feedbacks',
-    'items',
-    'data',
-  ])
 
   // ── Reports ────────────────────────────────────────────────────────────────
   const reportsQuery = useApiQuery<ApiResponse<any>>(
@@ -709,26 +817,22 @@ export default function GovernanceDepartmentPage(): JSX.Element {
     0
   )
   const pendingBizCount = countByStatus(bizRegs, 'pending')
+  const approvedBizCount = countByStatus(bizRegs, 'approved') + countByStatus(bizRegs, 'active')
+  const rejectedBizCount = countByStatus(bizRegs, 'rejected')
   const pendingSpotCount = countByStatus(spotRegs, 'pending')
-  const activeFeedbackCount =
-    countByStatus(feedbacks, 'pending') + countByStatus(feedbacks, 'in_progress')
-  const highPriorityFeedbackCount = feedbacks.filter(
-    (feedback) => feedback.priority === 'high' || feedback.priority === 'critical'
-  ).length
   const overloadedCount = countByStatus(capacityItems, 'overloaded')
   const nearFullCount = countByStatus(capacityItems, 'near_full')
 
   return (
     <PageLayout
       title="Sở VHTTDL – Quản trị nâng cao"
-      description="Duyệt đăng ký, phản ánh, báo cáo và giám sát địa phương"
+      description="Duyệt đăng ký, báo cáo và giám sát địa phương"
     >
       <Tabs defaultValue="overview" className="flex flex-col gap-4">
         <TabsList className="w-fit flex-wrap">
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="biz-reg">Đăng ký DN</TabsTrigger>
           <TabsTrigger value="spot-reg">Đăng ký điểm đến</TabsTrigger>
-          <TabsTrigger value="feedbacks">Phản ánh</TabsTrigger>
           <TabsTrigger value="reports">Báo cáo</TabsTrigger>
           <TabsTrigger value="capacity">Sức chứa</TabsTrigger>
           <TabsTrigger value="conservation">Bảo tồn</TabsTrigger>
@@ -752,11 +856,11 @@ export default function GovernanceDepartmentPage(): JSX.Element {
               tone={pendingSpotCount > 0 ? 'warning' : 'success'}
             />
             <StatCard
-              icon={<MessageSquareWarning className="size-5" />}
-              label="Phản ánh đang xử lý"
-              value={formatNumber(activeFeedbackCount)}
-              helper={`${formatNumber(highPriorityFeedbackCount)} phản ánh ưu tiên cao`}
-              tone={highPriorityFeedbackCount > 0 ? 'danger' : 'info'}
+              icon={<Check className="size-5" />}
+              label="DN đã duyệt"
+              value={formatNumber(approvedBizCount)}
+              helper={`${formatNumber(rejectedBizCount)} hồ sơ đã từ chối`}
+              tone="success"
             />
             <StatCard
               icon={<FileText className="size-5" />}
@@ -793,11 +897,10 @@ export default function GovernanceDepartmentPage(): JSX.Element {
 
           <div className="grid gap-4 xl:grid-cols-2">
             <RegistrationStatusChart businesses={bizRegs} spots={spotRegs} />
-            <FeedbackStatusChart feedbacks={feedbacks} />
+            <CapacityPressurePanel items={capacityItems} />
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-            <CapacityPressurePanel items={capacityItems} />
             <ConservationChart items={conservItems} />
           </div>
 
@@ -816,7 +919,7 @@ export default function GovernanceDepartmentPage(): JSX.Element {
                 {formatNumber(overloadedCount)} điểm quá tải
               </Badge>
               <Badge className="bg-info/10 text-info border-info/20">
-                {formatNumber(activeFeedbackCount)} phản ánh cần theo dõi
+                {formatNumber(approvedBizCount)} doanh nghiệp đã duyệt
               </Badge>
               <Badge className="bg-success/10 text-success border-success/20">
                 {formatNumber(conservItems.length)} khu bảo tồn có dữ liệu
@@ -826,11 +929,39 @@ export default function GovernanceDepartmentPage(): JSX.Element {
         </TabsContent>
 
         <TabsContent value="biz-reg" className="space-y-4">
-          <div className="flex items-end gap-3">
-            <div className="space-y-1">
-              <Label>Trạng thái</Label>
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatCard
+              icon={<Building2 className="size-5" />}
+              label="Tổng hồ sơ DN"
+              value={formatNumber(bizRegs.length)}
+              helper="Theo bộ lọc hiện tại"
+              tone="primary"
+            />
+            <StatCard
+              icon={<AlertTriangle className="size-5" />}
+              label="Chờ duyệt"
+              value={formatNumber(pendingBizCount)}
+              helper="Cần xử lý hồ sơ"
+              tone={pendingBizCount > 0 ? 'warning' : 'success'}
+            />
+            <StatCard
+              icon={<Check className="size-5" />}
+              label="Đã duyệt"
+              value={formatNumber(approvedBizCount)}
+              helper={`${formatNumber(rejectedBizCount)} hồ sơ bị từ chối`}
+              tone="success"
+            />
+          </div>
+
+          <ToolTableCustom
+            searchValue={bizSearch}
+            setSearchValue={setBizSearch}
+            dataUpdatedAt={bizRegQuery.dataUpdatedAt}
+            onRefresh={() => bizRegQuery.refetch()}
+            isRefreshing={bizRegQuery.isFetching && !bizRegQuery.isLoading}
+            filter={
               <Select value={bizStatusFilter} onValueChange={setBizStatusFilter}>
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -840,97 +971,33 @@ export default function GovernanceDepartmentPage(): JSX.Element {
                   <SelectItem value="rejected">Từ chối</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          <ToolTableCustom
-            searchValue=""
-            setSearchValue={() => {}}
-            dataUpdatedAt={bizRegQuery.dataUpdatedAt}
-            onRefresh={() => bizRegQuery.refetch()}
-            isRefreshing={bizRegQuery.isFetching && !bizRegQuery.isLoading}
-            total={bizRegs.length}
+            }
+            total={filteredBizRegs.length}
           >
-            <Table className="relative">
-              <TableHeader className="sticky top-0 z-20">
-                <TableRow>
-                  <TableHead>Tên doanh nghiệp</TableHead>
-                  <TableHead>Chủ sở hữu</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="w-32">Ngày đăng ký</TableHead>
-                  <TableHead className="w-28 text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bizRegQuery.isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-muted-foreground text-center">
-                      Đang tải...
-                    </TableCell>
-                  </TableRow>
-                ) : bizRegs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-muted-foreground text-center">
-                      Không có dữ liệu
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  bizRegs.map((biz: GovernanceDeptBusinessReg) => {
-                    const st = biz.status ?? 'pending'
-                    return (
-                      <TableRow key={biz.id}>
-                        <TableCell className="typo-table-cell font-medium">
-                          {biz.name ?? '-'}
-                        </TableCell>
-                        <TableCell className="typo-table-cell">{biz.owner_name ?? '-'}</TableCell>
-                        <TableCell className="typo-table-cell text-muted-foreground">
-                          {biz.email ?? '-'}
-                        </TableCell>
-                        <TableCell>
-                          <StatusDotBadge
-                            label={REG_STATUS_LABEL[st] ?? st}
-                            dotClass={REG_STATUS_DOT[st] ?? 'bg-muted-foreground'}
-                            badgeClass={
-                              REG_STATUS_BADGE[st] ??
-                              'bg-muted/40 text-muted-foreground border-border'
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="typo-table-cell">
-                          {biz.created_at ? formatDate(biz.created_at) : '-'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {st === 'pending' && (
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Duyệt"
-                                onClick={() =>
-                                  approveBizMutation.mutate({ id: biz.id, status: 'approved' })
-                                }
-                                disabled={approveBizMutation.isPending}
-                              >
-                                <Check className="text-success size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Từ chối"
-                                onClick={() => setBizToReject(biz)}
-                              >
-                                <X className="text-destructive size-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
+            {bizRegQuery.isLoading ? (
+              <div className="text-muted-foreground py-10 text-center text-sm">Đang tải...</div>
+            ) : filteredBizRegs.length === 0 ? (
+              <div className="border-border bg-muted/30 rounded-lg border p-8 text-center">
+                <p className="typo-body-sm font-semibold">Không có hồ sơ doanh nghiệp</p>
+                <p className="typo-caption text-muted-foreground mt-1">
+                  Thử đổi trạng thái hoặc từ khóa tìm kiếm.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredBizRegs.map((biz) => (
+                  <BusinessRegistrationCard
+                    key={biz.id}
+                    biz={biz}
+                    isPending={approveBizMutation.isPending}
+                    onApprove={(item) =>
+                      approveBizMutation.mutate({ id: item.id, status: 'approved' })
+                    }
+                    onReject={setBizToReject}
+                  />
+                ))}
+              </div>
+            )}
           </ToolTableCustom>
 
           <RejectBusinessDialog
@@ -1077,71 +1144,6 @@ export default function GovernanceDepartmentPage(): JSX.Element {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </TabsContent>
-
-        {/* ── Tab: Feedbacks ── */}
-        <TabsContent value="feedbacks" className="space-y-4">
-          <ToolTableCustom
-            searchValue=""
-            setSearchValue={() => {}}
-            dataUpdatedAt={feedbackQuery.dataUpdatedAt}
-            onRefresh={() => feedbackQuery.refetch()}
-            isRefreshing={feedbackQuery.isFetching && !feedbackQuery.isLoading}
-            total={feedbacks.length}
-          >
-            <Table className="relative">
-              <TableHeader className="sticky top-0 z-20">
-                <TableRow>
-                  <TableHead>Tiêu đề</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Độ ưu tiên</TableHead>
-                  <TableHead className="w-32">Ngày gửi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feedbackQuery.isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
-                      Đang tải...
-                    </TableCell>
-                  </TableRow>
-                ) : feedbacks.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
-                      Không có phản ánh
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  feedbacks.map((fb: GovernanceDeptFeedback) => {
-                    const st = fb.status ?? 'pending'
-                    return (
-                      <TableRow key={fb.id}>
-                        <TableCell className="typo-table-cell max-w-64 font-medium">
-                          <span className="line-clamp-1">{fb.title ?? '-'}</span>
-                        </TableCell>
-                        <TableCell>
-                          <StatusDotBadge
-                            label={REG_STATUS_LABEL[st] ?? st}
-                            dotClass={REG_STATUS_DOT[st] ?? 'bg-muted-foreground'}
-                            badgeClass={
-                              REG_STATUS_BADGE[st] ??
-                              'bg-muted/40 text-muted-foreground border-border'
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="typo-table-cell text-muted-foreground capitalize">
-                          {fb.priority ?? '-'}
-                        </TableCell>
-                        <TableCell className="typo-table-cell">
-                          {fb.created_at ? formatDate(fb.created_at) : '-'}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </ToolTableCustom>
         </TabsContent>
 
         {/* ── Tab: Reports ── */}

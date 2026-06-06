@@ -1,7 +1,12 @@
 import type { JSX, ReactNode } from 'react'
 import { useState } from 'react'
 import { useApiQuery, auditLogService } from '@/service'
-import type { ApiResponse, VisitorStatsParams } from '@/types/api'
+import type {
+  VisitorStatisticsOverview,
+  VisitorStatisticsTimeSeries,
+  VisitorStatisticsTopAction,
+  VisitorStatsParams,
+} from '@/types/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -27,32 +32,12 @@ import PageLayout from '@/layout/pageLayout'
 import { formatPeriod } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
-// ─── Types từ response thực tế ────────────────────────────────────────────────
-
-interface OverviewData {
-  total_actions: number
-  unique_users: number
-  unique_ips: number
-  entity_types_affected: number
-}
-
-interface TimeSeriesItem {
-  period: string
+type OverviewData = Record<keyof VisitorStatisticsOverview, number>
+type TimeSeriesItem = Omit<VisitorStatisticsTimeSeries, 'actions' | 'unique_users'> & {
   actions: number
   unique_users: number
 }
-
-interface TopActionItem {
-  action: string
-  entity_type: string | null
-  count: number
-}
-
-interface StatsData {
-  overview: OverviewData
-  time_series: TimeSeriesItem[]
-  top_actions: TopActionItem[]
-}
+type TopActionItem = Omit<VisitorStatisticsTopAction, 'count'> & { count: number }
 
 // ─── Components ───────────────────────────────────────────────────────────────
 
@@ -95,8 +80,39 @@ function StatCard({
   )
 }
 
-const fmt = (v: number | undefined) =>
-  v !== undefined && v !== null ? v.toLocaleString('vi-VN') : '-'
+const toNumber = (value: string | number | null | undefined): number => {
+  const parsed = typeof value === 'number' ? value : Number(value ?? 0)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+const fmt = (value: string | number | null | undefined) => toNumber(value).toLocaleString('vi-VN')
+
+function normalizeOverview(overview?: VisitorStatisticsOverview): OverviewData | undefined {
+  if (!overview) return undefined
+
+  return {
+    total_actions: toNumber(overview.total_actions),
+    unique_users: toNumber(overview.unique_users),
+    unique_ips: toNumber(overview.unique_ips),
+    entity_types_affected: toNumber(overview.entity_types_affected),
+  }
+}
+
+function normalizeTimeSeries(items?: VisitorStatisticsTimeSeries[]): TimeSeriesItem[] {
+  return (items ?? []).map((item) => ({
+    period: item.period,
+    actions: toNumber(item.actions),
+    unique_users: toNumber(item.unique_users),
+  }))
+}
+
+function normalizeTopActions(items?: VisitorStatisticsTopAction[]): TopActionItem[] {
+  return (items ?? []).map((item) => ({
+    action: item.action,
+    entity_type: item.entity_type,
+    count: toNumber(item.count),
+  }))
+}
 
 const ACTION_VERB_CLASS: Record<string, string> = {
   create: 'border-success/20 bg-success/10 text-success',
@@ -164,7 +180,7 @@ function TrafficChart({
       </CardHeader>
       <CardContent>
         <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={288} minWidth={0} minHeight={288}>
             <BarChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
               <XAxis
@@ -188,7 +204,7 @@ function TrafficChart({
                   boxShadow: 'var(--shadow-md)',
                   fontSize: 12,
                 }}
-                formatter={(value: number | undefined) => (value ?? 0).toLocaleString('vi-VN')}
+                formatter={(value: string | number | undefined) => fmt(value)}
               />
               <Bar dataKey={dataKey} fill={fill} radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -221,10 +237,10 @@ export default function VisitorStatisticsPage(): JSX.Element {
     false
   )
 
-  const stats = (dbQuery.data as unknown as ApiResponse<StatsData>)?.data
-  const overview = stats?.overview
-  const timeSeries: TimeSeriesItem[] = stats?.time_series ?? []
-  const topActions: TopActionItem[] = stats?.top_actions ?? []
+  const stats = dbQuery.data?.data
+  const overview = normalizeOverview(stats?.overview)
+  const timeSeries = normalizeTimeSeries(stats?.time_series)
+  const topActions = normalizeTopActions(stats?.top_actions)
 
   const isEmpty =
     !dbQuery.isLoading &&
@@ -350,7 +366,7 @@ export default function VisitorStatisticsPage(): JSX.Element {
             />
             <StatCard
               icon={<Users className="size-5" />}
-              label="Người dùng duy nhất"
+              label="Tài khoản người dùng"
               value={fmt(overview.unique_users)}
               helper="Tài khoản có phát sinh log"
               tone="info"
@@ -400,7 +416,7 @@ export default function VisitorStatisticsPage(): JSX.Element {
             />
             <TrafficChart
               title="Lưu lượng người dùng"
-              description={`Số người dùng duy nhất có phát sinh hoạt động theo từng ${groupByLabel}.`}
+              description={`Số tài khoản người dùng có phát sinh hoạt động theo từng ${groupByLabel}.`}
               badgeClassName="border-info/20 bg-info/10 text-info"
               dataKey="Người dùng"
               fill="hsl(var(--chart-2))"
@@ -442,7 +458,10 @@ export default function VisitorStatisticsPage(): JSX.Element {
                     const width = Math.max(4, Math.round((item.count / maxActionCount) * 100))
 
                     return (
-                      <TableRow key={`${item.action}-${idx}`} className="hover:bg-primary/5">
+                      <TableRow
+                        key={`${item.action}-${item.entity_type ?? 'system'}`}
+                        className="hover:bg-primary/5"
+                      >
                         <TableCell className="typo-table-cell">
                           <span className="bg-muted text-muted-foreground inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
                             {idx + 1}
@@ -474,7 +493,7 @@ export default function VisitorStatisticsPage(): JSX.Element {
                           </div>
                         </TableCell>
                         <TableCell className="typo-table-cell text-right font-semibold tabular-nums">
-                          {item.count.toLocaleString('vi-VN')}
+                          {fmt(item.count)}
                         </TableCell>
                       </TableRow>
                     )

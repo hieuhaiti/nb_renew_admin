@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 const ocopSchema = z.object({
   name: z.string().min(1, 'Tên không được để trống').max(255),
@@ -63,6 +64,7 @@ export default function OcopFormDialog({
   onSubmit,
   isLoading = false,
 }: OcopFormDialogProps) {
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   const dbQuery = useApiQuery(
     ['ocop', ocopId],
     () => ocopService.getById(ocopId!),
@@ -96,15 +98,18 @@ export default function OcopFormDialog({
         unit: item.unit || '',
         shop_url: item.shop_url || '',
         producer_name: item.producer_name || '',
-        province_code: item.province_code || '',
+        province_code: canEditProvinceCode ? item.province_code || '' : provinceCode,
         is_active: item.is_active,
       })
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, province_code: canEditProvinceCode ? '' : provinceCode })
     }
-  }, [item, reset, open])
+  }, [item, reset, open, canEditProvinceCode, provinceCode])
 
   const handleFormSubmit: SubmitHandler<OcopFormValues> = (formData) => {
+    const submittedProvinceCode = canEditProvinceCode
+      ? formData.province_code?.trim()
+      : provinceCode
     const payload: OcopFormBody = {
       name: formData.name,
       ...(formData.category?.trim() && { category: formData.category }),
@@ -116,7 +121,7 @@ export default function OcopFormDialog({
       ...(formData.unit?.trim() && { unit: formData.unit }),
       ...(formData.shop_url?.trim() && { shop_url: formData.shop_url }),
       ...(formData.producer_name?.trim() && { producer_name: formData.producer_name }),
-      ...(formData.province_code?.trim() && { province_code: formData.province_code }),
+      ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
       is_active: formData.is_active,
     }
     onSubmit(payload)
@@ -194,7 +199,12 @@ export default function OcopFormDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="ocop_province">Mã tỉnh</Label>
-              <Input id="ocop_province" {...register('province_code')} placeholder="Mã tỉnh" />
+              <Input
+                id="ocop_province"
+                {...register('province_code')}
+                placeholder="Mã tỉnh"
+                disabled={!canEditProvinceCode}
+              />
             </div>
             <div className="space-y-2">
               <Label>Trạng thái</Label>

@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/select'
 import { SearchSelect } from '@/components/common/SearchSelect'
 import useDeepEffect from '@/hooks/useDeepEffect'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 import { STALE_REF } from '@/constant/queryConstant'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -226,6 +227,7 @@ export default function TourFormDialog({
   onSubmit,
   isLoading = false,
 }: TourFormDialogProps) {
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   // ── Tour data ─────────────────────────────────────────────────────────────
   const dbQuery = useApiQuery(
     ['tour', tourId],
@@ -433,7 +435,7 @@ export default function TourFormDialog({
       reset({
         name: tour.name,
         slug: tour.slug,
-        province_code: tour.province_code ?? '',
+        province_code: canEditProvinceCode ? tour.province_code ?? '' : provinceCode,
         description_vi: tour.description_vi ?? '',
         duration_days: tour.duration_days,
         price_from_vnd: tour.price_from_vnd != null ? parseFloat(tour.price_from_vnd) : null,
@@ -447,9 +449,9 @@ export default function TourFormDialog({
         excludes: tour.excludes ?? [],
       })
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, province_code: canEditProvinceCode ? '' : provinceCode })
     }
-  }, [tour, reset, open])
+  }, [tour, reset, open, canEditProvinceCode, provinceCode])
 
   // ── includes / excludes helpers ───────────────────────────────────────────
   const addTag = (field: 'includes' | 'excludes', value: string) => {
@@ -464,10 +466,11 @@ export default function TourFormDialog({
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleFormSubmit: SubmitHandler<TourFormValues> = (values) => {
+    const submittedProvinceCode = canEditProvinceCode ? values.province_code?.trim() : provinceCode
     const body: TourFormBody = {
       name: values.name,
       slug: values.slug,
-      ...(values.province_code && { province_code: values.province_code }),
+      ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
       ...(values.description_vi && { description_vi: values.description_vi }),
       duration_days: values.duration_days,
       ...(values.price_from_vnd != null && { price_from_vnd: values.price_from_vnd }),
@@ -590,7 +593,12 @@ export default function TourFormDialog({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label htmlFor="tour_province">Mã tỉnh</Label>
-                  <Input id="tour_province" {...register('province_code')} placeholder="37" />
+                  <Input
+                    id="tour_province"
+                    {...register('province_code')}
+                    placeholder="37"
+                    disabled={!canEditProvinceCode}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="tour_status">Trạng thái</Label>

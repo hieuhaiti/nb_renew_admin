@@ -74,6 +74,11 @@ export function useNotificationWebSocket(options: UseNotificationWebSocketOption
       socketRef.current = socket
 
       socket.onopen = () => {
+        if (disposed) {
+          socket.close()
+          return
+        }
+
         reconnectAttemptRef.current = 0
       }
 
@@ -82,11 +87,13 @@ export function useNotificationWebSocket(options: UseNotificationWebSocketOption
       }
 
       socket.onerror = () => {
-        socket.close()
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.close()
+        }
       }
 
       socket.onclose = () => {
-        if (!disposed) scheduleReconnect()
+        if (!disposed && socketRef.current === socket) scheduleReconnect()
       }
     }
 
@@ -96,9 +103,20 @@ export function useNotificationWebSocket(options: UseNotificationWebSocketOption
       disposed = true
       clearReconnectTimer()
 
-      if (socketRef.current) {
-        socketRef.current.onclose = null
-        socketRef.current.close()
+      const socket = socketRef.current
+      if (socket) {
+        socket.onmessage = null
+        socket.onerror = null
+        socket.onclose = null
+
+        if (socket.readyState === WebSocket.CONNECTING) {
+          socket.onopen = () => {
+            socket.close()
+          }
+        } else if (socket.readyState === WebSocket.OPEN) {
+          socket.close()
+        }
+
         socketRef.current = null
       }
     }

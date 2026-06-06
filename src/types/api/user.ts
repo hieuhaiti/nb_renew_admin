@@ -7,6 +7,7 @@ export interface User {
   phone?: string | null
   avatar_url?: string | null
   address_detail?: string | null
+  province_code?: string | null
   role_id?: number
   role?: UserRole
   role_name?: string | null

@@ -17,6 +17,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { BUSINESS_TYPE_OPTIONS, normalizeBusinessType } from '@/constant/businessConstant'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ export default function BusinessFormDialog({
   onSubmit,
   isLoading = false,
 }: BusinessFormDialogProps) {
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   const dbQuery = useApiQuery(
     ['business', businessId],
     () => businessService.getById(businessId!),
@@ -114,16 +116,17 @@ export default function BusinessFormDialog({
         email: biz.email ?? '',
         website: biz.website ?? '',
         address_vi: biz.address_vi ?? '',
-        province_code: biz.province_code ?? '',
+        province_code: canEditProvinceCode ? biz.province_code ?? '' : provinceCode,
         lng: biz.geom?.coordinates[0] ?? null,
         lat: biz.geom?.coordinates[1] ?? null,
       })
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, province_code: canEditProvinceCode ? '' : provinceCode })
     }
-  }, [biz, reset, open])
+  }, [biz, reset, open, canEditProvinceCode, provinceCode])
 
   const handleFormSubmit: SubmitHandler<BusinessFormValues> = (values) => {
+    const submittedProvinceCode = canEditProvinceCode ? values.province_code?.trim() : provinceCode
     const body: Partial<BusinessFormBody> = {
       business_name: values.business_name,
       business_type: normalizeBusinessType(values.business_type),
@@ -136,7 +139,7 @@ export default function BusinessFormDialog({
       ...(values.email && { email: values.email }),
       ...(values.website && { website: values.website }),
       ...(values.address_vi && { address_vi: values.address_vi }),
-      ...(values.province_code && { province_code: values.province_code }),
+      ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
       ...(values.lng != null && { lng: values.lng }),
       ...(values.lat != null && { lat: values.lat }),
     }
@@ -233,7 +236,12 @@ export default function BusinessFormDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label htmlFor="biz_province">Mã tỉnh</Label>
-              <Input id="biz_province" {...register('province_code')} placeholder="37" />
+              <Input
+                id="biz_province"
+                {...register('province_code')}
+                placeholder="37"
+                disabled={!canEditProvinceCode}
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="biz_address">Địa chỉ</Label>

@@ -111,7 +111,10 @@ export function getCapacitySocketStatus(): WSStatus {
  * Protocol is determined automatically: HTTPS frontend → wss://, HTTP → ws://.
  */
 export function connectCapacitySocket(opts: WSOptions): void {
-  if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+  if (
+    wsInstance &&
+    (wsInstance.readyState === WebSocket.CONNECTING || wsInstance.readyState === WebSocket.OPEN)
+  ) {
     wsOptions = opts
     return
   }
@@ -131,8 +134,11 @@ export function connectCapacitySocket(opts: WSOptions): void {
     wsInstance = ws
 
     ws.onopen = () => {
-      // Guard: if this socket was superseded (disconnect was called), do nothing
-      if (wsInstance !== ws) return
+      // Guard: if this socket was superseded or disconnected while connecting.
+      if (wsInstance !== ws) {
+        ws.close()
+        return
+      }
 
       wsStatus = 'connected'
       wsReconnectAttempts = 0
@@ -192,7 +198,22 @@ export function disconnectCapacitySocket(): void {
     clearTimeout(wsReconnectTimer)
     wsReconnectTimer = null
   }
-  wsInstance?.close()
+
+  const ws = wsInstance
+  if (ws) {
+    ws.onmessage = null
+    ws.onerror = null
+    ws.onclose = null
+
+    if (ws.readyState === WebSocket.CONNECTING) {
+      ws.onopen = () => {
+        ws.close()
+      }
+    } else if (ws.readyState === WebSocket.OPEN) {
+      ws.close()
+    }
+  }
+
   wsInstance = null
   wsOptions = null
   wsReconnectAttempts = 0

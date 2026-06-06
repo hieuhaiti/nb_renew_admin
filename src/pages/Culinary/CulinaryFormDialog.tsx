@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 const culinarySchema = z.object({
   name: z.string().min(1, 'Tên không được để trống').max(255),
@@ -51,6 +52,7 @@ export default function CulinaryFormDialog({
   onSubmit,
   isLoading = false,
 }: CulinaryFormDialogProps) {
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   const dbQuery = useApiQuery(
     ['culinary', culinaryId],
     () => culinaryService.getById(culinaryId!),
@@ -75,21 +77,22 @@ export default function CulinaryFormDialog({
         description: item.description || '',
         cover_image_url: item.cover_image_url || '',
         is_speciality: item.is_speciality,
-        province_code: item.province_code || '',
+        province_code: canEditProvinceCode ? item.province_code || '' : provinceCode,
       })
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, province_code: canEditProvinceCode ? '' : provinceCode })
     }
-  }, [item, reset, open])
+  }, [item, reset, open, canEditProvinceCode, provinceCode])
 
   const handleFormSubmit: SubmitHandler<CulinaryFormValues> = (data) => {
+    const submittedProvinceCode = canEditProvinceCode ? data.province_code?.trim() : provinceCode
     const payload: CulinaryFormBody = {
       name: data.name,
       ...(data.category?.trim() && { category: data.category }),
       ...(data.description?.trim() && { description: data.description }),
       ...(data.cover_image_url?.trim() && (!isEdit || data.cover_image_url !== (item?.cover_image_url || '')) && { cover_image_url: data.cover_image_url }),
       is_speciality: data.is_speciality,
-      ...(data.province_code?.trim() && { province_code: data.province_code }),
+      ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
     }
     onSubmit(payload)
   }
@@ -123,7 +126,12 @@ export default function CulinaryFormDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="cul_province">Tỉnh/Thành</Label>
-              <Input id="cul_province" {...register('province_code')} placeholder="Mã tỉnh" />
+              <Input
+                id="cul_province"
+                {...register('province_code')}
+                placeholder="Mã tỉnh"
+                disabled={!canEditProvinceCode}
+              />
             </div>
             <div className="space-y-2">
               <Label>Đặc sản</Label>

@@ -32,38 +32,28 @@ export interface AuditLogListParams {
 }
 
 export interface VisitorStatisticsOverview {
-  total_visits: string | number
+  total_actions: string | number
   unique_users: string | number
   unique_ips: string | number
-  requests_by_method?: {
-    post: string | number
-    put: string | number
-    delete: string | number
-  }
-  success_rate?: string | number
-  avg_response_time: string | number
+  entity_types_affected: string | number
 }
 
 export interface VisitorStatisticsTimeSeries {
   period: string
-  visits: string | number
+  actions: string | number
   unique_users: string | number
-  unique_ips: string | number
 }
 
-export interface VisitorStatisticsTopUser {
-  username: string
-  full_name: string
-  visit_count: string | number
+export interface VisitorStatisticsTopAction {
+  action: string
+  entity_type: string | null
+  count: string | number
 }
 
 export interface VisitorStatistics {
   overview: VisitorStatisticsOverview
   time_series: VisitorStatisticsTimeSeries[]
-  top_users?: VisitorStatisticsTopUser[]
-  // Backward compatibility (older payloads)
-  timeSeries?: VisitorStatisticsTimeSeries[]
-  topUsers?: VisitorStatisticsTopUser[]
+  top_actions: VisitorStatisticsTopAction[]
 }
 
 export interface VisitorStatsParams {

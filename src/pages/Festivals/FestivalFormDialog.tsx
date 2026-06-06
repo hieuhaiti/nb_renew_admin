@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 const festivalSchema = z.object({
   name_vi: z.string().min(1, 'Tên tiếng Việt không được để trống').max(255),
@@ -63,6 +64,7 @@ export default function FestivalFormDialog({
   onSubmit,
   isLoading = false,
 }: FestivalFormDialogProps) {
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   const dbQuery = useApiQuery(
     ['festival', festivalId],
     () => festivalService.getById(festivalId!),
@@ -96,15 +98,18 @@ export default function FestivalFormDialog({
         cover_image_url: item.cover_image_url || '',
         website: item.website || '',
         location_name: item.location_name || '',
-        province_code: item.province_code || '',
+        province_code: canEditProvinceCode ? item.province_code || '' : provinceCode,
         is_published: item.is_published,
       })
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, province_code: canEditProvinceCode ? '' : provinceCode })
     }
-  }, [item, reset, open])
+  }, [item, reset, open, canEditProvinceCode, provinceCode])
 
   const handleFormSubmit: SubmitHandler<FestivalFormValues> = (formData) => {
+    const submittedProvinceCode = canEditProvinceCode
+      ? formData.province_code?.trim()
+      : provinceCode
     const payload: FestivalFormBody = {
       name_vi: formData.name_vi,
       ...(formData.name_en?.trim() && { name_en: formData.name_en }),
@@ -116,7 +121,7 @@ export default function FestivalFormDialog({
       ...(formData.cover_image_url?.trim() && (!isEdit || formData.cover_image_url !== (item?.cover_image_url || '')) && { cover_image_url: formData.cover_image_url }),
       ...(formData.website?.trim() && (!isEdit || formData.website !== (item?.website || '')) && { website: formData.website }),
       ...(formData.location_name?.trim() && { location_name: formData.location_name }),
-      ...(formData.province_code?.trim() && { province_code: formData.province_code }),
+      ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
       is_published: formData.is_published,
     }
     onSubmit(payload)
@@ -176,7 +181,12 @@ export default function FestivalFormDialog({
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fes_province">Mã tỉnh</Label>
-              <Input id="fes_province" {...register('province_code')} placeholder="Mã tỉnh" />
+              <Input
+                id="fes_province"
+                {...register('province_code')}
+                placeholder="Mã tỉnh"
+                disabled={!canEditProvinceCode}
+              />
             </div>
             <div className="space-y-2">
               <Label>Định kỳ</Label>

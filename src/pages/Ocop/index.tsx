@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, ocopService } from '@/service'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
+import { useProvinceScope } from '@/hooks/useProvinceScope'
 import type { ApiResponse, OcopProduct, OcopListData, OcopFormBody, Pagination } from '@/types/api'
 import {
   Select,
@@ -50,6 +51,7 @@ const STAR_LABELS: Record<number, string> = {
 
 export default function OcopPage(): JSX.Element {
   const openLightbox = useLightboxStore((s) => s.open)
+  const { provinceCode, canEditProvinceCode } = useProvinceScope()
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [searchValue, setSearchValue] = useState<string>('')
@@ -59,6 +61,7 @@ export default function OcopPage(): JSX.Element {
 
   const trimmedCategory = categoryFilter.trim()
   const trimmedProvinceCode = provinceCodeFilter.trim()
+  const scopedProvinceCode = canEditProvinceCode ? trimmedProvinceCode : provinceCode
   const parsedStarRating =
     starRatingFilter !== 'all' ? Number.parseInt(starRatingFilter, 10) : Number.NaN
 
@@ -69,14 +72,14 @@ export default function OcopPage(): JSX.Element {
     sortOrder: 'DESC' as const,
     ...(trimmedCategory && { category: trimmedCategory }),
     ...(!Number.isNaN(parsedStarRating) && { star_rating: parsedStarRating }),
-    ...(trimmedProvinceCode && { province_code: trimmedProvinceCode }),
+    ...(scopedProvinceCode && { province_code: scopedProvinceCode }),
     ...(searchValue && { search: searchValue }),
   }
 
   const dbQuery = useApiQuery(
     ['ocop', queryParams],
     () => ocopService.getAdmin(queryParams),
-    { staleTime: STALE_DEFAULT },
+    { staleTime: STALE_DEFAULT, enabled: canEditProvinceCode || !!scopedProvinceCode },
     false,
     false
   )
@@ -181,12 +184,14 @@ export default function OcopPage(): JSX.Element {
               </SelectContent>
             </Select>
             <Input
-              value={provinceCodeFilter}
+              value={canEditProvinceCode ? provinceCodeFilter : provinceCode}
               onChange={(e) => {
+                if (!canEditProvinceCode) return
                 setProvinceCodeFilter(e.target.value)
                 setCurrentPage(1)
               }}
               placeholder="Mã tỉnh"
+              disabled={!canEditProvinceCode}
               className="w-28"
             />
             <Select
@@ -238,7 +243,13 @@ export default function OcopPage(): JSX.Element {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dbQuery.isLoading ? (
+            {!canEditProvinceCode && !scopedProvinceCode ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
+                  Tài khoản hiện tại chưa có <span className="font-medium">Mã tỉnh</span> trong hồ sơ.
+                </TableCell>
+              </TableRow>
+            ) : dbQuery.isLoading ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
                   Đang tải...
