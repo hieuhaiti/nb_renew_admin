@@ -77,6 +77,9 @@ interface HotspotPositionLike extends Vec3Like {
 
 const HOTSPOT_EYE_LEVEL = 1.6
 const HOTSPOT_DEFAULT_DISTANCE = 3
+const DRAFT_HOTSPOT_ID = '__draft_hotspot__'
+const TEST_SCENE_IMAGE_URL =
+  'https://apidulich.tourismpj.pro.vn/uploads/images/DJI_20250720085128_0001_V.JPG'
 
 function toWorldHotspotPosition(position?: object | null): { x: number; y: number; z: number } {
   const p = (position ?? {}) as HotspotPositionLike
@@ -145,22 +148,13 @@ function SectionLabel({ children }: { children: ReactNode }) {
 }
 
 const HOTSPOT_TYPES = [
-  { value: 'navigate', label: 'Điều hướng' },
+  { value: 'navigation', label: 'Điều hướng' },
   { value: 'info', label: 'Thông tin' },
-  { value: 'url', label: 'Liên kết URL' },
+  { value: 'link', label: 'Liên kết URL' },
   { value: 'media', label: 'Media' },
-]
-
-const ICON_TYPES = [
-  { value: 'arrow', label: 'Mũi tên' },
-  { value: 'info', label: 'Thông tin' },
-  { value: 'link', label: 'Liên kết' },
-  { value: 'media', label: 'Media' },
-  { value: 'plus', label: 'Thêm' },
 ]
 
 const HOTSPOT_TYPE_VALUES = new Set(HOTSPOT_TYPES.map((item) => item.value))
-const ICON_TYPE_VALUES = new Set(ICON_TYPES.map((item) => item.value))
 
 function sanitizeOptionValue(value?: string | null): string {
   return (value ?? '').trim().toLowerCase()
@@ -168,12 +162,9 @@ function sanitizeOptionValue(value?: string | null): string {
 
 function normalizeHotspotType(value?: string | null): string {
   const normalized = sanitizeOptionValue(value)
-  return HOTSPOT_TYPE_VALUES.has(normalized) ? normalized : 'navigate'
-}
-
-function normalizeIconType(value?: string | null): string {
-  const normalized = sanitizeOptionValue(value)
-  return ICON_TYPE_VALUES.has(normalized) ? normalized : 'arrow'
+  if (normalized === 'navigate') return 'navigation'
+  if (normalized === 'url') return 'link'
+  return HOTSPOT_TYPE_VALUES.has(normalized) ? normalized : 'navigation'
 }
 
 interface SceneFormState {
@@ -395,15 +386,15 @@ export default function AframeSceneDetailDialog({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
-  const [editType, setEditType] = useState('navigate')
+  const [editType, setEditType] = useState('navigation')
   const [editPos, setEditPos] = useState({ x: '', y: '', z: '' })
   const [editScale, setEditScale] = useState({ x: '1', y: '1', z: '1' })
   const [editTarget, setEditTarget] = useState<string | null>(null)
   const [editLinkedSpotId, setEditLinkedSpotId] = useState<string | null>(null)
   const [editTargetUrl, setEditTargetUrl] = useState('')
-  const [editIconType, setEditIconType] = useState('arrow')
   const [editVisible, setEditVisible] = useState(true)
   const [editActive, setEditActive] = useState(true)
+  const [isCreatingHotspot, setIsCreatingHotspot] = useState(false)
   const [deleteHsOpen, setDeleteHsOpen] = useState(false)
   const [hsToDelete, setHsToDelete] = useState<AFrameHotspot | null>(null)
   const pendingSelectRef = useRef<string | null>(null)
@@ -417,6 +408,7 @@ export default function AframeSceneDetailDialog({
       setIsEditingScene(false)
       setSelectedHsId(null)
       setEditingId(null)
+      setIsCreatingHotspot(false)
       setDeleteHsOpen(false)
     }
   }, [open])
@@ -460,6 +452,28 @@ export default function AframeSceneDetailDialog({
   }, [hotspots])
 
   const displayedHotspots = useMemo<PreviewHotspot[]>(() => {
+    if (isCreatingHotspot) {
+      return [
+        ...normalizedHotspots,
+        {
+          id: DRAFT_HOTSPOT_ID,
+          name: editName || 'Hotspot mới',
+          hotspot_type: editType,
+          visible: editVisible,
+          is_active: editActive,
+          position: {
+            x: editPos.x !== '' ? num(editPos.x) : 0,
+            y: editPos.y !== '' ? num(editPos.y) : HOTSPOT_EYE_LEVEL,
+            z: editPos.z !== '' ? num(editPos.z) : -HOTSPOT_DEFAULT_DISTANCE,
+          },
+          scale: {
+            x: num(editScale.x, 1),
+            y: num(editScale.y, 1),
+            z: num(editScale.z, 1),
+          },
+        },
+      ]
+    }
     if (!normalizedHotspots.length) return []
     if (editingId && selectedHsId === editingId) {
       return normalizedHotspots.map((h) => {
@@ -483,7 +497,18 @@ export default function AframeSceneDetailDialog({
       })
     }
     return normalizedHotspots
-  }, [normalizedHotspots, selectedHsId, editingId, editName, editVisible, editPos, editScale])
+  }, [
+    normalizedHotspots,
+    selectedHsId,
+    editingId,
+    isCreatingHotspot,
+    editName,
+    editType,
+    editVisible,
+    editActive,
+    editPos,
+    editScale,
+  ])
 
   const createHsMutation = useApiMutation(
     (data: AFrameHotspotFormBody) =>
@@ -493,6 +518,7 @@ export default function AframeSceneDetailDialog({
         const d = (res as any)?.data
         const hs = d?.hotspot ?? (d && 'id' in d ? d : null)
         if (hs?.id) pendingSelectRef.current = hs.id
+        setIsCreatingHotspot(false)
         hotspotQuery.refetch()
       },
     },
@@ -525,25 +551,22 @@ export default function AframeSceneDetailDialog({
 
   function startEditing(hs: AFrameHotspot) {
     const nextType = normalizeHotspotType(hs.hotspot_type)
-    const nextIcon = normalizeIconType(hs.icon_type)
     if (debug) {
       console.debug('[AframeSceneDetailDialog] startEditing', {
         hotspotId: hs.id,
         rawHotspotType: hs.hotspot_type,
-        rawIconType: hs.icon_type,
         boundHotspotType: nextType,
-        boundIconType: nextIcon,
       })
     }
     setSelectedHsId(hs.id)
     setEditingId(hs.id)
+    setIsCreatingHotspot(false)
     setEditName(hs.name || '')
     setEditDesc(hs.description || '')
     setEditType(nextType)
     setEditTarget(hs.target_scene_id ?? null)
     setEditLinkedSpotId(hs.linked_spot_id ?? null)
     setEditTargetUrl(hs.target_url ?? '')
-    setEditIconType(nextIcon)
     setEditVisible(hs.visible !== false)
     setEditActive(hs.is_active)
 
@@ -555,47 +578,76 @@ export default function AframeSceneDetailDialog({
 
   function cancelEditing() {
     setEditingId(null)
+    setIsCreatingHotspot(false)
+    setSelectedHsId(null)
     setEditName('')
     setEditDesc('')
-    setEditType('navigate')
+    setEditType('navigation')
     setEditPos({ x: '', y: '', z: '' })
     setEditScale({ x: '1', y: '1', z: '1' })
     setEditTarget(null)
     setEditLinkedSpotId(null)
     setEditTargetUrl('')
-    setEditIconType('arrow')
     setEditVisible(true)
     setEditActive(true)
   }
 
   function handleCreateHotspot() {
     if (!effectiveSceneId) return
-    createHsMutation.mutate({
-      name: 'Hotspot mới',
-      hotspot_type: 'navigate',
-      position: toPositionWithAngles({
-        x: 0,
-        y: HOTSPOT_EYE_LEVEL,
-        z: -HOTSPOT_DEFAULT_DISTANCE,
-      }),
-      scale: { x: 1, y: 1, z: 1 },
+    setSelectedHsId(DRAFT_HOTSPOT_ID)
+    setEditingId(null)
+    setIsCreatingHotspot(true)
+    setEditName('Hotspot mới')
+    setEditDesc('')
+    setEditType('navigation')
+    setEditPos({ x: '0', y: String(HOTSPOT_EYE_LEVEL), z: String(-HOTSPOT_DEFAULT_DISTANCE) })
+    setEditScale({ x: '1', y: '1', z: '1' })
+    setEditTarget(null)
+    setEditLinkedSpotId(null)
+    setEditTargetUrl('')
+    setEditVisible(true)
+    setEditActive(true)
+  }
+
+  function buildHotspotFormPayload(): AFrameHotspotFormBody {
+    const px = editPos.x !== '' ? num(editPos.x) : 0
+    const py = editPos.y !== '' ? num(editPos.y) : HOTSPOT_EYE_LEVEL
+    const pz = editPos.z !== '' ? num(editPos.z) : -HOTSPOT_DEFAULT_DISTANCE
+    const sx = num(editScale.x, 1)
+    const sy = num(editScale.y, 1)
+    const sz = num(editScale.z, 1)
+
+    return {
+      name: editName.trim() || 'Hotspot mới',
+      ...(editDesc.trim() && { description: editDesc.trim() }),
+      hotspot_type: normalizeHotspotType(editType),
+      position: toPositionWithAngles({ x: px, y: py, z: pz }),
+      scale: { x: sx, y: sy, z: sz },
+      ...(editTarget && { target_scene_id: editTarget }),
+      ...(editLinkedSpotId && { linked_spot_id: editLinkedSpotId }),
+      ...(editTargetUrl.trim() && { target_url: editTargetUrl.trim() }),
       icon_type: 'arrow',
-      visible: true,
-      is_active: true,
-    })
+      visible: editVisible,
+      is_active: editActive,
+    }
   }
 
   function handleSaveHotspot() {
+    if (isCreatingHotspot) {
+      if (!effectiveSceneId) return
+      createHsMutation.mutate(buildHotspotFormPayload())
+      return
+    }
+
     if (!editingId) return
     const orig = hotspots.find((h) => h.id === editingId)
     if (!orig) return
 
     const payload: Partial<AFrameHotspotFormBody> = {}
     const origType = normalizeHotspotType(orig.hotspot_type)
-    const origIcon = normalizeIconType(orig.icon_type)
     if (editName !== (orig.name || '')) payload.name = editName
     if (editDesc !== (orig.description || '')) payload.description = editDesc
-    if (editType !== origType) payload.hotspot_type = editType
+    if (editType !== origType) payload.hotspot_type = normalizeHotspotType(editType)
     if (editVisible !== (orig.visible !== false)) payload.visible = editVisible
     if (editActive !== orig.is_active) payload.is_active = editActive
     if (editTarget !== (orig.target_scene_id ?? null))
@@ -603,7 +655,7 @@ export default function AframeSceneDetailDialog({
     if (editLinkedSpotId !== (orig.linked_spot_id ?? null))
       payload.linked_spot_id = editLinkedSpotId ?? undefined
     if (editTargetUrl !== (orig.target_url ?? '')) payload.target_url = editTargetUrl || undefined
-    if (editIconType !== origIcon) payload.icon_type = editIconType
+    if (orig.icon_type !== 'arrow') payload.icon_type = 'arrow'
 
     const origPos = toWorldHotspotPosition(orig.position)
     const px = editPos.x !== '' ? num(editPos.x) : origPos.x
@@ -692,16 +744,39 @@ export default function AframeSceneDetailDialog({
     createSceneMutation.mutate(payload)
   }
 
+  function handleFillSceneTestData() {
+    setSceneForm((prev) => ({
+      ...prev,
+      name: 'test scene',
+      description: 'test scene description',
+      equirectangular_image_url: TEST_SCENE_IMAGE_URL,
+      thumbnail_url: TEST_SCENE_IMAGE_URL,
+      camera_fov: '80',
+      cam_pos_x: '0',
+      cam_pos_y: '1.6',
+      cam_pos_z: '0',
+      cam_rot_x: '0',
+      cam_rot_y: '45',
+      cam_rot_z: '0',
+      ambient_sound_url: '/uploads/audios/test-ambient.mp3',
+      ambient_sound_loop: true,
+      ambient_sound_volume: '0.5',
+      narration_audio_url: '/uploads/audios/test-narration.mp3',
+      auto_play_narration: false,
+      is_main: false,
+      is_active: true,
+    }))
+    setSceneFormError(null)
+  }
+
   useEffect(() => {
     if (!debug || !editingId) return
     console.debug('[AframeSceneDetailDialog] edit select current values', {
       editingId,
       editType,
-      editIconType,
       hasHotspotTypeOption: HOTSPOT_TYPE_VALUES.has(editType),
-      hasIconTypeOption: ICON_TYPE_VALUES.has(editIconType),
     })
-  }, [debug, editingId, editType, editIconType])
+  }, [debug, editingId, editType])
 
   const previewPosition = {
     x: parseOptionalNumber(sceneForm.cam_pos_x) ?? 0,
@@ -800,6 +875,15 @@ export default function AframeSceneDetailDialog({
                         {isCreateMode ? 'Thông tin cảnh mới' : 'Chỉnh sửa cảnh'}
                       </p>
                       <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          type="button"
+                          onClick={handleFillSceneTestData}
+                          disabled={isSavingScene}
+                        >
+                          Auto test
+                        </Button>
                         {!!effectiveSceneId && scene?.is_main && (
                           <Badge className="border-warning/20 bg-warning/10 text-warning">
                             <Crown className="mr-1 size-3" /> Cảnh chính
@@ -1231,8 +1315,12 @@ export default function AframeSceneDetailDialog({
                     </div>
                   )}
 
-                  {editingId && (
+                  {(editingId || isCreatingHotspot) && (
                     <div className="space-y-2.5 rounded border p-3">
+                      <p className="text-xs font-semibold">
+                        {isCreatingHotspot ? 'Tạo hotspot' : 'Chỉnh sửa hotspot'}
+                      </p>
+
                       <div className="space-y-1">
                         <Label className="text-xs">Tên hotspot</Label>
                         <Input
@@ -1252,76 +1340,60 @@ export default function AframeSceneDetailDialog({
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Loại hotspot</Label>
-                          <Select value={editType} onValueChange={setEditType}>
-                            <SelectTrigger className="h-7 text-xs">
-                              <SelectValue placeholder="Chọn loại hotspot" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {HOTSPOT_TYPES.map((t) => (
-                                <SelectItem key={t.value} value={t.value} className="text-xs">
-                                  {t.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label className="text-xs">Biểu tượng</Label>
-                          <Select value={editIconType} onValueChange={setEditIconType}>
-                            <SelectTrigger className="h-7 text-xs">
-                              <SelectValue placeholder="Chọn biểu tượng" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {ICON_TYPES.map((t) => (
-                                <SelectItem key={t.value} value={t.value} className="text-xs">
-                                  {t.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Loại hotspot</Label>
+                        <Select value={editType} onValueChange={setEditType}>
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue placeholder="Chọn loại hotspot" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {HOTSPOT_TYPES.map((t) => (
+                              <SelectItem key={t.value} value={t.value} className="text-xs">
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-xs">Vị trí X Y Z</Label>
-                        <div className="grid grid-cols-3 gap-1">
-                          {(['x', 'y', 'z'] as const).map((axis) => (
-                            <Input
-                              key={axis}
-                              type="number"
-                              step={1}
-                              className="h-7 text-center text-xs"
-                              placeholder={axis.toUpperCase()}
-                              value={editPos[axis]}
-                              onChange={(e) =>
-                                setEditPos((p) => ({ ...p, [axis]: e.target.value }))
-                              }
-                            />
-                          ))}
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Vị trí X Y Z</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            {(['x', 'y', 'z'] as const).map((axis) => (
+                              <Input
+                                key={axis}
+                                type="number"
+                                step={1}
+                                className="h-7 text-center text-xs"
+                                placeholder={axis.toUpperCase()}
+                                value={editPos[axis]}
+                                onChange={(e) =>
+                                  setEditPos((p) => ({ ...p, [axis]: e.target.value }))
+                                }
+                              />
+                            ))}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-xs">Tỉ lệ X Y Z</Label>
-                        <div className="grid grid-cols-3 gap-1">
-                          {(['x', 'y', 'z'] as const).map((axis) => (
-                            <Input
-                              key={axis}
-                              type="number"
-                              step={1}
-                              min="0.1"
-                              className="h-7 text-center text-xs"
-                              placeholder={axis.toUpperCase()}
-                              value={editScale[axis]}
-                              onChange={(e) =>
-                                setEditScale((s) => ({ ...s, [axis]: e.target.value }))
-                              }
-                            />
-                          ))}
+                        <div className="space-y-1">
+                          <Label className="text-xs">Tỉ lệ X Y Z</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            {(['x', 'y', 'z'] as const).map((axis) => (
+                              <Input
+                                key={axis}
+                                type="number"
+                                step={1}
+                                min="0.1"
+                                className="h-7 text-center text-xs"
+                                placeholder={axis.toUpperCase()}
+                                value={editScale[axis]}
+                                onChange={(e) =>
+                                  setEditScale((s) => ({ ...s, [axis]: e.target.value }))
+                                }
+                              />
+                            ))}
+                          </div>
                         </div>
                       </div>
 
@@ -1383,17 +1455,19 @@ export default function AframeSceneDetailDialog({
                       </div>
 
                       <div className="flex items-center gap-1.5 pt-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => {
-                            setHsToDelete(hotspots.find((h) => h.id === editingId) ?? null)
-                            setDeleteHsOpen(true)
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        {editingId && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => {
+                              setHsToDelete(hotspots.find((h) => h.id === editingId) ?? null)
+                              setDeleteHsOpen(true)
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        )}
                         <Button size="sm" variant="outline" onClick={cancelEditing}>
                           Hủy
                         </Button>
@@ -1401,9 +1475,11 @@ export default function AframeSceneDetailDialog({
                           size="sm"
                           className="ml-auto"
                           onClick={handleSaveHotspot}
-                          disabled={updateHsMutation.isPending}
+                          disabled={createHsMutation.isPending || updateHsMutation.isPending}
                         >
-                          {updateHsMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+                          {createHsMutation.isPending || updateHsMutation.isPending
+                            ? 'Đang lưu...'
+                            : 'Lưu'}
                         </Button>
                       </div>
                     </div>
@@ -1439,4 +1515,3 @@ export default function AframeSceneDetailDialog({
     </>
   )
 }
-
