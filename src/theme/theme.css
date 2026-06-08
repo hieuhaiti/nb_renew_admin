@@ -50,6 +50,16 @@
   /* ===== Card Extended ===== */
   --card-hover: #f8fafc; /* slate-50 */
 
+  /* ===== Dashboard Section Tones ===== */
+  --dashboard-service: #2563eb; /* blue-600 */
+  --dashboard-service-soft: #eff6ff; /* blue-50 */
+  --dashboard-commerce: #059669; /* emerald-600 */
+  --dashboard-commerce-soft: #ecfdf5; /* emerald-50 */
+  --dashboard-operations: #d97706; /* amber-600 */
+  --dashboard-operations-soft: #fffbeb; /* amber-50 */
+  --dashboard-profile: #7c3aed; /* violet-600 */
+  --dashboard-profile-soft: #f5f3ff; /* violet-50 */
+
   /* ===== Error Page Colors ===== */
   --error-400: #f87171; /* red-400 */
   --error-401: #f59e0b; /* amber-500 */
