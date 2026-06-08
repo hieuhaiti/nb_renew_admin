@@ -3,18 +3,25 @@ import type { ApiResponse } from '@/types/api'
 import { serviceStatisticsPath } from '@/constant/serviceConstant'
 
 export interface StatisticsDataFile {
-  filename: string
+  name: string
+  title: string
+  format: string
+  rows: number
   size_bytes: number
-  created_at: string
+  last_modified: string
+  generated_at: string
   download_url?: string
 }
 
-// TODO: Admin UI for statistics data files not yet implemented — service available per Postman
+export interface StatisticsDataFilesPayload {
+  total: number
+  files: StatisticsDataFile[]
+}
 
 export default {
   /** GET /statistics/data-files */
   getDataFiles: () =>
-    apiClient.get<ApiResponse<StatisticsDataFile[]>>(`${serviceStatisticsPath}/data-files`),
+    apiClient.get<ApiResponse<StatisticsDataFilesPayload>>(`${serviceStatisticsPath}/data-files`),
 
   /** GET /statistics/data-files/download/:filename */
   downloadFile: (filename: string) =>

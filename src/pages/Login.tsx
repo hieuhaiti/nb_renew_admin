@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Eye,
   EyeSlash,
@@ -46,6 +47,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const loginSuccess = useAuthStore((s) => s.loginSuccess)
   const fetchProfile = useAuthStore((s) => s.fetchProfile)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -92,6 +94,7 @@ export default function Login() {
       const data = res?.data as any
 
       if (res?.status && res.status >= 200 && res.status < 300 && data?.accessToken) {
+        queryClient.clear()
         loginSuccess({
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
@@ -220,12 +223,8 @@ export default function Login() {
 
                 <div className="border-border/70 bg-muted/30 rounded-2xl border p-3">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="typo-label text-muted-foreground font-semibold">
-                      Truy cập nhanh
-                    </p>
-                    <Badge className="bg-primary/10 text-primary border-primary/20">
-                      Demo
-                    </Badge>
+                    <p className="typo-label text-muted-foreground font-semibold">Truy cập nhanh</p>
+                    <Badge className="bg-primary/10 text-primary border-primary/20">Demo</Badge>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {QUICK_LOGIN_ACCOUNTS.map((account) => (

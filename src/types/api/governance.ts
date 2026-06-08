@@ -249,11 +249,41 @@ export interface GovernanceEnterpriseDashboard {
       }
   business?: Record<string, unknown>
   summary?: {
+    service_count?: number | string
+    active_service_count?: number | string
+    linked_spot_count?: number | string
+    tour_count?: number | string
+    active_tour_count?: number | string
+    listed_tour_value_vnd?: number | string
+    listed_tour_capacity?: number | string
+    ocop_count?: number | string
+    active_ocop_count?: number | string
+    avg_ocop_stars?: number | string
+    listed_ocop_value_vnd?: number | string
+    rating_count?: number | string
+    rating_avg?: number | string
+    voucher_count?: number | string
+    active_voucher_count?: number | string
+    voucher_used_count?: number | string
+    current_visitors?: number | string
+    total_revenue_vnd?: number | string
+    total_bookings?: number | string
+    total_visitors?: number | string
+    reported_revenue_vnd?: number | string
+    reported_bookings?: number | string
+    reported_visitors?: number | string
+    avg_capacity_pct?: number | string
+    capacity_alert_count?: number | string
+    report_count?: number | string
+  }
+  reported_metrics?: {
     total_revenue_vnd?: number | string
     total_bookings?: number | string
     total_visitors?: number | string
     avg_capacity_pct?: number | string
     report_count?: number | string
+    source?: string
+    note?: string
   }
   revenue_trend?: Array<{
     period?: string

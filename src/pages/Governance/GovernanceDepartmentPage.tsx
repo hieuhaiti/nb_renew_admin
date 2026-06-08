@@ -840,7 +840,7 @@ export default function GovernanceDepartmentPage(): JSX.Element {
 
         {/* ── Tab: Business Registrations ── */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <StatCard
               icon={<Building2 className="size-5" />}
               label="Đăng ký DN chờ duyệt"
@@ -854,13 +854,6 @@ export default function GovernanceDepartmentPage(): JSX.Element {
               value={formatNumber(pendingSpotCount)}
               helper={`${formatNumber(spotRegs.length)} hồ sơ điểm đến`}
               tone={pendingSpotCount > 0 ? 'warning' : 'success'}
-            />
-            <StatCard
-              icon={<Check className="size-5" />}
-              label="DN đã duyệt"
-              value={formatNumber(approvedBizCount)}
-              helper={`${formatNumber(rejectedBizCount)} hồ sơ đã từ chối`}
-              tone="success"
             />
             <StatCard
               icon={<FileText className="size-5" />}

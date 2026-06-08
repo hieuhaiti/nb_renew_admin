@@ -40,10 +40,24 @@ import {
   Activity,
   AlertTriangle,
   Building2,
+  CalendarDays,
+  ClipboardList,
+  FileText,
+  Gauge,
+  Gift,
+  Globe,
   Eye,
+  Link2,
+  Mail,
   MapPin,
+  PackageCheck,
+  Phone,
   Plus,
+  ReceiptText,
+  Route,
   Star,
+  Store,
+  TicketPercent,
   Users,
   Wallet,
 } from 'lucide-react'
@@ -254,9 +268,54 @@ function formatCompactNumber(value: unknown): string {
 function formatCompactCurrency(value: unknown): string {
   const parsed = toNumber(value)
   if (parsed == null) return '-'
-  if (parsed >= 1_000_000_000) return `${(parsed / 1_000_000_000).toFixed(1)} tỷ`
-  if (parsed >= 1_000_000) return `${(parsed / 1_000_000).toFixed(0)} tr`
-  return currencyFormatter.format(parsed)
+  const abs = Math.abs(parsed)
+  if (abs >= 1_000_000_000) return `${(parsed / 1_000_000_000).toFixed(1)} tỷ đồng`
+  if (abs >= 1_000_000) return `${(parsed / 1_000_000).toFixed(1)} triệu đồng`
+  if (abs >= 1_000) return `${(parsed / 1_000).toFixed(0)} ngàn đồng`
+  return `${numberFormatter.format(parsed)} đồng`
+}
+
+function formatChartCurrency(value: unknown): string {
+  const parsed = toNumber(value)
+  if (parsed == null) return '-'
+  const abs = Math.abs(parsed)
+  if (abs >= 1_000_000_000) return `${(parsed / 1_000_000_000).toFixed(1)} tỷ`
+  if (abs >= 1_000_000) return `${(parsed / 1_000_000).toFixed(0)} tr`
+  if (abs >= 1_000) return `${(parsed / 1_000).toFixed(0)}k`
+  return numberFormatter.format(parsed)
+}
+
+function firstPresent(...values: unknown[]): unknown {
+  return values.find((value) => value != null && value !== '')
+}
+
+function formatDateValue(value: unknown, withTime = false): string {
+  if (typeof value !== 'string' || !value) return '-'
+  return withTime ? formatDateTime(value) : formatDate(value)
+}
+
+function formatTextValue(value: unknown): string {
+  if (value == null || value === '') return '-'
+  return String(value)
+}
+
+function hasDisplayValue(value?: string): boolean {
+  return value != null && value.trim() !== '' && value.trim() !== '-'
+}
+
+type DetailGroupItem = {
+  label: string
+  value: string
+  helper?: string
+  rawValue?: unknown
+  helperRawValue?: unknown
+  icon?: ReactNode
+}
+
+function hasDetailValue(value: unknown): boolean {
+  if (value == null || value === '') return false
+  const parsed = toNumber(value)
+  return parsed == null || parsed !== 0
 }
 
 function normalizeList<T>(data: unknown, keys: string[]): T[] {
@@ -324,6 +383,7 @@ function includesSearch(...values: Array<unknown>): (keyword: string) => boolean
 }
 
 type MetricTone = 'primary' | 'info' | 'success' | 'warning'
+type DetailTone = MetricTone | 'violet'
 
 const METRIC_TONE_CLASS: Record<MetricTone, { icon: string; bar: string }> = {
   primary: {
@@ -341,6 +401,48 @@ const METRIC_TONE_CLASS: Record<MetricTone, { icon: string; bar: string }> = {
   warning: {
     icon: 'bg-warning/10 text-warning ring-warning/15',
     bar: 'bg-warning',
+  },
+}
+
+const DETAIL_TONE_CLASS: Record<
+  DetailTone,
+  { card: string; headerIcon: string; itemIcon: string; item: string; accent: string }
+> = {
+  primary: {
+    card: 'border-primary/20 bg-primary/5',
+    headerIcon: 'bg-primary/10 text-primary ring-primary/15',
+    itemIcon: 'bg-primary/10 text-primary',
+    item: 'border-primary/10 bg-primary/5',
+    accent: 'bg-primary',
+  },
+  info: {
+    card: 'border-info/20 bg-info/5',
+    headerIcon: 'bg-info/10 text-info ring-info/15',
+    itemIcon: 'bg-info/10 text-info',
+    item: 'border-info/10 bg-info/5',
+    accent: 'bg-info',
+  },
+  success: {
+    card: 'border-success/20 bg-success/5',
+    headerIcon: 'bg-success/10 text-success ring-success/15',
+    itemIcon: 'bg-success/10 text-success',
+    item: 'border-success/10 bg-success/5',
+    accent: 'bg-success',
+  },
+  warning: {
+    card: 'border-warning/20 bg-warning/5',
+    headerIcon: 'bg-warning/10 text-warning ring-warning/15',
+    itemIcon: 'bg-warning/10 text-warning',
+    item: 'border-warning/10 bg-warning/5',
+    accent: 'bg-warning',
+  },
+  violet: {
+    card: 'border-violet-200 bg-violet-50/40 dark:border-violet-900/60 dark:bg-violet-950/20',
+    headerIcon:
+      'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:ring-violet-900',
+    itemIcon: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+    item: 'border-violet-100 bg-violet-50/70 dark:border-violet-900/50 dark:bg-violet-950/20',
+    accent: 'bg-violet-500',
   },
 }
 
@@ -368,6 +470,67 @@ function MetricCard({
           <p className="typo-meta text-muted-foreground">{label}</p>
           <p className="typo-section-title mt-1 truncate">{value}</p>
           {helper && <p className="typo-caption text-muted-foreground mt-1">{helper}</p>}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DetailGroupCard({
+  title,
+  description,
+  icon,
+  items,
+  tone = 'primary',
+}: {
+  title: string
+  description?: string
+  icon: ReactNode
+  items: DetailGroupItem[]
+  tone?: DetailTone
+}) {
+  const visibleItems = items.filter(
+    (item) =>
+      hasDisplayValue(item.value) &&
+      (item.rawValue === undefined ? hasDetailValue(item.value) : hasDetailValue(item.rawValue))
+  )
+  const classes = DETAIL_TONE_CLASS[tone]
+
+  if (visibleItems.length === 0) return null
+
+  return (
+    <Card className={`relative overflow-hidden shadow-sm ${classes.card}`}>
+      <div className={`absolute inset-x-0 top-0 h-1 ${classes.accent}`} />
+      <CardHeader className="space-y-1">
+        <div className="flex items-start gap-3">
+          <div className={`${classes.headerIcon} rounded-lg p-2 ring-1`}>{icon}</div>
+          <div className="min-w-0">
+            <CardTitle className="typo-section-title">{title}</CardTitle>
+            {description && (
+              <CardDescription className="typo-meta mt-1">{description}</CardDescription>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {visibleItems.map((item) => (
+            <div key={item.label} className={`${classes.item} rounded-md border p-3`}>
+              <div className="flex items-start gap-2">
+                {item.icon && (
+                  <span className={`${classes.itemIcon} mt-0.5 rounded-md p-1.5`}>{item.icon}</span>
+                )}
+                <div className="min-w-0">
+                  <p className="typo-caption text-muted-foreground">{item.label}</p>
+                  <p className="typo-body-sm mt-1 font-semibold">{item.value}</p>
+                  {hasDisplayValue(item.helper) &&
+                    (item.helperRawValue === undefined || hasDetailValue(item.helperRawValue)) && (
+                      <p className="typo-caption text-muted-foreground mt-1">{item.helper}</p>
+                    )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -428,9 +591,7 @@ function BusinessHeader({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-primary/10 text-primary border-primary/20">
-                    {roleName}
-                  </Badge>
+                  <Badge className="bg-primary/10 text-primary border-primary/20">{roleName}</Badge>
                   {selectedBusiness?.status && getStatusBadge(selectedBusiness.status)}
                 </div>
                 <div>
@@ -598,8 +759,8 @@ function RevenueTrend({
                 tick={{ fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
-                width={54}
-                tickFormatter={formatCompactCurrency}
+                width={42}
+                tickFormatter={formatChartCurrency}
               />
               <YAxis
                 yAxisId="volume"
@@ -744,10 +905,10 @@ function CapacityAlerts({
 export default function GovernanceEnterprisePage(): JSX.Element {
   const user = useAuthStore((state) => state.user)
   const roleId = user?.role_id ?? user?.role?.id
+  const userScopeKey = `${user?.id ?? 'anonymous'}:${roleId ?? 'none'}`
   const hideCapacityAlerts =
     roleId === ROLE_IDS.SERVICE_PROVIDER || roleId === ROLE_IDS.TRAVEL_COMPANY
-  const roleName =
-    user?.role?.name_vi ?? user?.role_name ?? user?.role?.name ?? 'Đơn vị du lịch'
+  const roleName = user?.role?.name_vi ?? user?.role_name ?? user?.role?.name ?? 'Đơn vị du lịch'
   const [selectedBusinessId, setSelectedBusinessId] = useState('')
   const [dashboardPeriod, setDashboardPeriod] = useState('month')
   const [reportSearch, setReportSearch] = useState('')
@@ -765,9 +926,9 @@ export default function GovernanceEnterprisePage(): JSX.Element {
   const [createBusinessOpen, setCreateBusinessOpen] = useState(false)
 
   const businessesQuery = useApiQuery<ApiResponse<unknown>>(
-    ['businesses-me'],
+    ['businesses-me', userScopeKey],
     () => businessService.getMe(),
-    { staleTime: STALE_REF },
+    { staleTime: STALE_REF, enabled: !!user?.id },
     false,
     false
   )
@@ -802,6 +963,12 @@ export default function GovernanceEnterprisePage(): JSX.Element {
   )
 
   useEffect(() => {
+    setSelectedBusinessId('')
+    setReportPage(1)
+    setFeedbackPage(1)
+  }, [userScopeKey])
+
+  useEffect(() => {
     if (businesses.length === 0) return
     if (!selectedBusinessId || !businesses.some((business) => business.id === selectedBusinessId)) {
       setSelectedBusinessId(businesses[0].id)
@@ -815,33 +982,33 @@ export default function GovernanceEnterprisePage(): JSX.Element {
     : 'Báo cáo hoạt động'
 
   const dashboardQuery = useApiQuery<ApiResponse<GovernanceEnterpriseDashboard>>(
-    ['governance-enterprise-dashboard', selectedBusinessId, dashboardPeriod],
+    ['governance-enterprise-dashboard', userScopeKey, selectedBusinessId, dashboardPeriod],
     () =>
       governanceService.getEnterpriseDashboard(selectedBusinessId, {
         period: dashboardPeriod,
         year: new Date().getFullYear(),
       }),
-    { staleTime: STALE_DEFAULT, enabled: !!selectedBusinessId },
+    { staleTime: STALE_DEFAULT, enabled: !!user?.id && !!selectedBusinessId },
     false,
     false
   )
 
   const reportsQuery = useApiQuery<ApiResponse<unknown>>(
-    ['governance-enterprise-reports'],
+    ['governance-enterprise-reports', userScopeKey],
     () => governanceService.getEnterpriseReports({ limit: 50 }),
-    { staleTime: STALE_DEFAULT, enabled: businesses.length > 0 },
+    { staleTime: STALE_DEFAULT, enabled: !!user?.id && businesses.length > 0 },
     false,
     false
   )
 
   const feedbacksQuery = useApiQuery<ApiResponse<unknown>>(
-    ['governance-enterprise-feedbacks', selectedBusinessId, radiusKm],
+    ['governance-enterprise-feedbacks', userScopeKey, selectedBusinessId, radiusKm],
     () =>
       governanceService.getEnterpriseFeedbacks(selectedBusinessId, {
         limit: 50,
         radius_km: Number(radiusKm),
       }),
-    { staleTime: STALE_DEFAULT, enabled: !!selectedBusinessId },
+    { staleTime: STALE_DEFAULT, enabled: !!user?.id && !!selectedBusinessId },
     false,
     false
   )
@@ -877,8 +1044,236 @@ export default function GovernanceEnterprisePage(): JSX.Element {
 
   const dashboard = dashboardQuery.data?.data
   const summary = dashboard?.summary
+  const reportedMetrics = dashboard?.reported_metrics
+  const reportedRevenue = firstPresent(
+    reportedMetrics?.total_revenue_vnd,
+    summary?.reported_revenue_vnd,
+    summary?.total_revenue_vnd,
+    dashboard?.total_revenue_vnd
+  )
+  const reportedBookings = firstPresent(
+    reportedMetrics?.total_bookings,
+    summary?.reported_bookings,
+    summary?.total_bookings,
+    dashboard?.total_bookings
+  )
+  const reportedVisitors = firstPresent(
+    reportedMetrics?.total_visitors,
+    summary?.reported_visitors,
+    summary?.total_visitors,
+    dashboard?.total_visitors
+  )
+  const reportedAvgCapacityPct = firstPresent(
+    reportedMetrics?.avg_capacity_pct,
+    summary?.avg_capacity_pct,
+    dashboard?.capacity_pct
+  )
+  const reportedReportCount = firstPresent(reportedMetrics?.report_count, summary?.report_count)
+  const dashboardBusiness = (dashboard?.business ?? selectedBusiness ?? {}) as Record<
+    string,
+    unknown
+  >
+  const dashboardPeriodValue = dashboard?.period
+  const dashboardPeriodObject =
+    dashboardPeriodValue && typeof dashboardPeriodValue === 'object' ? dashboardPeriodValue : null
+  const dashboardPeriodLabel =
+    dashboardPeriodObject?.type || typeof dashboardPeriodValue === 'string'
+      ? getReportPeriodLabel(
+          dashboardPeriodObject?.type ??
+            (typeof dashboardPeriodValue === 'string' ? dashboardPeriodValue : undefined)
+        )
+      : '-'
+  const dashboardPeriodRange =
+    dashboardPeriodObject?.from || dashboardPeriodObject?.to
+      ? `${formatDateValue(dashboardPeriodObject.from)} - ${formatDateValue(dashboardPeriodObject.to)}`
+      : '-'
   const revenueTrend = dashboard?.revenue_trend ?? []
   const capacityAlerts = dashboard?.capacity_alerts ?? []
+  const summaryServiceItems = [
+    {
+      label: 'Dịch vụ',
+      value: formatNumber(summary?.service_count),
+      helper: `${formatNumber(summary?.active_service_count)} đang hoạt động`,
+      rawValue: summary?.service_count,
+      helperRawValue: summary?.active_service_count,
+      icon: <Store className="size-4" />,
+    },
+    {
+      label: 'Điểm du lịch liên kết',
+      value: formatNumber(summary?.linked_spot_count),
+      rawValue: summary?.linked_spot_count,
+      icon: <Link2 className="size-4" />,
+    },
+    {
+      label: 'Tour',
+      value: formatNumber(summary?.tour_count),
+      helper: `${formatNumber(summary?.active_tour_count)} đang hoạt động`,
+      rawValue: summary?.tour_count,
+      helperRawValue: summary?.active_tour_count,
+      icon: <Route className="size-4" />,
+    },
+    {
+      label: 'Giá trị tour niêm yết',
+      value: formatCompactCurrency(summary?.listed_tour_value_vnd),
+      helper: `${formatNumber(summary?.listed_tour_capacity)} sức chứa tour`,
+      rawValue: summary?.listed_tour_value_vnd,
+      helperRawValue: summary?.listed_tour_capacity,
+      icon: <Wallet className="size-4" />,
+    },
+  ]
+  const summaryCommerceItems = [
+    {
+      label: 'Sản phẩm OCOP',
+      value: formatNumber(summary?.ocop_count),
+      helper: `${formatNumber(summary?.active_ocop_count)} đang hoạt động`,
+      rawValue: summary?.ocop_count,
+      helperRawValue: summary?.active_ocop_count,
+      icon: <PackageCheck className="size-4" />,
+    },
+    {
+      label: 'Sao OCOP trung bình',
+      value: formatNumber(summary?.avg_ocop_stars),
+      rawValue: summary?.avg_ocop_stars,
+      icon: <Star className="size-4" />,
+    },
+    {
+      label: 'Giá trị OCOP niêm yết',
+      value: formatCompactCurrency(summary?.listed_ocop_value_vnd),
+      rawValue: summary?.listed_ocop_value_vnd,
+      icon: <Wallet className="size-4" />,
+    },
+    {
+      label: 'Voucher',
+      value: formatNumber(summary?.voucher_count),
+      helper: `${formatNumber(summary?.active_voucher_count)} hoạt động, ${formatNumber(summary?.voucher_used_count)} đã dùng`,
+      rawValue: summary?.voucher_count,
+      helperRawValue:
+        (toNumber(summary?.active_voucher_count) ?? 0) > 0 ||
+        (toNumber(summary?.voucher_used_count) ?? 0) > 0
+          ? 1
+          : 0,
+      icon: <TicketPercent className="size-4" />,
+    },
+    {
+      label: 'Đánh giá dashboard',
+      value: formatNumber(summary?.rating_avg),
+      helper: `${formatNumber(summary?.rating_count)} lượt đánh giá trong dữ liệu tổng hợp`,
+      rawValue: summary?.rating_avg,
+      helperRawValue: summary?.rating_count,
+      icon: <Star className="size-4" />,
+    },
+  ]
+  const summaryOperationsItems = [
+    {
+      label: 'Khách hiện tại',
+      value: formatNumber(summary?.current_visitors),
+      rawValue: summary?.current_visitors,
+      icon: <Users className="size-4" />,
+    },
+    {
+      label: 'Sức chứa hiện tại',
+      value: formatPercent(summary?.avg_capacity_pct),
+      rawValue: summary?.avg_capacity_pct,
+      icon: <Gauge className="size-4" />,
+    },
+    {
+      label: 'Cảnh báo sức chứa',
+      value: formatNumber(summary?.capacity_alert_count),
+      helper: `${formatNumber(capacityAlerts.length)} bản ghi cảnh báo trả về`,
+      rawValue: summary?.capacity_alert_count,
+      helperRawValue: capacityAlerts.length,
+      icon: <AlertTriangle className="size-4" />,
+    },
+    {
+      label: 'Báo cáo hoạt động',
+      value: formatNumber(reportedReportCount),
+      helper: hasDisplayValue(formatTextValue(reportedMetrics?.source))
+        ? `Nguồn: ${formatTextValue(reportedMetrics?.source)}`
+        : undefined,
+      rawValue: reportedReportCount,
+      icon: <FileText className="size-4" />,
+    },
+    {
+      label: 'Doanh thu báo cáo',
+      value: formatCompactCurrency(reportedRevenue),
+      helper: formatCurrency(reportedRevenue),
+      rawValue: reportedRevenue,
+      helperRawValue: reportedRevenue,
+      icon: <ReceiptText className="size-4" />,
+    },
+    {
+      label: 'Booking / khách báo cáo',
+      value: `${formatNumber(reportedBookings)} / ${formatNumber(reportedVisitors)}`,
+      rawValue:
+        (toNumber(reportedBookings) ?? 0) > 0 || (toNumber(reportedVisitors) ?? 0) > 0 ? 1 : 0,
+      icon: <Users className="size-4" />,
+    },
+  ]
+  const businessProfileItems = [
+    {
+      label: 'Mã cơ sở',
+      value: formatTextValue(
+        firstPresent(dashboardBusiness.business_code, selectedBusiness?.business_code)
+      ),
+      icon: <ClipboardList className="size-4" />,
+    },
+    {
+      label: 'Loại hình',
+      value: getBusinessTypeLabel(
+        formatTextValue(
+          firstPresent(dashboardBusiness.business_type, selectedBusiness?.business_type)
+        )
+      ),
+      icon: <Building2 className="size-4" />,
+    },
+    {
+      label: 'Mã số thuế',
+      value: formatTextValue(dashboardBusiness.tax_id),
+      icon: <ReceiptText className="size-4" />,
+    },
+    {
+      label: 'Giấy phép',
+      value: formatTextValue(dashboardBusiness.license_number),
+      icon: <FileText className="size-4" />,
+    },
+    {
+      label: 'Email',
+      value: formatTextValue(firstPresent(dashboardBusiness.email, selectedBusiness?.email)),
+      icon: <Mail className="size-4" />,
+    },
+    {
+      label: 'Điện thoại',
+      value: formatTextValue(firstPresent(dashboardBusiness.phone, selectedBusiness?.phone)),
+      icon: <Phone className="size-4" />,
+    },
+    {
+      label: 'Website',
+      value: formatTextValue(firstPresent(dashboardBusiness.website, selectedBusiness?.website)),
+      icon: <Globe className="size-4" />,
+    },
+    {
+      label: 'Phê duyệt',
+      value: formatDateValue(dashboardBusiness.approved_at, true),
+      helper:
+        BUSINESS_STATUS_LABEL[formatTextValue(dashboardBusiness.status)] ??
+        formatTextValue(dashboardBusiness.status),
+      icon: <PackageCheck className="size-4" />,
+    },
+    {
+      label: 'Cập nhật gần nhất',
+      value: formatDateValue(
+        firstPresent(dashboardBusiness.updated_at, selectedBusiness?.updated_at),
+        true
+      ),
+      icon: <CalendarDays className="size-4" />,
+    },
+    {
+      label: 'Kỳ dữ liệu',
+      value: dashboardPeriodLabel,
+      helper: dashboardPeriodRange,
+      icon: <CalendarDays className="size-4" />,
+    },
+  ]
 
   const reports = normalizeList<GovernanceEnterpriseReport>(reportsQuery.data?.data, [
     'reports',
@@ -1017,6 +1412,11 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                       <p className="typo-meta text-muted-foreground">
                         Dữ liệu tổng hợp theo kỳ báo cáo của cơ sở đang chọn.
                       </p>
+                      {/* {reportedMetrics?.note && (
+                        <p className="typo-caption text-muted-foreground mt-1 max-w-3xl">
+                          {reportedMetrics.note}
+                        </p>
+                      )} */}
                     </div>
                     <div className="w-full space-y-2 sm:w-44">
                       <Label>Kỳ dữ liệu</Label>
@@ -1049,20 +1449,18 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                     value={
                       dashboardQuery.isLoading
                         ? 'Đang tải...'
-                        : formatCurrency(summary?.total_revenue_vnd)
+                        : formatCompactCurrency(reportedRevenue)
                     }
-                    helper="Tổng doanh thu trong kỳ"
+                    helper={formatCurrency(reportedRevenue)}
                   />
                   <MetricCard
                     icon={<Users className="size-5" />}
                     tone="info"
                     label="Lượt khách"
                     value={
-                      dashboardQuery.isLoading
-                        ? 'Đang tải...'
-                        : formatNumber(summary?.total_visitors)
+                      dashboardQuery.isLoading ? 'Đang tải...' : formatNumber(reportedVisitors)
                     }
-                    helper={`${formatNumber(summary?.total_bookings)} lượt đặt chỗ`}
+                    helper={`${formatNumber(reportedBookings)} lượt đặt chỗ`}
                   />
                   <MetricCard
                     icon={<Activity className="size-5" />}
@@ -1071,9 +1469,9 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                     value={
                       dashboardQuery.isLoading
                         ? 'Đang tải...'
-                        : formatPercent(summary?.avg_capacity_pct)
+                        : formatPercent(reportedAvgCapacityPct)
                     }
-                    helper={`${formatNumber(summary?.report_count)} báo cáo đã ghi nhận`}
+                    helper={`${formatNumber(reportedReportCount)} báo cáo đã ghi nhận`}
                   />
                   <MetricCard
                     icon={<Star className="size-5" />}
@@ -1085,6 +1483,37 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                         : '-'
                     }
                     helper={`${formatNumber(selectedBusiness?.rating_count)} lượt đánh giá`}
+                  />
+                </div>
+
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <DetailGroupCard
+                    title="Dịch vụ và tour"
+                    description="Số lượng dịch vụ, điểm liên kết và giá trị tour đang niêm yết."
+                    icon={<Building2 className="size-5" />}
+                    items={summaryServiceItems}
+                    tone="primary"
+                  />
+                  <DetailGroupCard
+                    title="OCOP, voucher và đánh giá"
+                    description="Hiệu quả thương mại và tương tác của khách hàng."
+                    icon={<PackageCheck className="size-5" />}
+                    items={summaryCommerceItems}
+                    tone="success"
+                  />
+                  <DetailGroupCard
+                    title="Sức chứa và số liệu báo cáo"
+                    description="Dữ liệu vận hành hiện tại và số liệu doanh nghiệp tự báo cáo."
+                    icon={<Activity className="size-5" />}
+                    items={summaryOperationsItems}
+                    tone="warning"
+                  />
+                  <DetailGroupCard
+                    title="Hồ sơ doanh nghiệp"
+                    description="Thông tin định danh, liên hệ và kỳ dữ liệu từ dashboard."
+                    icon={<ClipboardList className="size-5" />}
+                    items={businessProfileItems}
+                    tone="violet"
                   />
                 </div>
 
@@ -1101,8 +1530,8 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                   <CardHeader>
                     <CardTitle className="typo-section-title">Các cơ sở thuộc tài khoản</CardTitle>
                     <CardDescription>
-                      Danh sách cơ sở dịch vụ thuộc tài khoản của bạn. Chọn một cơ sở ở phần đầu trang
-                      để xem dashboard riêng.
+                      Danh sách cơ sở dịch vụ thuộc tài khoản của bạn. Chọn một cơ sở ở phần đầu
+                      trang để xem dashboard riêng.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
