@@ -13,8 +13,8 @@ import {
   Navigation,
   Gauge,
   ShoppingBag,
-  ShieldCheck,
-  LifeBuoy,
+  // ShieldCheck,
+  // LifeBuoy,
   // Plug,
   Database,
 } from 'lucide-react'
@@ -201,17 +201,17 @@ export const navConfig: NavItem[] = [
     access: PAGE_ACCESS.statistics,
   },
 
-  {
-    icon: <ShieldCheck />,
-    name: 'Chính sách bảo mật',
-    path: 'https://dulich.tourismpj.pro.vn/privacy-policy',
-  },
+  // {
+  //   icon: <ShieldCheck />,
+  //   name: 'Chính sách bảo mật',
+  //   path: 'https://dulich.tourismpj.pro.vn/privacy-policy',
+  // },
 
-  {
-    icon: <LifeBuoy />,
-    name: 'Hỗ trợ',
-    path: 'https://dulich.tourismpj.pro.vn/support',
-  },
+  // {
+  //   icon: <LifeBuoy />,
+  //   name: 'Hỗ trợ',
+  //   path: 'https://dulich.tourismpj.pro.vn/support',
+  // },
 
   // {
   //   icon: <MessageSquare />,
