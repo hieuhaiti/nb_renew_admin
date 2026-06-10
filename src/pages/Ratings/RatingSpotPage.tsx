@@ -87,7 +87,7 @@ export default function RatingSpotPage(): JSX.Element {
   )
 
   const spots = ((spotQuery.data as ApiResponse<SpotListData>)?.data?.spots ?? []) as Spot[]
-  const spotOptions = spots.map((s) => ({ id: s.id, label: s.name_vi || s.slug || s.id }))
+  const spotOptions = spots.map((s) => ({ id: s.id, label: s.name || s.name_vi || s.slug || s.id }))
 
   useEffect(() => {
     if (spotOptions.length === 0) {
@@ -138,13 +138,23 @@ export default function RatingSpotPage(): JSX.Element {
   const statusMutation = useApiMutation(
     (payload: { id: string; status: RatingStatus }) =>
       ratingService.setStatus(payload.id, { status: payload.status }),
-    { onSuccess: () => { setFormOpen(false); dbQuery.refetch() } },
+    {
+      onSuccess: () => {
+        setFormOpen(false)
+        dbQuery.refetch()
+      },
+    },
     true
   )
 
   const replyMutation = useApiMutation(
     (payload: { id: string; reply: string }) => ratingService.reply(payload.id, payload.reply),
-    { onSuccess: () => { setFormOpen(false); dbQuery.refetch() } },
+    {
+      onSuccess: () => {
+        setFormOpen(false)
+        dbQuery.refetch()
+      },
+    },
     true
   )
 
@@ -174,7 +184,10 @@ export default function RatingSpotPage(): JSX.Element {
     <PageLayout title="Đánh giá điểm du lịch" description="Quản lý đánh giá các điểm tham quan">
       <ToolTableCustom
         searchValue={searchValue}
-        setSearchValue={(v) => { setSearchValue(v); setCurrentPage(1) }}
+        setSearchValue={(v) => {
+          setSearchValue(v)
+          setCurrentPage(1)
+        }}
         dataUpdatedAt={dbQuery.dataUpdatedAt}
         onRefresh={hasSpotId ? () => dbQuery.refetch() : undefined}
         isRefreshing={dbQuery.isFetching && !dbQuery.isLoading}
@@ -183,14 +196,20 @@ export default function RatingSpotPage(): JSX.Element {
             <SearchSelect
               options={spotOptions.map((o) => ({ value: o.id, label: o.label }))}
               value={spotId}
-              onValueChange={(v) => { setSpotId(v); setCurrentPage(1) }}
+              onValueChange={(v) => {
+                setSpotId(v)
+                setCurrentPage(1)
+              }}
               placeholder="Chọn điểm du lịch"
               className="w-64"
             />
 
             <Select
               value={statusFilter}
-              onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1) }}
+              onValueChange={(v) => {
+                setStatusFilter(v)
+                setCurrentPage(1)
+              }}
             >
               <SelectTrigger className="w-36">
                 <SelectValue />
@@ -205,7 +224,10 @@ export default function RatingSpotPage(): JSX.Element {
 
             <Select
               value={`${limit}`}
-              onValueChange={(v) => { setLimit(parseInt(v, 10)); setCurrentPage(1) }}
+              onValueChange={(v) => {
+                setLimit(parseInt(v, 10))
+                setCurrentPage(1)
+              }}
             >
               <SelectTrigger className="w-24">
                 <SelectValue />
@@ -264,7 +286,10 @@ export default function RatingSpotPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-warning text-sm">{STARS[r.stars - 1]}</TableCell>
                   <TableCell>
-                    <UserCell userId={r.user_id} inlineUser={r.user ? { ...r.user, id: String(r.user.id) } : undefined} />
+                    <UserCell
+                      userId={r.user_id}
+                      inlineUser={r.user ? { ...r.user, id: String(r.user.id) } : undefined}
+                    />
                   </TableCell>
                   <TableCell>
                     <StatusDotBadge
@@ -279,8 +304,12 @@ export default function RatingSpotPage(): JSX.Element {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button
-                        variant="ghost" size="sm"
-                        onClick={(e) => { e.stopPropagation(); openForm(r) }}
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openForm(r)
+                        }}
                         title="Kiểm duyệt / Phản hồi"
                       >
                         <Pen className="size-4" />
@@ -288,7 +317,8 @@ export default function RatingSpotPage(): JSX.Element {
                       {r.status === 'pending' && (
                         <>
                           <Button
-                            variant="ghost" size="sm"
+                            variant="ghost"
+                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               statusMutation.mutate({ id: r.id, status: 'published' })
@@ -298,7 +328,8 @@ export default function RatingSpotPage(): JSX.Element {
                             <Check className="text-success size-4" />
                           </Button>
                           <Button
-                            variant="ghost" size="sm"
+                            variant="ghost"
+                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               statusMutation.mutate({ id: r.id, status: 'rejected' })
@@ -310,7 +341,8 @@ export default function RatingSpotPage(): JSX.Element {
                         </>
                       )}
                       <Button
-                        variant="ghost" size="sm"
+                        variant="ghost"
+                        size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
                           setRatingToDelete(r)
@@ -333,7 +365,10 @@ export default function RatingSpotPage(): JSX.Element {
         open={detailOpen}
         onOpenChange={setDetailOpen}
         rating={selectedRating}
-        onEdit={() => { setDetailOpen(false); setFormOpen(true) }}
+        onEdit={() => {
+          setDetailOpen(false)
+          setFormOpen(true)
+        }}
       />
 
       <RatingFormDialog

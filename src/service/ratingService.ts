@@ -5,6 +5,7 @@ import type {
   RatingListData,
   RatingListParams,
   RatingModerationBody,
+  RatingReplyBody,
 } from '@/types/api'
 import { serviceRatingPath } from '@/constant/serviceConstant'
 
@@ -31,7 +32,9 @@ export default {
 
   /** POST /ratings/:id/reply */
   reply: (id: string, reply: string) =>
-    apiClient.post<ApiResponse<Rating>>(`${serviceRatingPath}/${id}/reply`, { reply }),
+    apiClient.post<ApiResponse<Rating>>(`${serviceRatingPath}/${id}/reply`, {
+      reply_text: reply,
+    } satisfies RatingReplyBody),
 
   /** POST /ratings/:id/helpful */
   markHelpful: (id: string) =>

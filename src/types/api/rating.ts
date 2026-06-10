@@ -47,3 +47,7 @@ export interface RatingListParams {
 export interface RatingModerationBody {
   status: RatingStatus
 }
+
+export interface RatingReplyBody {
+  reply_text: string
+}
