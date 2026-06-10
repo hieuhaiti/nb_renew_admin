@@ -19,7 +19,7 @@ import {
 import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 const ocopSchema = z.object({
-  name: z.string().min(1, 'Tên không được để trống').max(255),
+  name_vi: z.string().min(1, 'Tên không được để trống').max(255),
   category: z.string().max(100).optional().or(z.literal('')),
   description: z.string().optional().or(z.literal('')),
   star_rating: z.coerce.number().min(1).max(5).optional(),
@@ -35,7 +35,7 @@ const ocopSchema = z.object({
 type OcopFormValues = z.infer<typeof ocopSchema>
 
 const defaultValues: OcopFormValues = {
-  name: '',
+  name_vi: '',
   category: '',
   description: '',
   star_rating: undefined,
@@ -88,7 +88,7 @@ export default function OcopFormDialog({
   useEffect(() => {
     if (item) {
       reset({
-        name: item.name,
+        name_vi: item.name_vi ?? item.name,
         category: item.category || '',
         description: item.description || '',
         star_rating: item.star_rating ?? undefined,
@@ -111,7 +111,7 @@ export default function OcopFormDialog({
       ? formData.province_code?.trim()
       : provinceCode
     const payload: OcopFormBody = {
-      name: formData.name,
+      name_vi: formData.name_vi,
       ...(formData.category?.trim() && { category: formData.category }),
       ...(formData.description?.trim() && { description: formData.description }),
       ...(formData.star_rating != null && { star_rating: formData.star_rating }),
@@ -137,8 +137,8 @@ export default function OcopFormDialog({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-2 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="ocop_name">Tên sản phẩm <span className="text-destructive">*</span></Label>
-            <Input id="ocop_name" {...register('name')} placeholder="Tên sản phẩm" />
-            {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+            <Input id="ocop_name" {...register('name_vi')} placeholder="Tên sản phẩm" />
+            {errors.name_vi && <p className="text-destructive text-sm">{errors.name_vi.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

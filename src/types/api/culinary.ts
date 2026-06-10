@@ -1,6 +1,7 @@
 export interface Culinary {
   id: string
   name: string
+  name_vi?: string
   category: string | null
   description: string | null
   recipe: string | null
@@ -31,7 +32,7 @@ export interface CulinaryListParams {
 }
 
 export interface CulinaryFormBody {
-  name: string
+  name_vi: string
   category?: string
   description?: string
   recipe?: string

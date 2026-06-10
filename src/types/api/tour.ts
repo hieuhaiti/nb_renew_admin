@@ -22,6 +22,7 @@ export interface TourStop {
 export interface Tour {
   id: string
   name: string
+  name_vi?: string
   slug: string
   province_code: string | null
   province_name: string
@@ -66,7 +67,7 @@ export interface TourListParams {
 }
 
 export interface TourFormBody {
-  name: string
+  name_vi: string
   slug: string
   province_code?: string
   description_vi?: string

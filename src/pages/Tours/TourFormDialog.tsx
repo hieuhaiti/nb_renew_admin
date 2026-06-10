@@ -45,7 +45,7 @@ import { STALE_REF } from '@/constant/queryConstant'
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 const tourSchema = z.object({
-  name: z.string().min(1, 'Tên tour không được để trống').max(255),
+  name_vi: z.string().min(1, 'Tên tour không được để trống').max(255),
   slug: z.string().min(1, 'Slug không được để trống').max(255),
   province_code: z.string().max(10).optional().or(z.literal('')),
   description_vi: z.string().optional().or(z.literal('')),
@@ -74,7 +74,7 @@ function slugify(text: string): string {
 }
 
 const defaultValues: TourFormValues = {
-  name: '',
+  name_vi: '',
   slug: '',
   province_code: '',
   description_vi: '',
@@ -433,7 +433,7 @@ export default function TourFormDialog({
   useEffect(() => {
     if (tour) {
       reset({
-        name: tour.name,
+        name_vi: tour.name_vi ?? tour.name,
         slug: tour.slug,
         province_code: canEditProvinceCode ? tour.province_code ?? '' : provinceCode,
         description_vi: tour.description_vi ?? '',
@@ -468,7 +468,7 @@ export default function TourFormDialog({
   const handleFormSubmit: SubmitHandler<TourFormValues> = (values) => {
     const submittedProvinceCode = canEditProvinceCode ? values.province_code?.trim() : provinceCode
     const body: TourFormBody = {
-      name: values.name,
+      name_vi: values.name_vi,
       slug: values.slug,
       ...(submittedProvinceCode && { province_code: submittedProvinceCode }),
       ...(values.description_vi && { description_vi: values.description_vi }),
@@ -525,14 +525,14 @@ export default function TourFormDialog({
                   </Label>
                   <Input
                     id="tour_name"
-                    {...register('name')}
+                    {...register('name_vi')}
                     placeholder="Khám phá Tràng An..."
                     onChange={(e) => {
-                      register('name').onChange(e)
+                      register('name_vi').onChange(e)
                       if (!isEdit) setValue('slug', slugify(e.target.value))
                     }}
                   />
-                  {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
+                  {errors.name_vi && <p className="text-destructive text-xs">{errors.name_vi.message}</p>}
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="tour_slug">

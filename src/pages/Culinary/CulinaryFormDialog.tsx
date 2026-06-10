@@ -19,7 +19,7 @@ import {
 import { useProvinceScope } from '@/hooks/useProvinceScope'
 
 const culinarySchema = z.object({
-  name: z.string().min(1, 'Tên không được để trống').max(255),
+  name_vi: z.string().min(1, 'Tên không được để trống').max(255),
   category: z.string().max(100).optional().or(z.literal('')),
   description: z.string().optional().or(z.literal('')),
   cover_image_url: z.url('URL không hợp lệ').optional().or(z.literal('')),
@@ -29,7 +29,7 @@ const culinarySchema = z.object({
 type CulinaryFormValues = z.infer<typeof culinarySchema>
 
 const defaultValues: CulinaryFormValues = {
-  name: '',
+  name_vi: '',
   category: '',
   description: '',
   cover_image_url: '',
@@ -72,7 +72,7 @@ export default function CulinaryFormDialog({
   useEffect(() => {
     if (item) {
       reset({
-        name: item.name,
+        name_vi: item.name_vi ?? item.name,
         category: item.category || '',
         description: item.description || '',
         cover_image_url: item.cover_image_url || '',
@@ -87,7 +87,7 @@ export default function CulinaryFormDialog({
   const handleFormSubmit: SubmitHandler<CulinaryFormValues> = (data) => {
     const submittedProvinceCode = canEditProvinceCode ? data.province_code?.trim() : provinceCode
     const payload: CulinaryFormBody = {
-      name: data.name,
+      name_vi: data.name_vi,
       ...(data.category?.trim() && { category: data.category }),
       ...(data.description?.trim() && { description: data.description }),
       ...(data.cover_image_url?.trim() && (!isEdit || data.cover_image_url !== (item?.cover_image_url || '')) && { cover_image_url: data.cover_image_url }),
@@ -107,8 +107,8 @@ export default function CulinaryFormDialog({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-2 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="cul_name">Tên <span className="text-destructive">*</span></Label>
-            <Input id="cul_name" {...register('name')} placeholder="Tên món ăn" />
-            {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+            <Input id="cul_name" {...register('name_vi')} placeholder="Tên món ăn" />
+            {errors.name_vi && <p className="text-destructive text-sm">{errors.name_vi.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="cul_category">Phân loại</Label>

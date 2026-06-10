@@ -1,6 +1,7 @@
 export interface OcopProduct {
   id: string
   name: string
+  name_vi?: string
   category: string | null
   description: string | null
   star_rating: number | null
@@ -40,7 +41,7 @@ export interface OcopListParams {
 }
 
 export interface OcopFormBody {
-  name: string
+  name_vi: string
   category?: string
   description?: string
   star_rating?: number
