@@ -233,6 +233,7 @@ export interface GovernanceEnterpriseReportCreateBody {
 }
 
 export interface GovernanceEnterpriseDashboard {
+  variant?: 'spot_operator' | 'travel_company' | 'service_provider' | string
   business_id?: string
   total_visitors?: number
   total_revenue_vnd?: number
@@ -249,11 +250,35 @@ export interface GovernanceEnterpriseDashboard {
       }
   business?: Record<string, unknown>
   summary?: {
-    service_count?: number | string
-    active_service_count?: number | string
-    linked_spot_count?: number | string
+    managed_spot_count?: number | string
+    spot_rating_avg?: number | string
+    spot_rating_count?: number | string
+    ticket_price_range?: {
+      min?: number | string | null
+      max?: number | string | null
+    }
+    experience_features?: {
+      vr360?: number | string
+      ar?: number | string
+      audio?: number | string
+    }
+    peak_capacity_pct?: number | string
     tour_count?: number | string
     active_tour_count?: number | string
+    featured_tour_count?: number | string
+    avg_tour_price_vnd?: number | string
+    total_listed_capacity?: number | string
+    avg_tour_duration_days?: number | string
+    tour_rating_avg?: number | string
+    tour_rating_count?: number | string
+    service_count?: number | string
+    active_service_count?: number | string
+    service_category_breakdown?: Array<{ category?: string; count?: number | string }>
+    service_price_range?: {
+      min?: number | string | null
+      max?: number | string | null
+    }
+    linked_spot_count?: number | string
     listed_tour_value_vnd?: number | string
     listed_tour_capacity?: number | string
     ocop_count?: number | string
@@ -265,6 +290,9 @@ export interface GovernanceEnterpriseDashboard {
     voucher_count?: number | string
     active_voucher_count?: number | string
     voucher_used_count?: number | string
+    voucher_redemption_rate?: number | string
+    business_rating_avg?: number | string
+    business_rating_count?: number | string
     current_visitors?: number | string
     total_revenue_vnd?: number | string
     total_bookings?: number | string
@@ -291,12 +319,32 @@ export interface GovernanceEnterpriseDashboard {
     bookings?: number | string
     visitors?: number | string
   }>
+  trend?: Array<{
+    period?: string
+    visits?: number | string
+    revenue_vnd?: number | string
+    bookings?: number | string
+    visitors?: number | string
+  }>
   capacity_alerts?: Array<{
     spot_id?: string
     name_vi?: string
     capacity_pct?: number | string
     status?: string
     recorded_at?: string
+  }>
+  highlights?: Array<{
+    id?: string
+    spot_id?: string
+    name_vi?: string
+    visitor_count?: number | string
+    capacity_pct?: number | string
+    status?: string
+    recorded_at?: string
+    rating_avg?: number | string
+    rating_count?: number | string
+    price_from_vnd?: number | string
+    is_featured?: boolean
   }>
   [key: string]: unknown
 }

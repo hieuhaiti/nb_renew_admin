@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useApiMutation, useApiQuery, spotService } from '@/service'
 import type { AFrameScene } from '@/service/spotService'
 import type { ApiResponse, Spot, SpotListData } from '@/types/api'
@@ -17,7 +18,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SearchSelect } from '@/components/common/SearchSelect'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -34,16 +41,37 @@ import AframeSceneDetailDialog from './AframeSceneDetailDialog'
 
 export default function AframeScenePage(): JSX.Element {
   const [spotId, setSpotId] = useState<string>('')
-  const [includeInactive, setIncludeInactive] = useState<string>('false')
   const [searchValue, setSearchValue] = useState<string>('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<AFrameScene | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const hasVrParam = searchParams.get('has_vr')
+  const hasVrFilter = hasVrParam === 'true' || hasVrParam === 'false' ? hasVrParam : 'all'
+  const hasVrQueryValue = hasVrFilter === 'all' ? undefined : hasVrFilter === 'true'
+
+  const setHasVrFilter = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams)
+    if (value === 'all') {
+      nextParams.delete('has_vr')
+    } else {
+      nextParams.set('has_vr', value)
+    }
+    setSearchParams(nextParams)
+    setSpotId('')
+    setSelectedId(null)
+  }
 
   const spotsQuery = useApiQuery(
-    ['spots-all-for-aframe'],
-    () => spotService.getAll({ limit: 100, sortBy: 'name', sortOrder: 'ASC' }),
+    ['spots-all-for-aframe', hasVrFilter],
+    () =>
+      spotService.getAll({
+        limit: 100,
+        sortBy: 'name',
+        sortOrder: 'ASC',
+        ...(hasVrQueryValue !== undefined ? { has_vr: hasVrQueryValue } : {}),
+      }),
     { staleTime: STALE_REF },
     false,
     false
@@ -52,8 +80,8 @@ export default function AframeScenePage(): JSX.Element {
   const spotOptions = spots.map((s) => ({ value: s.id, label: s.name || s.id }))
 
   const dbQuery = useApiQuery(
-    ['aframe-scenes', spotId, includeInactive],
-    () => spotService.getScenes(spotId, { include_inactive: includeInactive === 'true' }),
+    ['aframe-scenes', spotId],
+    () => spotService.getScenes(spotId),
     { enabled: !!spotId, staleTime: STALE_DEFAULT },
     false,
     false
@@ -112,13 +140,14 @@ export default function AframeScenePage(): JSX.Element {
               placeholder="Chọn điểm tham quan..."
               className="w-64"
             />
-            <Select value={includeInactive} onValueChange={setIncludeInactive}>
+            <Select value={hasVrFilter} onValueChange={setHasVrFilter}>
               <SelectTrigger className="w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="false">Chỉ cảnh hoạt động</SelectItem>
-                <SelectItem value="true">Bao gồm vô hiệu</SelectItem>
+                <SelectItem value="all">Tất cả điểm</SelectItem>
+                <SelectItem value="true">Có VR 360</SelectItem>
+                <SelectItem value="false">Chưa có VR 360</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -186,7 +215,9 @@ export default function AframeScenePage(): JSX.Element {
                     <div>
                       <p className="font-medium">{scene.name}</p>
                       {scene.description && (
-                        <p className="text-muted-foreground line-clamp-1 text-xs">{scene.description}</p>
+                        <p className="text-muted-foreground line-clamp-1 text-xs">
+                          {scene.description}
+                        </p>
                       )}
                     </div>
                   </TableCell>
@@ -202,7 +233,9 @@ export default function AframeScenePage(): JSX.Element {
                   </TableCell>
                   <TableCell>
                     {scene.is_active ? (
-                      <Badge className="border-success/20 bg-success/10 text-success">Hoạt động</Badge>
+                      <Badge className="border-success/20 bg-success/10 text-success">
+                        Hoạt động
+                      </Badge>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground">
                         Vô hiệu
@@ -291,7 +324,8 @@ export default function AframeScenePage(): JSX.Element {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa cảnh VR &quot;{itemToDelete?.name}&quot;? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa cảnh VR &quot;{itemToDelete?.name}&quot;? Hành động này
+              không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -162,7 +162,10 @@ export default {
     apiClient.get<ApiResponse<any>>(`${serviceGovernancePath}/enterprise/reports`, params),
 
   /** GET /governance/enterprise/businesses/:businessId/dashboard */
-  getEnterpriseDashboard: (businessId: string, params?: { period?: string; year?: number }) =>
+  getEnterpriseDashboard: (
+    businessId: string,
+    params?: { period?: string; year?: number; variant?: string }
+  ) =>
     apiClient.get<ApiResponse<any>>(
       `${serviceGovernancePath}/enterprise/businesses/${businessId}/dashboard`,
       params

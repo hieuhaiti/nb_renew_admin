@@ -1,11 +1,5 @@
 import apiClient from './common/apiClient'
-import type {
-  ApiResponse,
-  Spot,
-  SpotListData,
-  SpotListParams,
-  SpotFormBody,
-} from '@/types/api'
+import type { ApiResponse, Spot, SpotListData, SpotListParams, SpotFormBody } from '@/types/api'
 import { serviceSpotPath } from '@/constant/serviceConstant'
 
 // ─── VR / Media local types ────────────────────────────────────────────────
@@ -144,6 +138,10 @@ export default {
   getAll: (params?: SpotListParams) =>
     apiClient.get<ApiResponse<SpotListData>>(serviceSpotPath, params),
 
+  /** GET /spots/admin */
+  getAdminAll: (params?: SpotListParams) =>
+    apiClient.get<ApiResponse<SpotListData>>(`${serviceSpotPath}/admin`, params),
+
   /** GET /spots/id/:id */
   getById: (id: string, params?: { lang?: string }) =>
     apiClient.get<ApiResponse<{ spot: Spot }>>(`${serviceSpotPath}/id/${id}`, params),
@@ -153,8 +151,7 @@ export default {
     apiClient.get<ApiResponse<{ spot: Spot }>>(`${serviceSpotPath}/${slug}`, params),
 
   /** POST /spots */
-  create: (data: SpotFormBody) =>
-    apiClient.post<ApiResponse<Spot>>(serviceSpotPath, data),
+  create: (data: SpotFormBody) => apiClient.post<ApiResponse<Spot>>(serviceSpotPath, data),
 
   /** PATCH /spots/:id */
   update: (id: string, data: Partial<SpotFormBody>) =>
@@ -170,8 +167,14 @@ export default {
   // ─── Read-only convenience ────────────────────────────────────────────────
 
   /** GET /spots/map */
-  getMap: (params?: { page?: number; lng?: number; lat?: number; radius_km?: number; limit?: number; capacity?: boolean }) =>
-    apiClient.get<ApiResponse<SpotListData>>(`${serviceSpotPath}/map`, params),
+  getMap: (params?: {
+    page?: number
+    lng?: number
+    lat?: number
+    radius_km?: number
+    limit?: number
+    capacity?: boolean
+  }) => apiClient.get<ApiResponse<SpotListData>>(`${serviceSpotPath}/map`, params),
 
   /** GET /spots/bbox */
   // TODO: Available in Postman but not used by admin UI yet
@@ -213,7 +216,9 @@ export default {
 
   /** PATCH /spots/:spotId/media/:mediaId/primary */
   setPrimaryMedia: (spotId: string, mediaId: string) =>
-    apiClient.patch<ApiResponse<SpotMedia>>(`${serviceSpotPath}/${spotId}/media/${mediaId}/primary`),
+    apiClient.patch<ApiResponse<SpotMedia>>(
+      `${serviceSpotPath}/${spotId}/media/${mediaId}/primary`
+    ),
 
   /** PATCH /spots/:spotId/media/:mediaId */
   updateMedia: (spotId: string, mediaId: string, data: { alt_text?: string; caption?: string }) =>
@@ -239,7 +244,9 @@ export default {
 
   /** GET /spots/:spotId/aframe-scenes/:sceneId */
   getSceneById: (spotId: string, sceneId: string) =>
-    apiClient.get<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`),
+    apiClient.get<ApiResponse<AFrameScene>>(
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`
+    ),
 
   /** POST /spots/:spotId/aframe-scenes */
   createScene: (spotId: string, data: AFrameSceneFormBody) =>
@@ -247,19 +254,28 @@ export default {
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId */
   updateScene: (spotId: string, sceneId: string, data: Partial<AFrameSceneFormBody>) =>
-    apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`, data),
+    apiClient.patch<ApiResponse<AFrameScene>>(
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}`,
+      data
+    ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/set-main */
   setMainScene: (spotId: string, sceneId: string) =>
-    apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/set-main`),
+    apiClient.patch<ApiResponse<AFrameScene>>(
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/set-main`
+    ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/activate */
   activateScene: (spotId: string, sceneId: string) =>
-    apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/activate`),
+    apiClient.patch<ApiResponse<AFrameScene>>(
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/activate`
+    ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/deactivate */
   deactivateScene: (spotId: string, sceneId: string) =>
-    apiClient.patch<ApiResponse<AFrameScene>>(`${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/deactivate`),
+    apiClient.patch<ApiResponse<AFrameScene>>(
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/deactivate`
+    ),
 
   /** DELETE /spots/:spotId/aframe-scenes/:sceneId */
   deleteScene: (spotId: string, sceneId: string) =>
@@ -270,19 +286,27 @@ export default {
   /** GET /spots/:spotId/aframe-scenes/:sceneId/hotspots */
   getSceneHotspots: (spotId: string, sceneId: string, params?: { include_inactive?: boolean }) =>
     apiClient.get<ApiResponse<AFrameHotspot[]>>(
-      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots`, params
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots`,
+      params
     ),
 
   /** POST /spots/:spotId/aframe-scenes/:sceneId/hotspots */
   createSceneHotspot: (spotId: string, sceneId: string, data: AFrameHotspotFormBody) =>
     apiClient.post<ApiResponse<AFrameHotspot>>(
-      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots`, data
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots`,
+      data
     ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/hotspots/:hotspotId */
-  updateSceneHotspot: (spotId: string, sceneId: string, hotspotId: string, data: Partial<AFrameHotspotFormBody>) =>
+  updateSceneHotspot: (
+    spotId: string,
+    sceneId: string,
+    hotspotId: string,
+    data: Partial<AFrameHotspotFormBody>
+  ) =>
     apiClient.patch<ApiResponse<AFrameHotspot>>(
-      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots/${hotspotId}`, data
+      `${serviceSpotPath}/${spotId}/aframe-scenes/${sceneId}/hotspots/${hotspotId}`,
+      data
     ),
 
   /** PATCH /spots/:spotId/aframe-scenes/:sceneId/hotspots/:hotspotId/activate */
@@ -314,13 +338,20 @@ export default {
   /** POST /spots/:spotId/media/:mediaId/hotspots */
   createMediaHotspot: (spotId: string, mediaId: number, data: MediaHotspotFormBody) =>
     apiClient.post<ApiResponse<MediaHotspot>>(
-      `${serviceSpotPath}/${spotId}/media/${mediaId}/hotspots`, data
+      `${serviceSpotPath}/${spotId}/media/${mediaId}/hotspots`,
+      data
     ),
 
   /** PATCH /spots/:spotId/media/:mediaId/hotspots/:hotspotId */
-  updateMediaHotspot: (spotId: string, mediaId: number, hotspotId: number, data: Partial<MediaHotspotFormBody>) =>
+  updateMediaHotspot: (
+    spotId: string,
+    mediaId: number,
+    hotspotId: number,
+    data: Partial<MediaHotspotFormBody>
+  ) =>
     apiClient.patch<ApiResponse<MediaHotspot>>(
-      `${serviceSpotPath}/${spotId}/media/${mediaId}/hotspots/${hotspotId}`, data
+      `${serviceSpotPath}/${spotId}/media/${mediaId}/hotspots/${hotspotId}`,
+      data
     ),
 
   /** DELETE /spots/:spotId/media/:mediaId/hotspots/:hotspotId */

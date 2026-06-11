@@ -77,7 +77,6 @@ function formatRatingAvg(value: unknown): string | null {
   return num.toFixed(1)
 }
 
-
 export default function SpotPage(): JSX.Element {
   const openLightbox = useLightboxStore((s) => s.open)
   const { provinceCode, canEditProvinceCode } = useProvinceScope()
@@ -111,18 +110,20 @@ export default function SpotPage(): JSX.Element {
 
   const dbQuery = useApiQuery(
     ['spots', queryParams],
-    () => spotService.getAll(queryParams),
+    () => spotService.getAdminAll(queryParams),
     { staleTime: STALE_DEFAULT, enabled: canEditProvinceCode || !!scopedProvinceCode },
     false,
     false
   )
 
-  const data = (dbQuery.data as { data?: SpotListData })?.data
+  const spotResponse = dbQuery.data as { data?: SpotListData; metadata?: SpotListData } | undefined
+  const data = spotResponse?.data ?? spotResponse?.metadata
   const items = data?.spots ?? []
 
   const categoryQuery = useApiQuery(
     ['spot-filter-categories'],
-    () => spotCategoryService.getAll({ page: 1, limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
+    () =>
+      spotCategoryService.getAll({ page: 1, limit: 100, sortBy: 'created_at', sortOrder: 'DESC' }),
     { staleTime: STALE_REF },
     false,
     false
@@ -225,7 +226,10 @@ export default function SpotPage(): JSX.Element {
                 ...filterCategories.map((c) => ({ value: `${c.id}`, label: c.name_vi })),
               ]}
               value={categoryFilter}
-              onValueChange={(v) => { setCategoryFilter(v); setCurrentPage(1) }}
+              onValueChange={(v) => {
+                setCategoryFilter(v)
+                setCurrentPage(1)
+              }}
               placeholder="Danh mục"
               className="w-48"
             />
@@ -320,7 +324,8 @@ export default function SpotPage(): JSX.Element {
             {!canEditProvinceCode && !scopedProvinceCode ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
-                  Tài khoản hiện tại chưa có <span className="font-medium">Mã tỉnh</span> trong hồ sơ.
+                  Tài khoản hiện tại chưa có <span className="font-medium">Mã tỉnh</span> trong hồ
+                  sơ.
                 </TableCell>
               </TableRow>
             ) : dbQuery.isLoading ? (
@@ -354,12 +359,15 @@ export default function SpotPage(): JSX.Element {
                     }}
                   >
                     <TableCell>
-                      {item.primary_image ?? item.primary_image_url ? (
+                      {(item.primary_image ?? item.primary_image_url) ? (
                         <img
                           src={parseLink((item.primary_image ?? item.primary_image_url)!)}
                           alt={item.name ?? item.name_vi}
                           className="h-10 w-10 cursor-zoom-in rounded border object-cover"
-                          onClick={(e) => { e.stopPropagation(); openLightbox(parseLink((item.primary_image ?? item.primary_image_url)!)) }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openLightbox(parseLink((item.primary_image ?? item.primary_image_url)!))
+                          }}
                         />
                       ) : (
                         <div className="bg-muted h-10 w-10 rounded border" />

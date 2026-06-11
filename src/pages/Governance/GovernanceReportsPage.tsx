@@ -1052,16 +1052,6 @@ export default function GovernanceReportsPage(): JSX.Element {
                             <p className="typo-table-cell line-clamp-1 font-semibold">
                               {report.business_name ?? report.business_id ?? '-'}
                             </p>
-                            {report.business_id && (
-                              <p className="typo-caption text-muted-foreground line-clamp-1">
-                                ID: {report.business_id}
-                              </p>
-                            )}
-                            {report.notes && (
-                              <p className="typo-caption text-muted-foreground line-clamp-1">
-                                {report.notes}
-                              </p>
-                            )}
                           </TableCell>
                           <TableCell className="typo-table-cell">
                             {REPORT_PERIOD_LABEL[report.report_period ?? ''] ??

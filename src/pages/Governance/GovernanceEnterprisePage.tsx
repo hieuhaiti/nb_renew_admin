@@ -82,10 +82,13 @@ import { BUSINESS_TYPE_LABEL } from '@/constant/businessConstant'
 import { ROLE_IDS } from '@/constant/roleConstant'
 import BusinessFormDialog from '@/pages/Businesses/BusinessFormDialog'
 import { useAuthStore } from '@/stores/common/useAuthStore'
+import { EnterpriseDashboardSections } from './EnterpriseDashboardSections'
 
 type EnterpriseBusiness = Business & {
   description_vi?: string | null
   description_en?: string | null
+  province_name?: string | null
+  ward_name?: string | null
 }
 
 const LIMIT_OPTIONS = [10, 20, 50]
@@ -628,8 +631,11 @@ function BusinessHeader({
                   label="Loại hình"
                   value={getBusinessTypeLabel(selectedBusiness.business_type)}
                 />
-                <InfoTile label="Mã cơ sở" value={selectedBusiness.business_code ?? '-'} />
-                <InfoTile label="Tỉnh/Thành" value={selectedBusiness.province_code ?? '-'} />
+                <InfoTile
+                  label="Trạng thái"
+                  value={BUSINESS_STATUS_LABEL[selectedBusiness.status] ?? selectedBusiness.status}
+                />
+                <InfoTile label="Tỉnh/Thành" value={selectedBusiness.province_name ?? '-'} />
               </div>
             )}
           </div>
@@ -687,15 +693,20 @@ function InfoLine({ icon, value }: { icon: ReactNode; value?: string | null }) {
 function RevenueTrend({
   items,
 }: {
-  items: NonNullable<GovernanceEnterpriseDashboard['revenue_trend']>
+  items:
+    | NonNullable<GovernanceEnterpriseDashboard['revenue_trend']>
+    | NonNullable<GovernanceEnterpriseDashboard['trend']>
 }) {
-  const maxRevenue = Math.max(...items.map((item) => toNumber(item.revenue_vnd) ?? 0), 1)
-  const chartData = items.map((item) => ({
-    period: item.period ?? '-',
-    revenue: toNumber(item.revenue_vnd) ?? 0,
-    bookings: toNumber(item.bookings) ?? 0,
-    visitors: toNumber(item.visitors) ?? 0,
-  }))
+  const chartData = items.map((item) => {
+    const record = item as Record<string, unknown>
+    return {
+      period: String(record.period ?? '-'),
+      revenue: toNumber(record.revenue_vnd) ?? 0,
+      bookings: toNumber(record.bookings) ?? 0,
+      visitors: toNumber(record.visitors ?? record.visits) ?? 0,
+    }
+  })
+  const maxRevenue = Math.max(...chartData.map((item) => item.revenue), 1)
   const totalRevenue = chartData.reduce((sum, item) => sum + item.revenue, 0)
   const latest = chartData.at(-1)
   const previous = chartData.at(-2)
@@ -850,7 +861,9 @@ function RevenueTrend({
 function CapacityAlerts({
   alerts,
 }: {
-  alerts: NonNullable<GovernanceEnterpriseDashboard['capacity_alerts']>
+  alerts:
+    | NonNullable<GovernanceEnterpriseDashboard['capacity_alerts']>
+    | NonNullable<GovernanceEnterpriseDashboard['highlights']>
 }) {
   return (
     <Card>
@@ -1044,6 +1057,8 @@ export default function GovernanceEnterprisePage(): JSX.Element {
 
   const dashboard = dashboardQuery.data?.data
   const summary = dashboard?.summary
+  const dashboardVariant = String(dashboard?.variant ?? '')
+  const isSpotOperatorDashboard = dashboardVariant === 'spot_operator'
   const reportedMetrics = dashboard?.reported_metrics
   const reportedRevenue = firstPresent(
     reportedMetrics?.total_revenue_vnd,
@@ -1087,9 +1102,28 @@ export default function GovernanceEnterprisePage(): JSX.Element {
     dashboardPeriodObject?.from || dashboardPeriodObject?.to
       ? `${formatDateValue(dashboardPeriodObject.from)} - ${formatDateValue(dashboardPeriodObject.to)}`
       : '-'
-  const revenueTrend = dashboard?.revenue_trend ?? []
-  const capacityAlerts = dashboard?.capacity_alerts ?? []
+  const revenueTrend = dashboard?.revenue_trend ?? dashboard?.trend ?? []
+  const capacityAlerts = isSpotOperatorDashboard
+    ? (dashboard?.highlights ?? dashboard?.capacity_alerts ?? [])
+    : (dashboard?.capacity_alerts ?? [])
   const summaryServiceItems = [
+    {
+      label: 'Điểm quản lý',
+      value: formatNumber(summary?.managed_spot_count),
+      helper: `${formatNumber(summary?.spot_rating_count)} lượt đánh giá điểm`,
+      rawValue: summary?.managed_spot_count,
+      helperRawValue: summary?.spot_rating_count,
+      icon: <MapPin className="size-4" />,
+    },
+    {
+      label: 'Giá vé tham quan',
+      value: `${formatCompactCurrency(summary?.ticket_price_range?.min)} - ${formatCompactCurrency(summary?.ticket_price_range?.max)}`,
+      rawValue:
+        summary?.ticket_price_range?.min != null || summary?.ticket_price_range?.max != null
+          ? 1
+          : 0,
+      icon: <TicketPercent className="size-4" />,
+    },
     {
       label: 'Dịch vụ',
       value: formatNumber(summary?.service_count),
@@ -1171,6 +1205,24 @@ export default function GovernanceEnterprisePage(): JSX.Element {
       icon: <Users className="size-4" />,
     },
     {
+      label: 'Điểm đánh giá TB',
+      value: formatNumber(summary?.spot_rating_avg),
+      helper: `${formatNumber(summary?.spot_rating_count)} lượt đánh giá`,
+      rawValue: summary?.spot_rating_avg,
+      helperRawValue: summary?.spot_rating_count,
+      icon: <Star className="size-4" />,
+    },
+    {
+      label: 'Công nghệ trải nghiệm',
+      value: `${formatNumber(summary?.experience_features?.vr360)} VR / ${formatNumber(summary?.experience_features?.ar)} AR`,
+      helper: `${formatNumber(summary?.experience_features?.audio)} audio guide`,
+      rawValue:
+        (toNumber(summary?.experience_features?.vr360) ?? 0) +
+        (toNumber(summary?.experience_features?.ar) ?? 0) +
+        (toNumber(summary?.experience_features?.audio) ?? 0),
+      icon: <Globe className="size-4" />,
+    },
+    {
       label: 'Sức chứa hiện tại',
       value: formatPercent(summary?.avg_capacity_pct),
       rawValue: summary?.avg_capacity_pct,
@@ -1179,7 +1231,7 @@ export default function GovernanceEnterprisePage(): JSX.Element {
     {
       label: 'Cảnh báo sức chứa',
       value: formatNumber(summary?.capacity_alert_count),
-      helper: `${formatNumber(capacityAlerts.length)} bản ghi cảnh báo trả về`,
+      helper: `${formatNumber(capacityAlerts.length)} điểm cần theo dõi`,
       rawValue: summary?.capacity_alert_count,
       helperRawValue: capacityAlerts.length,
       icon: <AlertTriangle className="size-4" />,
@@ -1187,9 +1239,6 @@ export default function GovernanceEnterprisePage(): JSX.Element {
     {
       label: 'Báo cáo hoạt động',
       value: formatNumber(reportedReportCount),
-      helper: hasDisplayValue(formatTextValue(reportedMetrics?.source))
-        ? `Nguồn: ${formatTextValue(reportedMetrics?.source)}`
-        : undefined,
       rawValue: reportedReportCount,
       icon: <FileText className="size-4" />,
     },
@@ -1210,13 +1259,6 @@ export default function GovernanceEnterprisePage(): JSX.Element {
     },
   ]
   const businessProfileItems = [
-    {
-      label: 'Mã cơ sở',
-      value: formatTextValue(
-        firstPresent(dashboardBusiness.business_code, selectedBusiness?.business_code)
-      ),
-      icon: <ClipboardList className="size-4" />,
-    },
     {
       label: 'Loại hình',
       value: getBusinessTypeLabel(
@@ -1444,21 +1486,39 @@ export default function GovernanceEnterprisePage(): JSX.Element {
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <MetricCard
-                    icon={<Wallet className="size-5" />}
-                    label="Doanh thu báo cáo"
+                    icon={
+                      isSpotOperatorDashboard ? (
+                        <MapPin className="size-5" />
+                      ) : (
+                        <Wallet className="size-5" />
+                      )
+                    }
+                    label={isSpotOperatorDashboard ? 'Điểm quản lý' : 'Doanh thu báo cáo'}
                     value={
                       dashboardQuery.isLoading
                         ? 'Đang tải...'
-                        : formatCompactCurrency(reportedRevenue)
+                        : isSpotOperatorDashboard
+                          ? formatNumber(summary?.managed_spot_count)
+                          : formatCompactCurrency(reportedRevenue)
                     }
-                    helper={formatCurrency(reportedRevenue)}
+                    helper={
+                      isSpotOperatorDashboard
+                        ? `${formatNumber(summary?.spot_rating_count)} lượt đánh giá`
+                        : formatCurrency(reportedRevenue)
+                    }
                   />
                   <MetricCard
                     icon={<Users className="size-5" />}
                     tone="info"
                     label="Lượt khách"
                     value={
-                      dashboardQuery.isLoading ? 'Đang tải...' : formatNumber(reportedVisitors)
+                      dashboardQuery.isLoading
+                        ? 'Đang tải...'
+                        : formatNumber(
+                            isSpotOperatorDashboard
+                              ? (summary?.current_visitors ?? reportedVisitors)
+                              : reportedVisitors
+                          )
                     }
                     helper={`${formatNumber(reportedBookings)} lượt đặt chỗ`}
                   />
@@ -1469,7 +1529,11 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                     value={
                       dashboardQuery.isLoading
                         ? 'Đang tải...'
-                        : formatPercent(reportedAvgCapacityPct)
+                        : formatPercent(
+                            isSpotOperatorDashboard
+                              ? (summary?.avg_capacity_pct ?? reportedAvgCapacityPct)
+                              : reportedAvgCapacityPct
+                          )
                     }
                     helper={`${formatNumber(reportedReportCount)} báo cáo đã ghi nhận`}
                   />
@@ -1485,6 +1549,10 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                     helper={`${formatNumber(selectedBusiness?.rating_count)} lượt đánh giá`}
                   />
                 </div>
+
+                {dashboard && (
+                  <EnterpriseDashboardSections dashboard={dashboard} showBusiness={false} />
+                )}
 
                 <div className="grid gap-4 xl:grid-cols-2">
                   <DetailGroupCard

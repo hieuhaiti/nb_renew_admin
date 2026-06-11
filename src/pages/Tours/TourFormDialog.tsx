@@ -73,6 +73,19 @@ function slugify(text: string): string {
     .replace(/\s+/g, '-')
 }
 
+function sortStopsByPosition(items: TourStop[]): TourStop[] {
+  return [...items].sort((a, b) =>
+    a.day_number !== b.day_number ? a.day_number - b.day_number : a.stop_order - b.stop_order
+  )
+}
+
+function extractStopFromResponse(response: unknown): TourStop | null {
+  const data = (response as ApiResponse<TourStop | { stop?: TourStop }>)?.data
+  if (!data) return null
+  if ('id' in data) return data as TourStop
+  return data.stop ?? null
+}
+
 const defaultValues: TourFormValues = {
   name_vi: '',
   slug: '',
@@ -242,12 +255,8 @@ export default function TourFormDialog({
   const isEdit = !!tour
 
   // ── Stops state ───────────────────────────────────────────────────────────
-  const stopsData: TourStop[] = tour?.stops
-    ? [...tour.stops].sort((a, b) =>
-        a.day_number !== b.day_number ? a.day_number - b.day_number : a.stop_order - b.stop_order
-      )
-    : []
-  const hasStops = isEdit && stopsData.length > 0
+  const stopsData: TourStop[] = tour?.stops ? sortStopsByPosition(tour.stops) : []
+  const showStopsPanel = isEdit
 
   const [stops, setStops] = useState<TourStop[]>([])
   // Tracks the last-committed server order (updated on initial sync + add/delete)
@@ -275,7 +284,13 @@ export default function TourFormDialog({
   }, [open])
 
   // ── Per-day grouping ──────────────────────────────────────────────────────
-  const days = Array.from(new Set(stops.map((s) => s.day_number))).sort((a, b) => a - b)
+  const tourDayCount = Math.max(1, Number(tour?.duration_days) || 1)
+  const defaultDays = showStopsPanel
+    ? Array.from({ length: tourDayCount }, (_, index) => index + 1)
+    : []
+  const days = Array.from(new Set([...defaultDays, ...stops.map((s) => s.day_number)])).sort(
+    (a, b) => a - b
+  )
   const stopsByDay = days.reduce<Record<number, TourStop[]>>((acc, day) => {
     acc[day] = stops.filter((s) => s.day_number === day).sort((a, b) => a.stop_order - b.stop_order)
     return acc
@@ -364,6 +379,7 @@ export default function TourFormDialog({
     () =>
       spotService.getAll({
         limit: 100,
+        status: 'active',
         sortBy: 'name_vi',
         sortOrder: 'ASC',
       }),
@@ -372,22 +388,28 @@ export default function TourFormDialog({
     false
   )
   const spotOptions: { id: string; name_vi?: string | null; name?: string }[] =
-    (spotsQuery.data as any)?.data?.spots ?? []
+    (spotsQuery.data as any)?.data?.spots ?? (spotsQuery.data as any)?.metadata?.spots ?? []
 
   const openAddForm = (day: number) => {
     setAddingToDay(day)
     setNewStopSpotId('')
     setNewStopTitleVi('')
-    setNewStopDuration('')
+    setNewStopDuration('60')
   }
 
   const handleAddStop = async (day: number) => {
     if (!tourId) return
-    const hasTitle = newStopTitleVi.trim()
     if (!newStopSpotId) {
       toast.error('Vui lòng chọn điểm tham quan từ danh sách')
       return
     }
+    const selectedSpot = spotOptions.find((spot) => spot.id === newStopSpotId)
+    const titleVi =
+      newStopTitleVi.trim() ||
+      selectedSpot?.name_vi?.trim() ||
+      selectedSpot?.name?.trim() ||
+      selectedSpot?.id ||
+      ''
     const dayStops = stopsByDay[day] ?? []
     const nextOrder = dayStops.length > 0 ? Math.max(...dayStops.map((s) => s.stop_order)) + 1 : 1
 
@@ -397,16 +419,21 @@ export default function TourFormDialog({
         day_number: day,
         stop_order: nextOrder,
         spot_id: newStopSpotId || null,
-        title_vi: hasTitle ? newStopTitleVi.trim() : undefined,
-        planned_duration_min: newStopDuration ? parseInt(newStopDuration) : undefined,
+        title_vi: titleVi,
+        planned_duration_min: newStopDuration ? parseInt(newStopDuration) : 60,
       })
-      const newStop = (res as ApiResponse<TourStop>)?.data
+      const newStop = extractStopFromResponse(res)
       if (newStop) {
-        setStops((prev) => [...prev, newStop])
-        serverOrderRef.current = [
-          ...serverOrderRef.current,
+        setStops((prev) =>
+          sortStopsByPosition([...prev.filter((stop) => stop.id !== newStop.id), newStop])
+        )
+        const nextServerOrder = [
+          ...serverOrderRef.current.filter((stop) => stop.id !== newStop.id),
           { id: newStop.id, stop_order: newStop.stop_order, day_number: newStop.day_number },
-        ]
+        ].sort((a, b) =>
+          a.day_number !== b.day_number ? a.day_number - b.day_number : a.stop_order - b.stop_order
+        )
+        serverOrderRef.current = nextServerOrder
       }
       setAddingToDay(null)
       toast.success('Đã thêm điểm dừng')
@@ -435,7 +462,7 @@ export default function TourFormDialog({
       reset({
         name_vi: tour.name_vi ?? tour.name,
         slug: tour.slug,
-        province_code: canEditProvinceCode ? tour.province_code ?? '' : provinceCode,
+        province_code: canEditProvinceCode ? (tour.province_code ?? '') : provinceCode,
         description_vi: tour.description_vi ?? '',
         duration_days: tour.duration_days,
         price_from_vnd: tour.price_from_vnd != null ? parseFloat(tour.price_from_vnd) : null,
@@ -507,7 +534,7 @@ export default function TourFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`max-h-[90vh] overflow-y-auto transition-all ${hasStops ? 'max-w-7xl' : 'max-w-2xl'}`}
+        className={`max-h-[90vh] overflow-y-auto transition-all ${showStopsPanel ? 'max-w-7xl' : 'max-w-2xl'}`}
       >
         <DialogTitle>{isEdit ? 'Cập nhật tour' : 'Thêm tour mới'}</DialogTitle>
         <DialogDescription>
@@ -517,7 +544,7 @@ export default function TourFormDialog({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="pt-2">
           <div className="flex gap-6">
             {/* ── Form fields ─────────────────────────────────────────────── */}
-            <div className={`${hasStops ? 'w-[60%]' : 'w-full'} space-y-4`}>
+            <div className={`${showStopsPanel ? 'w-[60%]' : 'w-full'} space-y-4`}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label htmlFor="tour_name">
@@ -532,7 +559,9 @@ export default function TourFormDialog({
                       if (!isEdit) setValue('slug', slugify(e.target.value))
                     }}
                   />
-                  {errors.name_vi && <p className="text-destructive text-xs">{errors.name_vi.message}</p>}
+                  {errors.name_vi && (
+                    <p className="text-destructive text-xs">{errors.name_vi.message}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="tour_slug">
@@ -673,7 +702,7 @@ export default function TourFormDialog({
             </div>
 
             {/* ── Stops panel ─────────────────────────────────────────────── */}
-            {hasStops && (
+            {showStopsPanel && (
               <div className="flex w-[40%] flex-col border-l pl-4">
                 <div className="typo-section-title mb-0.5">
                   Điểm dừng{' '}

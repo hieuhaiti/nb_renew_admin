@@ -73,6 +73,7 @@ export interface SpotListParams {
   sortOrder?: 'ASC' | 'DESC'
   lang?: string
   capacity?: boolean
+  has_vr?: boolean
 }
 
 export interface SpotFormBody {
