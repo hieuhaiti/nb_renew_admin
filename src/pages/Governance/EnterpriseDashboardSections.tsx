@@ -588,11 +588,11 @@ function ExperienceFeatures({
     <div className={`rounded-md border bg-white/85 p-3 shadow-xs ${toneClass.border}`}>
       <p className="typo-caption text-muted-foreground">Công nghệ trải nghiệm</p>
       <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
-        {[
+        {([
           ['VR360', record.vr360],
           ['AR', record.ar],
           ['Audio', record.audio],
-        ].map(([label, count]) => (
+        ] satisfies Array<[string, unknown]>).map(([label, count]) => (
           <div key={String(label)} className="bg-muted/30 rounded-md px-2 py-1.5 text-center">
             <p className="text-muted-foreground text-xs">{label}</p>
             <p className={`font-semibold ${toneClass.text}`}>{formatNumber(count)}</p>
