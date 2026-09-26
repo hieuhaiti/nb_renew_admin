@@ -25,9 +25,9 @@ export default {
   update: (id: string | number, data: UserUpdateBody) =>
     apiClient.put<ApiResponse<User>>(`${serviceUserPath}/${id}`, data),
 
-  /** PUT /users/:id/lock */
+  /** PATCH /users/:id/lock */
   lock: (id: string | number, data?: { reason?: string }) =>
-    apiClient.put<ApiResponse<User>>(`${serviceUserPath}/${id}/lock`, data),
+    apiClient.patch<ApiResponse<User>>(`${serviceUserPath}/${id}/lock`, data),
 
   /** PATCH /users/:id/lock */
   unlock: (id: string | number) =>

@@ -81,13 +81,13 @@ const CAPACITY_STATUS_LABEL: Record<string, string> = {
 const CAPACITY_STATUS_DOT: Record<string, string> = {
   normal: 'bg-success',
   busy: 'bg-warning',
-  near_full: 'bg-orange-500',
+  near_full: 'bg-warning',
   overloaded: 'bg-destructive',
 }
 const CAPACITY_STATUS_BADGE: Record<string, string> = {
   normal: 'bg-success/10 text-success border-success/20',
   busy: 'bg-warning/10 text-warning border-warning/20',
-  near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  near_full: 'bg-warning/15 text-warning border-warning/30',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
@@ -397,13 +397,13 @@ export default function GovernanceAdminPage(): JSX.Element {
                 icon={<ShieldCheck className="size-5" />}
                 label="Tổng quyền hạn"
                 value={dashboard.total_permissions ?? '-'}
-                colorClass="text-purple-600"
+                colorClass="text-primary"
               />
               <StatCard
                 icon={<BookOpen className="size-5" />}
                 label="Audit logs (kỳ)"
                 value={dashboard.audit_logs_in_range ?? '-'}
-                colorClass="text-slate-600"
+                colorClass="text-muted-foreground"
               />
             </div>
           </div>
@@ -415,25 +415,25 @@ export default function GovernanceAdminPage(): JSX.Element {
                 icon={<FileText className="size-5" />}
                 label="Tin tức"
                 value={dashboard.total_news ?? '-'}
-                colorClass="text-blue-600"
+                colorClass="text-primary"
               />
               <StatCard
                 icon={<Utensils className="size-5" />}
                 label="Ẩm thực"
                 value={dashboard.total_cuisine_items ?? '-'}
-                colorClass="text-orange-500"
+                colorClass="text-warning"
               />
               <StatCard
                 icon={<PartyPopper className="size-5" />}
                 label="Lễ hội"
                 value={dashboard.total_festivals ?? '-'}
-                colorClass="text-pink-600"
+                colorClass="text-secondary"
               />
               <StatCard
                 icon={<Package className="size-5" />}
                 label="Sản phẩm OCOP"
                 value={dashboard.total_ocop_products ?? '-'}
-                colorClass="text-emerald-600"
+                colorClass="text-success"
               />
             </div>
           </div>
@@ -445,25 +445,25 @@ export default function GovernanceAdminPage(): JSX.Element {
                 icon={<MapPin className="size-5" />}
                 label="Danh mục bản đồ"
                 value={dashboard.total_map_categories ?? '-'}
-                colorClass="text-cyan-600"
+                colorClass="text-info"
               />
               <StatCard
                 icon={<Layers className="size-5" />}
                 label="Lớp bản đồ"
                 value={dashboard.total_map_layers ?? '-'}
-                colorClass="text-cyan-600"
+                colorClass="text-info"
               />
               <StatCard
                 icon={<Globe className="size-5" />}
                 label="API bản đồ"
                 value={dashboard.total_map_apis ?? '-'}
-                colorClass="text-cyan-600"
+                colorClass="text-info"
               />
               <StatCard
                 icon={<Eye className="size-5" />}
                 label="Lượt truy cập (kỳ)"
                 value={dashboard.visits_in_range ?? '-'}
-                colorClass="text-indigo-500"
+                colorClass="text-primary"
               />
             </div>
           </div>
@@ -510,19 +510,19 @@ export default function GovernanceAdminPage(): JSX.Element {
                   icon={<Eye className="size-5" />}
                   label="Tổng lượt truy cập"
                   value={(trafficData.total_visits ?? 0).toLocaleString('vi-VN')}
-                  colorClass="text-indigo-500"
+                  colorClass="text-primary"
                 />
                 <StatCard
                   icon={<Users className="size-5" />}
                   label="Khách duy nhất"
                   value={(trafficData.unique_visitors ?? 0).toLocaleString('vi-VN')}
-                  colorClass="text-sky-600"
+                  colorClass="text-info"
                 />
                 <StatCard
                   icon={<Timer className="size-5" />}
                   label="Thời gian TB (giây)"
                   value={(trafficData.avg_duration_seconds ?? 0).toLocaleString('vi-VN')}
-                  colorClass="text-amber-600"
+                  colorClass="text-warning"
                 />
                 <StatCard
                   icon={<Percent className="size-5" />}
@@ -532,7 +532,7 @@ export default function GovernanceAdminPage(): JSX.Element {
                       ? `${trafficData.bounce_rate_pct.toFixed(1)}%`
                       : '-'
                   }
-                  colorClass="text-rose-500"
+                  colorClass="text-destructive"
                 />
               </div>
 

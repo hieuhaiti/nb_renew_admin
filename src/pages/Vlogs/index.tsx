@@ -10,7 +10,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
@@ -33,6 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Check, Pen, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
@@ -182,6 +182,9 @@ export default function VlogPage(): JSX.Element {
               </SelectContent>
             </Select>
             <Input
+              id="vlogs-filter-platform"
+              name="platform"
+              aria-label="Lọc theo nền tảng"
               value={platformFilter}
               onChange={(e) => {
                 setPlatformFilter(e.target.value)
@@ -191,6 +194,9 @@ export default function VlogPage(): JSX.Element {
               className="w-32"
             />
             <Input
+              id="vlogs-filter-user-id"
+              name="user_id"
+              aria-label="Lọc theo User ID"
               value={userIdFilter}
               onChange={(e) => {
                 setUserIdFilter(e.target.value)
@@ -292,43 +298,36 @@ export default function VlogPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Kiểm duyệt"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           openForm(vlog)
                         }}
-                        title="Kiểm duyệt"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
+                      />
                       {vlog.status === 'pending' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Xuất bản ngay"
+                          icon={Check}
+                          className="text-success hover:text-success"
+                          disabled={moderateMutation.isPending}
                           onClick={(e) => {
                             e.stopPropagation()
                             handleApprove(vlog.id)
                           }}
-                          title="Xuất bản ngay"
-                          disabled={moderateMutation.isPending}
-                        >
-                          <Check className="text-success size-4" />
-                        </Button>
+                        />
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setVlogToDelete(vlog)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

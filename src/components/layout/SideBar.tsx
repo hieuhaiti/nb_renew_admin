@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { ChevronRight, ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronRight, ChevronDown, X } from 'lucide-react'
 import { useSidebarStore } from '@/stores/common/useSidebarStore'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -24,15 +24,18 @@ function getNavName(
 export function SideBar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isExpanded, setExpanded } = useSidebarStore() as {
-    isExpanded: boolean
-    setExpanded: (isExpanded: boolean) => void
-    toggleSidebar: () => void
-  }
+  const { isExpanded, isMobileOpen, setExpanded, setMobileOpen } = useSidebarStore()
   const permissions = useAuthStore((s) => s.permissions)
   const roleId = useAuthStore((s) => s.user?.role_id)
-  // Track which nav item's submenu is open (accordion: only one at a time)
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
+  // Track which nav item's submenu is explicitly toggled by user
+  const [toggledSubMenu, setToggledSubMenu] = useState<string | null>(null)
+  const showFull = isExpanded || isMobileOpen
+
+  const autoParent =
+    navConfig.find((item) => item.subItems?.some((sub) => location.pathname === sub.path))?.path ??
+    null
+
+  const effectiveSubOpen = toggledSubMenu !== null ? toggledSubMenu : autoParent
 
   const handleMenuClick = (path: string) => {
     if (/^https?:\/\//i.test(path)) {
@@ -40,39 +43,41 @@ export function SideBar() {
       return
     }
 
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setMobileOpen(false)
+    }
     navigate(path)
   }
-
-  useEffect(() => {
-    if (!isExpanded) {
-      setOpenSubMenu(null)
-      return
-    }
-    const matchedParent = navConfig.find((item) =>
-      item.subItems?.some((sub) => location.pathname === sub.path)
-    )
-    if (matchedParent) setOpenSubMenu(matchedParent.path)
-  }, [location.pathname, isExpanded])
 
   return (
     <div className="bg-card flex h-full flex-col">
       {/* Header của Sidebar */}
       <div className="flex items-center justify-between p-4">
-        {isExpanded && (
+        {showFull ? (
           <div className="flex items-center gap-2">
             <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
               <span className="text-primary-foreground text-sm font-bold">NB</span>
             </div>
             <span className="text-foreground font-semibold">Ninh Bình Admin</span>
           </div>
-        )}
-
-        {!isExpanded && (
+        ) : (
           <div className="flex w-full justify-center">
             <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
               <span className="text-primary-foreground text-sm font-bold">NB</span>
             </div>
           </div>
+        )}
+
+        {isMobileOpen && (
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Đóng sidebar"
+            onClick={() => setMobileOpen(false)}
+            className="md:hidden h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
@@ -100,7 +105,7 @@ export function SideBar() {
                   location.pathname === item.subpath ||
                   location.pathname.startsWith(item.path + '/'))
               const isActive = isDirectlyActive || isSubItemActive
-              const isSubOpen = openSubMenu === item.path
+              const isSubOpen = effectiveSubOpen === item.path
 
               return (
                 <Tooltip key={item.path}>
@@ -110,7 +115,7 @@ export function SideBar() {
                         variant={isActive ? 'default' : 'ghost'}
                         className={cn(
                           'text-foreground hover:text-foreground-hover h-auto w-full justify-start gap-3 px-3 py-2',
-                          isExpanded ? 'justify-start' : 'justify-center px-2',
+                          showFull ? 'justify-start' : 'justify-center px-2',
                           isDirectlyActive &&
                             'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground',
                           isSubItemActive &&
@@ -121,14 +126,14 @@ export function SideBar() {
                           if (hasSubItems) {
                             e.stopPropagation()
                             setExpanded(true)
-                            setOpenSubMenu(isSubOpen ? null : item.path)
+                            setToggledSubMenu(isSubOpen ? '' : item.path)
                           } else {
                             handleMenuClick(item.path)
                           }
                         }}
                       >
                         {item.icon}
-                        {isExpanded && (
+                        {showFull && (
                           <span
                             className={cn(
                               'flex w-full items-center justify-between truncate text-sm font-medium',
@@ -150,7 +155,7 @@ export function SideBar() {
                         )}
                       </Button>
 
-                      {hasSubItems && isSubOpen && isExpanded && (
+                      {hasSubItems && isSubOpen && showFull && (
                         <div className="mt-1 space-y-1 pl-6">
                           {visibleSubItems?.map((sub) => {
                             const subName = getNavName(sub, roleId)
@@ -161,7 +166,7 @@ export function SideBar() {
                                 variant={location.pathname === sub.path ? 'default' : 'ghost'}
                                 className={cn(
                                   'h-auto w-full justify-start gap-3 px-3 py-2',
-                                  isExpanded ? 'justify-start' : 'justify-center px-2',
+                                  showFull ? 'justify-start' : 'justify-center px-2',
                                   location.pathname === sub.path &&
                                     'bg-primary text-primary-foreground'
                                 )}
@@ -170,7 +175,7 @@ export function SideBar() {
                                   handleMenuClick(sub.path)
                                 }}
                               >
-                                {isExpanded && (
+                                {showFull && (
                                   <span className="truncate text-sm font-medium">{subName}</span>
                                 )}
                               </Button>
@@ -180,7 +185,7 @@ export function SideBar() {
                       )}
                     </div>
                   </TooltipTrigger>
-                  {!isExpanded && (
+                  {!showFull && (
                     <TooltipContent side="right" sideOffset={8}>
                       <p>{navName}</p>
                     </TooltipContent>

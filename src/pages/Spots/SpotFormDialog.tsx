@@ -14,6 +14,7 @@ import type {
 import type { SpotMedia } from '@/service/spotService'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -517,27 +518,41 @@ export default function SpotFormDialog({
                     )}
                     <div className="absolute right-0 bottom-0 left-0 flex justify-end gap-1 bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                       {!m.is_primary && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-6 text-white hover:bg-white/20"
-                          onClick={() => setPrimaryMutation.mutate(m.id)}
-                          disabled={mediaPending}
-                          title="Đặt làm ảnh chính"
-                        >
-                          <Crown className="size-3" />
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="size-6 text-white hover:bg-white/20"
+                              onClick={() => setPrimaryMutation.mutate(m.id)}
+                              disabled={mediaPending}
+                              aria-label="Đặt làm ảnh chính"
+                            >
+                              <Crown className="size-3" />
+                              <span className="sr-only">Đặt làm ảnh chính</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">Đặt làm ảnh chính</TooltipContent>
+                        </Tooltip>
                       )}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="hover:bg-destructive/80 size-6 text-white"
-                        onClick={() => deleteMutation.mutate(m.id)}
-                        disabled={mediaPending}
-                        title="Xóa"
-                      >
-                        <Trash2 className="size-3" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="hover:bg-destructive/80 size-6 text-white"
+                            onClick={() => deleteMutation.mutate(m.id)}
+                            disabled={mediaPending}
+                            aria-label="Xóa ảnh"
+                          >
+                            <Trash2 className="size-3" />
+                            <span className="sr-only">Xóa ảnh</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">Xóa</TooltipContent>
+                      </Tooltip>
                     </div>
                     {m.title_vi && <div className="truncate p-1 text-xs">{m.title_vi}</div>}
                   </div>

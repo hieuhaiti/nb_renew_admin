@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { spotService, tourService, useApiQuery, useApiMutation } from '@/service'
 import type { ApiResponse, Spot, Tour, TourListData } from '@/types/api'
 import type { SpotMedia } from '@/service/spotService'
@@ -165,14 +166,20 @@ export default function SpotDetailDialog({
         className="max-h-[85vh] max-w-2xl overflow-y-auto"
         actions={
           onEdit && (
-            <button
-              onClick={onEdit}
-              title="Chỉnh sửa"
-              className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
-            >
-              <Pen className="h-5 w-5" />
-              <span className="sr-only">Chỉnh sửa</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Chỉnh sửa điểm tham quan"
+                  className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+                >
+                  <Pen className="h-5 w-5" />
+                  <span className="sr-only">Chỉnh sửa</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Chỉnh sửa</TooltipContent>
+            </Tooltip>
           )
         }
       >
@@ -353,27 +360,41 @@ export default function SpotDetailDialog({
                       )}
                       <div className="absolute right-0 bottom-0 left-0 flex justify-end gap-1 bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                         {!m.is_primary && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-6 text-white hover:bg-white/20"
-                            onClick={() => setPrimaryMutation.mutate(m.id)}
-                            disabled={isPending}
-                            title="Đặt làm ảnh chính"
-                          >
-                            <Crown className="size-3" />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="size-6 text-white hover:bg-white/20"
+                                onClick={() => setPrimaryMutation.mutate(m.id)}
+                                disabled={isPending}
+                                aria-label="Đặt làm ảnh chính"
+                              >
+                                <Crown className="size-3" />
+                                <span className="sr-only">Đặt làm ảnh chính</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">Đặt làm ảnh chính</TooltipContent>
+                          </Tooltip>
                         )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="hover:bg-destructive/80 size-6 text-white"
-                          onClick={() => deleteMutation.mutate(m.id)}
-                          disabled={isPending}
-                          title="Xóa"
-                        >
-                          <Trash2 className="size-3" />
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="hover:bg-destructive/80 size-6 text-white"
+                              onClick={() => deleteMutation.mutate(m.id)}
+                              disabled={isPending}
+                              aria-label="Xóa ảnh"
+                            >
+                              <Trash2 className="size-3" />
+                              <span className="sr-only">Xóa ảnh</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">Xóa</TooltipContent>
+                        </Tooltip>
                       </div>
                       {m.title_vi && <div className="truncate p-1 text-xs">{m.title_vi}</div>}
                     </div>

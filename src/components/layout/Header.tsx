@@ -6,14 +6,19 @@ import { NotificationMenu } from '@/components/layout/NotificationMenu'
 import { UserMenu } from '@/components/layout/UserMenu'
 
 export function Header() {
-  const { isExpanded, toggleSidebar } = useSidebarStore() as {
-    isExpanded: boolean
-    toggleSidebar: () => void
+  const { isExpanded, isMobileOpen, toggleSidebar, toggleMobile } = useSidebarStore()
+
+  const handleToggle = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      toggleMobile()
+    } else {
+      toggleSidebar()
+    }
   }
 
   return (
     <header className="bg-background/95 text-foreground supports-backdrop-filter:bg-background/60 border-border sticky top-0 z-10 border-b backdrop-blur">
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
         {/* Left side - Toggle và Title */}
         <div className="flex items-center gap-4">
           <Tooltip>
@@ -22,14 +27,14 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 aria-label="Toggle sidebar"
-                onClick={() => toggleSidebar()}
+                onClick={handleToggle}
                 className="hover:bg-muted relative h-8 w-8 p-0 shadow-sm"
               >
                 <Menu className="text-foreground h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>{isExpanded ? 'Thu gọn sidebar' : 'Mở rộng sidebar'}</p>
+              <p>{isExpanded || isMobileOpen ? 'Thu gọn sidebar' : 'Mở rộng sidebar'}</p>
             </TooltipContent>
           </Tooltip>
         </div>

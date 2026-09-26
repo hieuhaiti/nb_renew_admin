@@ -12,11 +12,11 @@ interface AuditLogDetailDialogProps {
 }
 
 const ACTION_VERB_CLASS: Record<string, string> = {
-  create: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800',
-  update: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800',
-  delete: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800',
-  login:  'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-800',
-  logout: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800',
+  create: 'bg-success/15 text-success border-success/30',
+  update: 'bg-primary/15 text-primary border-primary/30',
+  delete: 'bg-destructive/15 text-destructive border-destructive/30',
+  login:  'bg-info/15 text-info border-info/30',
+  logout: 'bg-warning/15 text-warning-foreground border-warning/30',
 }
 
 function ActionBadge({ action }: { action: string }) {
@@ -118,7 +118,7 @@ export default function AuditLogDetailDialog({ open, onOpenChange, log }: AuditL
                     <p className="text-muted-foreground mb-1.5 text-xs font-medium uppercase tracking-wider">
                       Giá trị cũ
                     </p>
-                    <pre className="bg-red-50 dark:bg-red-950/30 max-h-52 overflow-y-auto rounded-lg border border-red-100 p-3 text-xs dark:border-red-900">
+                    <pre className="bg-destructive/10 text-foreground max-h-52 overflow-y-auto rounded-lg border border-destructive/20 p-3 text-xs font-mono">
                       {JSON.stringify(log.old_value, null, 2)}
                     </pre>
                   </div>
@@ -128,7 +128,7 @@ export default function AuditLogDetailDialog({ open, onOpenChange, log }: AuditL
                     <p className="text-muted-foreground mb-1.5 text-xs font-medium uppercase tracking-wider">
                       Giá trị mới
                     </p>
-                    <pre className="bg-emerald-50 dark:bg-emerald-950/30 max-h-52 overflow-y-auto rounded-lg border border-emerald-100 p-3 text-xs dark:border-emerald-900">
+                    <pre className="bg-success/10 text-foreground max-h-52 overflow-y-auto rounded-lg border border-success/20 p-3 text-xs font-mono">
                       {JSON.stringify(log.new_value, null, 2)}
                     </pre>
                   </div>

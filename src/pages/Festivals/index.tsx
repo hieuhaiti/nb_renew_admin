@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { IconAction } from '@/components/common/IconAction'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
   Table,
@@ -68,7 +69,7 @@ export default function FestivalPage(): JSX.Element {
 
   const dbQuery = useApiQuery(
     ['festivals', queryParams],
-    () => festivalService.getAll(queryParams),
+    () => festivalService.getAdmin(queryParams),
     { staleTime: STALE_DEFAULT },
     false,
     false
@@ -147,6 +148,9 @@ export default function FestivalPage(): JSX.Element {
         filter={
           <div className="flex items-center gap-2">
             <Input
+              id="festivals-filter-type"
+              name="festival_type"
+              aria-label="Lọc theo loại lễ hội"
               value={festivalTypeFilter}
               onChange={(e) => {
                 setFestivalTypeFilter(e.target.value)
@@ -292,30 +296,25 @@ export default function FestivalPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedId(item.id)
                           setFormDialogOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setItemToDelete(item)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

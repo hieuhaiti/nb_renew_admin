@@ -34,6 +34,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Crown, Eye, EyeOff, Pen, Plus, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { STALE_DEFAULT, STALE_REF } from '@/constant/queryConstant'
@@ -248,60 +249,46 @@ export default function AframeScenePage(): JSX.Element {
                   <TableCell className="text-sm">{formatDate(scene.created_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedId(scene.id)
                           setDetailOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
+                      />
                       {!scene.is_main && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Đặt làm cảnh chính"
+                          icon={Crown}
+                          disabled={setMainMutation.isPending}
                           onClick={(e) => {
                             e.stopPropagation()
                             setMainMutation.mutate(scene.id)
                           }}
-                          title="Đặt làm cảnh chính"
-                          disabled={setMainMutation.isPending}
-                        >
-                          <Crown className="size-4" />
-                        </Button>
+                        />
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label={scene.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                        icon={scene.is_active ? EyeOff : Eye}
+                        className={scene.is_active ? 'text-muted-foreground' : 'text-success hover:text-success'}
+                        disabled={toggleActiveMutation.isPending}
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleActiveMutation.mutate({ id: scene.id, active: !scene.is_active })
                         }}
-                        title={scene.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
-                        disabled={toggleActiveMutation.isPending}
-                      >
-                        {scene.is_active ? (
-                          <EyeOff className="text-muted-foreground size-4" />
-                        ) : (
-                          <Eye className="text-success size-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setItemToDelete(scene)
                           setDeleteOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

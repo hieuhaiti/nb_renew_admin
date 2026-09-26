@@ -15,12 +15,14 @@ export default {
   login: (data: { login: string; password: string; remember?: boolean }) =>
     apiClient.post<ApiResponse<AuthLoginData>>(`${serviceAuthPath}/login`, data),
 
-  /** POST /auth/refresh — body uses snake_case per Postman */
-  refreshToken: (data: { refresh_token: string }) =>
-    apiClient.post<ApiResponse<Pick<AuthLoginData, 'access_token'>>>(
+  /** POST /auth/refresh — accepts both camelCase and snake_case */
+  refreshToken: (data: { refresh_token?: string; refreshToken?: string }) => {
+    const token = data.refreshToken || data.refresh_token || ''
+    return apiClient.post<ApiResponse<Pick<AuthLoginData, 'access_token'>>>(
       `${serviceAuthPath}/refresh`,
-      data
-    ),
+      { refreshToken: token, refresh_token: token }
+    )
+  },
 
   /** GET /auth/me */
   getProfile: () => apiClient.get<ApiResponse<AuthMeData>>(`${serviceAuthPath}/me`),
@@ -72,11 +74,14 @@ export default {
       confirm_password: data.confirm_password ?? data.confirmPassword,
     }),
 
-  /** POST /auth/logout — body uses snake_case per Postman */
-  logout: (data?: { refresh_token?: string; refreshToken?: string }) =>
-    apiClient.post<ApiResponse<{}>>(`${serviceAuthPath}/logout`, {
-      refresh_token: data?.refresh_token ?? data?.refreshToken,
-    }),
+  /** POST /auth/logout — accepts both camelCase and snake_case */
+  logout: (data?: { refresh_token?: string; refreshToken?: string }) => {
+    const token = data?.refreshToken ?? data?.refresh_token
+    return apiClient.post<ApiResponse<{}>>(`${serviceAuthPath}/logout`, {
+      refreshToken: token,
+      refresh_token: token,
+    })
+  },
 
   /** POST /auth/forgot-password */
   forgotPassword: (data: { email: string }) =>

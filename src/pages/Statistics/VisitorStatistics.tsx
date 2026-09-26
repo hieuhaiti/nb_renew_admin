@@ -290,8 +290,10 @@ export default function VisitorStatisticsPage(): JSX.Element {
 
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1">
-                  <p className="typo-label font-medium">Từ ngày</p>
+                  <label htmlFor="stats-from-date" className="typo-label font-medium block">Từ ngày</label>
                   <Input
+                    id="stats-from-date"
+                    name="from-date"
                     type="date"
                     className="h-9 w-40"
                     value={fromDate}
@@ -299,8 +301,10 @@ export default function VisitorStatisticsPage(): JSX.Element {
                   />
                 </div>
                 <div className="space-y-1">
-                  <p className="typo-label font-medium">Đến ngày</p>
+                  <label htmlFor="stats-to-date" className="typo-label font-medium block">Đến ngày</label>
                   <Input
+                    id="stats-to-date"
+                    name="to-date"
                     type="date"
                     className="h-9 w-40"
                     value={toDate}

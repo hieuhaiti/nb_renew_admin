@@ -386,7 +386,7 @@ function includesSearch(...values: Array<unknown>): (keyword: string) => boolean
 }
 
 type MetricTone = 'primary' | 'info' | 'success' | 'warning'
-type DetailTone = MetricTone | 'violet'
+type DetailTone = MetricTone | 'secondary'
 
 const METRIC_TONE_CLASS: Record<MetricTone, { icon: string; bar: string }> = {
   primary: {
@@ -439,13 +439,12 @@ const DETAIL_TONE_CLASS: Record<
     item: 'border-warning/10 bg-warning/5',
     accent: 'bg-warning',
   },
-  violet: {
-    card: 'border-violet-200 bg-violet-50/40 dark:border-violet-900/60 dark:bg-violet-950/20',
-    headerIcon:
-      'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:ring-violet-900',
-    itemIcon: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
-    item: 'border-violet-100 bg-violet-50/70 dark:border-violet-900/50 dark:bg-violet-950/20',
-    accent: 'bg-violet-500',
+  secondary: {
+    card: 'border-secondary/20 bg-secondary/5',
+    headerIcon: 'bg-secondary/10 text-secondary ring-secondary/15',
+    itemIcon: 'bg-secondary/10 text-secondary',
+    item: 'border-secondary/10 bg-secondary/5',
+    accent: 'bg-secondary',
   },
 }
 
@@ -1581,7 +1580,7 @@ export default function GovernanceEnterprisePage(): JSX.Element {
                     description="Thông tin định danh, liên hệ và kỳ dữ liệu từ dashboard."
                     icon={<ClipboardList className="size-5" />}
                     items={businessProfileItems}
-                    tone="violet"
+                    tone="secondary"
                   />
                 </div>
 

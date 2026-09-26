@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { newsService, useApiQuery } from '@/service'
 import type { ApiResponse, News } from '@/types/api'
 import { parseLink } from '@/lib/utils'
@@ -43,14 +44,20 @@ export default function NewsDetailDialog({ open, onOpenChange, newsId, onEdit }:
         className="max-h-[85vh] max-w-3xl overflow-y-auto"
         actions={
           onEdit && (
-            <button
-              onClick={onEdit}
-              title="Chỉnh sửa"
-              className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
-            >
-              <Pen className="h-5 w-5" />
-              <span className="sr-only">Chỉnh sửa</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Chỉnh sửa"
+                  className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+                >
+                  <Pen className="h-5 w-5" />
+                  <span className="sr-only">Chỉnh sửa</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Chỉnh sửa</TooltipContent>
+            </Tooltip>
           )
         }
       >

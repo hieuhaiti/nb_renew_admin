@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Copy, KeyRound, Trash2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
@@ -195,6 +195,7 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
   useEffect(() => {
     const nextId = toValidId(currentApiId)
     if (nextId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedIds([nextId])
     }
   }, [currentApiId])
@@ -276,15 +277,15 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
   )
 
   const deleteMutation = useApiMutation(
-    (apiKeyId: number) => mapLayerApiService.deleteApiKey(apiKeyId),
+    (apiKeyId: number) => mapLayerApiService.revokeApiKey(apiKeyId),
     {
       onSuccess: () => {
         apiKeysQuery.refetch()
         setDeleteTarget(null)
-        toast.success('Xóa API key thành công')
+        toast.success('Thu hồi API key thành công')
       },
       onError: (error) => {
-        toast.error(getMappedErrorMessage(error, 'Không thể xóa API key.'))
+        toast.error(getMappedErrorMessage(error, 'Không thể thu hồi API key.'))
       },
     },
     false
@@ -346,6 +347,7 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
             <Label htmlFor="key-name">Name</Label>
             <Input
               id="key-name"
+              name="key-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nhập tên API key"
@@ -355,6 +357,7 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
             <Label htmlFor="key-expires-at">Expires At</Label>
             <Input
               id="key-expires-at"
+              name="key-expires-at"
               type="datetime-local"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
@@ -366,8 +369,10 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
           <Label>Map Layer APIs</Label>
           <div className="grid max-h-40 grid-cols-1 gap-2 overflow-auto rounded border p-3 md:grid-cols-2">
             {normalizedAvailableApis.map((api) => (
-              <label key={api.id} className="flex items-center gap-2 text-sm">
+              <label key={api.id} htmlFor={`api-layer-${api.id}`} className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox
+                  id={`api-layer-${api.id}`}
+                  name={`api-layer-${api.id}`}
                   checked={selectedIds.includes(api.id)}
                   onCheckedChange={() => toggleApiId(api.id)}
                 />
@@ -387,7 +392,7 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
         </div>
 
         {generatedKey && (
-          <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
+          <div className="rounded-md border border-success/30 bg-success-subtle p-3 text-sm text-success-subtle-foreground">
             API key mới: <span className="font-mono">{generatedKey}</span>
           </div>
         )}
@@ -449,10 +454,10 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
                       size="sm"
                       onClick={() => setDeleteTarget(item)}
                       disabled={deleteMutation.isPending}
-                      title="Xóa API key"
+                      title="Vô hiệu hóa API key vĩnh viễn"
                     >
                       <Trash2 className="mr-1 h-4 w-4" />
-                      Xóa
+                      Vô hiệu hóa
                     </Button>
                   </div>
                 </TableCell>
@@ -494,9 +499,9 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xóa API key</AlertDialogTitle>
+            <AlertDialogTitle>Thu hồi API key</AlertDialogTitle>
             <AlertDialogDescription>
-              Xác nhận xóa key #{deleteTarget?.id}? Hành động này không thể hoàn tác.
+              Hệ thống bảo lưu lịch sử kiểm toán và không xóa vật lý. Xác nhận thu hồi key #{deleteTarget?.id}? Key sẽ bị vô hiệu hóa vĩnh viễn.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -507,7 +512,7 @@ export default function ApiKeysTab({ availableApis, currentApiId }: ApiKeysTabPr
                 if (deleteTarget) deleteMutation.mutate(deleteTarget.id)
               }}
             >
-              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+              {deleteMutation.isPending ? 'Đang thu hồi...' : 'Thu hồi'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

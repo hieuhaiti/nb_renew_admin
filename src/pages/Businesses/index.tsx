@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Check, X, Ban, Pen, Plus } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { parseLink } from '@/lib/utils'
@@ -393,73 +394,62 @@ export default function BusinessPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           openForm(biz.id)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
+                      />
                       {canApproveBusiness && biz.status === 'pending' && (
                         <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <IconAction
+                            label="Duyệt"
+                            icon={Check}
+                            className="text-success hover:text-success"
+                            disabled={approvalMutation.isPending}
                             onClick={(e) => {
                               e.stopPropagation()
                               handleApprove(biz.id)
                             }}
-                            title="Duyệt"
+                          />
+                          <IconAction
+                            label="Từ chối"
+                            icon={X}
+                            className="text-destructive hover:text-destructive"
                             disabled={approvalMutation.isPending}
-                          >
-                            <Check className="text-success size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               openReject(biz)
                             }}
-                            title="Từ chối"
-                            disabled={approvalMutation.isPending}
-                          >
-                            <X className="text-destructive size-4" />
-                          </Button>
+                          />
                         </>
                       )}
                       {canApproveBusiness && biz.status === 'approved' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Tạm khóa"
+                          icon={Ban}
+                          className="text-warning hover:text-warning"
+                          disabled={approvalMutation.isPending}
                           onClick={(e) => {
                             e.stopPropagation()
                             handleSuspend(biz.id)
                           }}
-                          title="Tạm khóa"
-                          disabled={approvalMutation.isPending}
-                        >
-                          <Ban className="text-warning size-4" />
-                        </Button>
+                        />
                       )}
                       {canApproveBusiness &&
                         (biz.status === 'suspended' || biz.status === 'rejected') && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <IconAction
+                            label="Duyệt mở lại"
+                            icon={Check}
+                            className="text-success hover:text-success"
+                            disabled={approvalMutation.isPending}
                             onClick={(e) => {
                               e.stopPropagation()
                               handleApprove(biz.id)
                             }}
-                            title="Duyệt mở lại"
-                            disabled={approvalMutation.isPending}
-                          >
-                            <Check className="text-success size-4" />
-                          </Button>
+                          />
                         )}
                     </div>
                   </TableCell>
@@ -499,6 +489,7 @@ export default function BusinessPage(): JSX.Element {
             <Label htmlFor="biz_rejection_note">Lý do từ chối</Label>
             <Input
               id="biz_rejection_note"
+              name="rejection_note"
               value={rejectionNote}
               onChange={(e) => setRejectionNote(e.target.value)}
               placeholder="Thông tin không hợp lệ..."

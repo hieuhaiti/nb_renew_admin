@@ -210,4 +210,5 @@ export const PAGE_ACCESS = {
   mapAdmin: manageAccess('map_admin'),
   feedbacks: access(['feedbacks:update', 'feedbacks:delete']),
   integrations: manageAccess('integrations'),
+  floodScenarios: access(['flood:read', 'flood:run']),
 } as const

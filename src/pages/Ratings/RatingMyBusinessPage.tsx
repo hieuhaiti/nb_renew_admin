@@ -9,7 +9,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -21,6 +20,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Pen } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
@@ -166,13 +166,11 @@ export default function RatingMyBusinessPage(): JSX.Element {
                     {r.created_at ? formatDate(r.created_at) : '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost" size="sm"
+                    <IconAction
+                      label="Phản hồi đánh giá"
+                      icon={Pen}
                       onClick={(e) => { e.stopPropagation(); openForm(r) }}
-                      title="Phản hồi đánh giá"
-                    >
-                      <Pen className="size-4" />
-                    </Button>
+                    />
                   </TableCell>
                 </TableRow>
               ))

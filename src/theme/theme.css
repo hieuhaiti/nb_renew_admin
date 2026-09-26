@@ -20,18 +20,22 @@
 
   /* ===== Destructive Extended ===== */
   --destructive-hover: #b91c1c; /* red-700 */
+  --destructive-active: #991b1b; /* red-800 */
   --destructive-light: #fee2e2; /* red-100 */
 
   /* ===== Success Extended ===== */
   --success-hover: #15803d; /* green-700 */
+  --success-active: #166534; /* green-800 */
   --success-light: #dcfce7; /* green-100 */
 
   /* ===== Warning Extended ===== */
   --warning-hover: #d97706; /* amber-600 */
+  --warning-active: #b45309; /* amber-700 */
   --warning-light: #fef3c7; /* amber-100 */
 
   /* ===== Info Extended ===== */
   --info-hover: #0891b2; /* cyan-600 */
+  --info-active: #0e7490; /* cyan-700 */
   --info-light: #cffafe; /* cyan-100 */
 
   /* ===== Border Extended ===== */
@@ -122,4 +126,56 @@
 
   /* ===== Loading ===== */
   --loading-spinner: hsl(var(--primary));
+
+  /* ===== Civic GIS Semantic Gradients (Phase 3) ===== */
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  --gradient-primary-accent: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+  --gradient-surface-card: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --gradient-surface-header: linear-gradient(90deg, #eff6ff 0%, #ffffff 100%);
+  --gradient-surface-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+  --gradient-success: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-destructive: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-info: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --gradient-metric: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+
+  /* ===== Semantic Subtle States ===== */
+  --primary-subtle: #eff6ff;
+  --primary-subtle-foreground: #1d4ed8;
+  --success-subtle: #f0fdf4;
+  --success-subtle-foreground: #15803d;
+  --warning-subtle: #fffbeb;
+  --warning-subtle-foreground: #b45309;
+  --destructive-subtle: #fef2f2;
+  --destructive-subtle-foreground: #b91c1c;
+  --info-subtle: #ecfeff;
+  --info-subtle-foreground: #0e7490;
+}
+
+.dark {
+  --primary-hover: #3b82f6;
+  --primary-active: #2563eb;
+  --secondary-hover: #059669;
+  --secondary-active: #047857;
+  --accent-hover: #0891b2;
+  --destructive-hover: #ef4444;
+  --destructive-active: #dc2626;
+  --success-hover: #22c55e;
+  --success-active: #16a34a;
+  --warning-hover: #fbbf24;
+  --warning-active: #f59e0b;
+  --info-hover: #38bdf8;
+  --info-active: #0ea5e9;
+
+  --primary-subtle: #102a42;
+  --primary-subtle-foreground: #cae5ff;
+  --success-subtle: #052e16;
+  --success-subtle-foreground: #86efac;
+  --warning-subtle: #451a03;
+  --warning-subtle-foreground: #fcd34d;
+  --destructive-subtle: #450a0a;
+  --destructive-subtle-foreground: #fca5a5;
+  --info-subtle: #082f49;
+  --info-subtle-foreground: #7dd3fc;
 }

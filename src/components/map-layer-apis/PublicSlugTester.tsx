@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { Copy, KeyRound, Layers, Link2, Play, RefreshCw, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -167,13 +167,13 @@ export default function PublicSlugTester() {
 
         <CardContent className="space-y-4 pt-4">
           {error && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-md border border-destructive/30 bg-destructive-subtle p-3 text-sm text-destructive-subtle-foreground">
               {error}
             </div>
           )}
 
-          <div className="overflow-hidden rounded-md border bg-slate-950">
-            <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2 text-xs text-slate-300">
+          <div className="overflow-hidden rounded-md border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-3 py-2 text-xs text-muted-foreground">
               <span>Phản hồi JSON</span>
               <div className="flex items-center gap-2">
                 <span>{resultCount} bản ghi</span>
@@ -182,14 +182,14 @@ export default function PublicSlugTester() {
                   variant="outline"
                   size="sm"
                   onClick={handleCopyData}
-                  className="h-7 border-slate-700 bg-slate-900 px-2 text-slate-200 hover:bg-slate-800 hover:text-white"
+                  className="h-7 border-border bg-muted/60 px-2 text-foreground hover:bg-muted"
                 >
                   <Copy className="mr-1 h-3.5 w-3.5" />
                   Copy data
                 </Button>
               </div>
             </div>
-            <pre className="max-h-[500px] overflow-auto p-4 text-xs text-slate-100">
+            <pre className="max-h-[500px] overflow-auto p-4 text-xs font-mono text-card-foreground">
               {JSON.stringify(json, null, 2)}
             </pre>
           </div>

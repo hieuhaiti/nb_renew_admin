@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { Role } from '@/types/api'
 import { formatDate } from '@/lib/date'
 import { Pen } from 'lucide-react'
@@ -18,14 +19,20 @@ export default function RoleDetailDialog({ open, onOpenChange, role, onEdit }: R
         className="max-w-md"
         actions={
           onEdit && !role?.is_system ? (
-            <button
-              onClick={onEdit}
-              title="Chỉnh sửa"
-              className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
-            >
-              <Pen className="h-5 w-5" />
-              <span className="sr-only">Chỉnh sửa</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Chỉnh sửa"
+                  className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+                >
+                  <Pen className="h-5 w-5" />
+                  <span className="sr-only">Chỉnh sửa</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Chỉnh sửa</TooltipContent>
+            </Tooltip>
           ) : undefined
         }
       >

@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Pen, Plus, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { getMapAdminCategoryItems, getMapAdminCategoryName } from '@/lib/mapAdminCategory'
@@ -227,30 +228,25 @@ export default function MapAdminCategoriesPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedCategory(cat)
                           setFormDialogOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setItemToDelete(cat)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

@@ -82,28 +82,28 @@
 
   /* --- Màu phụ trợ --- */
   --secondary: 160.12 84.08% 39.41%; /* #10b981 */
-  --secondary-foreground: 0 0% 100%;
+  --secondary-foreground: 160 90% 10%; /* #023021 deep forest green -> 5.71:1 */
 
   /* --- Màu làm mờ/Vô hiệu hóa --- */
   --muted: 210 40% 96%; /* Slate 100 */
-  --muted-foreground: 215 16% 47%; /* #64748B - Slate 500 */
+  --muted-foreground: 215 16% 42%; /* Slate 600 -> 5.17:1 on muted, 5.38:1 on bg */
 
   /* --- Màu nhấn (Cyan) --- */
   --accent: 188 94% 93%; /* cyan-50 subtle bg */
-  --accent-foreground: 188 94% 30%; /* cyan-800 */
+  --accent-foreground: 188 94% 22%; /* cyan-900 -> 6.65:1 */
 
   /* --- Trạng thái hành động --- */
   --destructive: 0 72% 51%; /* #DC2626 - Red 600 */
   --destructive-foreground: 0 0% 98%;
 
-  --success: 142 76% 36%; /* #16A34A - Green 600 */
-  --success-foreground: 0 0% 98%;
+  --success: 142 72% 27%; /* #127736 deep green -> 5.71:1 */
+  --success-foreground: 0 0% 100%;
 
   --warning: 38 92% 50%; /* #F59E0B - Amber 500 */
-  --warning-foreground: 0 0% 98%;
+  --warning-foreground: 38 95% 10%; /* #311b02 deep amber brown -> 7.33:1 */
 
-  --info: 188 94% 43%; /* #06B6D4 - Cyan 500 */
-  --info-foreground: 0 0% 98%;
+  --info: 199 89% 33%; /* #036da7 deep cyan/ocean blue -> 5.48:1 */
+  --info-foreground: 0 0% 100%;
 
   /* --- Đường viền & Input --- */
   --border: 214 32% 91%; /* #E2E8F0 - Slate 200 */
@@ -131,6 +131,54 @@
   --sidebar-ring: 217 91% 53%;
   --sidebar-width: 260px;
   --sidebar-width-collapsed: 64px;
+}
+
+.dark {
+  --background: 222 47% 11%; /* #0F172A */
+  --foreground: 210 40% 98%; /* #F8FAFC */
+
+  --card: 217 33% 17%; /* #1E293B */
+  --card-foreground: 210 40% 98%;
+
+  --popover: 217 33% 17%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 217 91% 60%; /* #3B82F6 */
+  --primary-foreground: 222 47% 11%; /* #0F172A -> 4.91:1 */
+
+  --secondary: 160.12 84.08% 39.41%; /* #10b981 */
+  --secondary-foreground: 160 90% 10%; /* #023021 -> 5.59:1 */
+
+  --muted: 217 33% 17%; /* #1E293B */
+  --muted-foreground: 215 20% 70%; /* #94a3b8 -> 6.74:1 */
+
+  --accent: 217 33% 22%;
+  --accent-foreground: 210 40% 98%; /* 11.98:1 */
+
+  --destructive: 0 72% 51%; /* #DC2626 -> 4.60:1 */
+  --destructive-foreground: 0 0% 98%;
+
+  --success: 142 70% 45%;
+  --success-foreground: 142 90% 10%; /* 6.29:1 */
+
+  --warning: 38 92% 50%;
+  --warning-foreground: 38 95% 10%; /* 7.33:1 */
+
+  --info: 199 89% 48%;
+  --info-foreground: 199 95% 10%; /* 5.75:1 */
+
+  --border: 217 33% 20%;
+  --input: 217 33% 20%;
+  --ring: 217 91% 60%;
+
+  --sidebar-background: 222 47% 11%;
+  --sidebar-foreground: 213 31% 91%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 217 33% 17%;
+  --sidebar-accent-foreground: 213 31% 91%;
+  --sidebar-border: 217 33% 17%;
+  --sidebar-ring: 217 91% 53%;
 }
 
 /* ===== TAILWIND THEME CONFIG ===== */
@@ -175,6 +223,24 @@
 
   --color-info: hsl(var(--info));
   --color-info-foreground: hsl(var(--info-foreground));
+
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-light: var(--primary-light);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-active: var(--secondary-active);
+  --color-success-hover: var(--success-hover);
+  --color-success-active: var(--success-active);
+  --color-success-light: var(--success-light);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-active: var(--warning-active);
+  --color-warning-light: var(--warning-light);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-active: var(--destructive-active);
+  --color-destructive-light: var(--destructive-light);
+  --color-info-hover: var(--info-hover);
+  --color-info-active: var(--info-active);
+  --color-info-light: var(--info-light);
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -425,9 +491,9 @@
 
   /* Glass effect */
   .glass {
-    background: rgb(255 255 255 / 0.8);
+    background: hsl(var(--card) / 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgb(255 255 255 / 0.2);
+    border: 1px solid hsl(var(--border) / 0.4);
   }
 
   /* Skeleton loading */

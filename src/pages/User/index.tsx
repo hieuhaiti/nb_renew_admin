@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Lock, LockOpen, Pen, Plus, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { toast } from 'react-toastify'
 import { STALE_HOT } from '@/constant/queryConstant'
@@ -262,54 +263,45 @@ export default function User(): JSX.Element {
                   <TableCell>{u.role_name || u.role?.name || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedUserId(u.id)
                           setFormDialogOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
+                      />
                       {!u.is_active ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Mở khóa tài khoản"
+                          icon={LockOpen}
+                          className="text-warning hover:text-warning"
                           onClick={(e) => {
                             e.stopPropagation()
                             openUnlockDialog(u)
                           }}
-                          title="Mở khóa tài khoản"
-                        >
-                          <LockOpen className="text-warning size-4" />
-                        </Button>
+                        />
                       ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Khóa tài khoản"
+                          icon={Lock}
+                          className="text-muted-foreground hover:text-muted-foreground"
                           onClick={(e) => {
                             e.stopPropagation()
                             openLockDialog(u)
                           }}
-                          title="Khóa tài khoản"
-                        >
-                          <Lock className="text-muted-foreground size-4" />
-                        </Button>
+                        />
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           openDeleteDialog(u)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -350,6 +342,9 @@ export default function User(): JSX.Element {
           </AlertDialogHeader>
           <div className="py-2">
             <Input
+              id="user-lock-reason"
+              name="lock_reason"
+              aria-label="Lý do khóa tài khoản"
               placeholder="Lý do khóa tài khoản..."
               value={lockReason}
               onChange={(e) => setLockReason(e.target.value)}

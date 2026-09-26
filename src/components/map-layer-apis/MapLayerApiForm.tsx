@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -201,7 +201,7 @@ export default function MapLayerApiForm({
               </SelectItem>
               <SelectItem value="published">
                 <span className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-success" />
                   Published
                 </span>
               </SelectItem>

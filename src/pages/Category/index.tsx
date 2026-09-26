@@ -1,4 +1,4 @@
-﻿import type { JSX } from 'react'
+import type { JSX } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useApiQuery, useApiMutation, spotCategoryService } from '@/service'
 import { useLightboxStore } from '@/stores/ui/useLightboxStore'
@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Eye, EyeOff, Pen, Trash2, Plus } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { parseLink, hexToRgba } from '@/lib/utils'
 import CategoryDetailDialog from './CategoryDetailDialog'
@@ -300,45 +301,34 @@ export default function SpotCategoryPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedCategoryId(category.id)
                           setFormDialogOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label={category.is_active ? 'Ngừng hoạt động' : 'Kích hoạt'}
+                        icon={category.is_active ? EyeOff : Eye}
+                        className={category.is_active ? 'text-muted-foreground' : undefined}
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleMutation.mutate(category.id)
                         }}
-                        title={category.is_active ? 'Ngừng hoạt động' : 'Kích hoạt'}
-                      >
-                        {category.is_active ? (
-                          <EyeOff className="text-muted-foreground size-4" />
-                        ) : (
-                          <Eye className="size-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setCategoryToDelete(category)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

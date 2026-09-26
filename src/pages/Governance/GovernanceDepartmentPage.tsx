@@ -61,6 +61,7 @@ import {
   X,
 } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -110,13 +111,13 @@ const CAPACITY_STATUS_LABEL: Record<string, string> = {
 const CAPACITY_STATUS_DOT: Record<string, string> = {
   normal: 'bg-success',
   busy: 'bg-warning',
-  near_full: 'bg-orange-500',
+  near_full: 'bg-warning',
   overloaded: 'bg-destructive',
 }
 const CAPACITY_STATUS_BADGE: Record<string, string> = {
   normal: 'bg-success/10 text-success border-success/20',
   busy: 'bg-warning/10 text-warning border-warning/20',
-  near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  near_full: 'bg-warning/15 text-warning border-warning/30',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
@@ -1092,14 +1093,12 @@ export default function GovernanceDepartmentPage(): JSX.Element {
                         </TableCell>
                         <TableCell className="text-right">
                           {st === 'pending' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              title="Duyệt"
+                            <IconAction
+                              label="Duyệt"
+                              icon={Check}
+                              className="text-success hover:text-success"
                               onClick={() => setSpotToApprove(spot)}
-                            >
-                              <Check className="text-success size-4" />
-                            </Button>
+                            />
                           )}
                         </TableCell>
                       </TableRow>
@@ -1204,17 +1203,14 @@ export default function GovernanceDepartmentPage(): JSX.Element {
                         {report.created_at ? formatDate(report.created_at) : '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Gửi báo cáo"
+                        <IconAction
+                          label="Gửi báo cáo"
+                          icon={Send}
                           onClick={() => {
                             setReportToSend(report)
                             setSendDialogOpen(true)
                           }}
-                        >
-                          <Send className="size-4" />
-                        </Button>
+                        />
                       </TableCell>
                     </TableRow>
                   ))
@@ -1518,7 +1514,7 @@ export default function GovernanceDepartmentPage(): JSX.Element {
             </Card>
             <Card>
               <CardContent className="flex items-center gap-4 p-5">
-                <div className="bg-muted rounded-full p-3 text-blue-600">
+                <div className="bg-muted rounded-full p-3 text-primary">
                   <TreePine className="size-5" />
                 </div>
                 <div>

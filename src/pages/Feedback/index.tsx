@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
   Table,
@@ -52,6 +51,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ClipboardEdit, Trash2, MapPin, User } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import FeedbackDetailDialog from './FeedbackDetailDialog'
 import FeedbackFormDialog from './FeedbackFormDialog'
@@ -300,18 +300,18 @@ export default function FeedbackPage(): JSX.Element {
                     <StatusDotBadge
                       label={PRIORITY_LABEL[item.priority] ?? item.priority}
                       badgeClass={
-                        PRIORITY_CLASS[item.priority] ?? 'bg-gray-100 text-gray-600 border-gray-200'
+                        PRIORITY_CLASS[item.priority] ?? 'bg-muted text-muted-foreground border-border'
                       }
-                      dotClass={PRIORITY_DOT[item.priority] ?? 'bg-gray-400'}
+                      dotClass={PRIORITY_DOT[item.priority] ?? 'bg-muted-foreground'}
                     />
                   </TableCell>
                   <TableCell>
                     <StatusDotBadge
                       label={STATUS_LABEL[item.status] ?? item.status}
                       badgeClass={
-                        STATUS_CLASS[item.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'
+                        STATUS_CLASS[item.status] ?? 'bg-muted text-muted-foreground border-border'
                       }
-                      dotClass={STATUS_DOT[item.status] ?? 'bg-gray-400'}
+                      dotClass={STATUS_DOT[item.status] ?? 'bg-muted-foreground'}
                     />
                   </TableCell>
                   <TableCell>
@@ -319,9 +319,9 @@ export default function FeedbackPage(): JSX.Element {
                       label={MOD_LABEL[item.moderation_status] ?? item.moderation_status}
                       badgeClass={
                         MOD_CLASS[item.moderation_status] ??
-                        'bg-gray-100 text-gray-600 border-gray-200'
+                        'bg-muted text-muted-foreground border-border'
                       }
-                      dotClass={MOD_DOT[item.moderation_status] ?? 'bg-gray-400'}
+                      dotClass={MOD_DOT[item.moderation_status] ?? 'bg-muted-foreground'}
                     />
                   </TableCell>
                   <TableCell>
@@ -345,28 +345,23 @@ export default function FeedbackPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Cập nhật xử lý"
+                        icon={ClipboardEdit}
                         onClick={(e) => {
                           e.stopPropagation()
                           openUpdateDialog(item)
                         }}
-                        title="Cập nhật xử lý"
-                      >
-                        <ClipboardEdit className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           openDeleteDialog(item)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

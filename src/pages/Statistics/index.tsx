@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Download, FileBarChart2, RefreshCw } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { formatDateTime } from '@/lib/date'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
@@ -135,14 +136,11 @@ export default function StatisticsPage(): JSX.Element {
                         : '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <IconAction
+                      label="Tải xuống"
+                      icon={Download}
                       onClick={() => handleDownload(item)}
-                      title="Tải xuống"
-                    >
-                      <Download className="size-4" />
-                    </Button>
+                    />
                   </TableCell>
                 </TableRow>
               ))

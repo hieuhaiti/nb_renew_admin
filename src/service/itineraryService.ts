@@ -16,9 +16,9 @@ import { serviceItineraryPath } from '@/constant/serviceConstant'
 // TODO: Admin UI pages for itineraries not yet implemented — service available per Postman
 
 export default {
-  /** GET /itineraries */
-  getAll: (params?: ItineraryListParams) =>
-    apiClient.get<ApiResponse<ItineraryListData>>(serviceItineraryPath, params),
+  /** GET /itineraries/my */
+  getMyItineraries: (params?: ItineraryListParams) =>
+    apiClient.get<ApiResponse<ItineraryListData>>(`${serviceItineraryPath}/my`, params),
 
   /** GET /itineraries/:id */
   getById: (id: number) =>

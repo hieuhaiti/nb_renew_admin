@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
+import { IconAction } from '@/components/common/IconAction'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
   Table,
@@ -234,6 +235,9 @@ export default function SpotPage(): JSX.Element {
               className="w-48"
             />
             <Input
+              id="spots-filter-province-code"
+              name="province_code"
+              aria-label="Lọc theo mã tỉnh"
               value={canEditProvinceCode ? provinceCodeFilter : provinceCode}
               onChange={(e) => {
                 if (!canEditProvinceCode) return
@@ -261,6 +265,9 @@ export default function SpotPage(): JSX.Element {
               </SelectContent>
             </Select>
             <Input
+              id="spots-filter-rating-min"
+              name="rating_min"
+              aria-label="Lọc theo rating tối thiểu"
               type="number"
               step="0.1"
               min="0"
@@ -417,30 +424,25 @@ export default function SpotPage(): JSX.Element {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Chỉnh sửa"
+                          icon={Pen}
                           onClick={(e) => {
                             e.stopPropagation()
                             setSelectedSpotId(item.id)
                             setFormDialogOpen(true)
                           }}
-                          title="Chỉnh sửa"
-                        >
-                          <Pen className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        />
+                        <IconAction
+                          label="Xóa"
+                          icon={Trash2}
+                          className="text-destructive hover:text-destructive"
                           onClick={(e) => {
                             e.stopPropagation()
                             setItemToDelete(item)
                             setDeleteDialogOpen(true)
                           }}
-                          title="Xóa"
-                        >
-                          <Trash2 className="text-destructive size-4" />
-                        </Button>
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

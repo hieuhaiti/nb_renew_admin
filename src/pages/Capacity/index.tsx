@@ -34,6 +34,7 @@ import {
   Search,
   X,
 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import { Input } from '@/components/ui/input'
 import PageLayout from '@/layout/pageLayout'
 import { formatDateTime } from '@/lib/date'
@@ -57,18 +58,18 @@ const CAPACITY_STATUS_LABEL: Record<CapacityStatus, string> = {
 }
 const CAPACITY_STATUS_CLASS: Record<CapacityStatus, string> = {
   normal: 'bg-success/10 text-success border-success/20',
-  moderate: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+  moderate: 'bg-info/10 text-info border-info/20',
   busy: 'bg-warning/10 text-warning border-warning/20',
-  near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  near_full: 'bg-warning/20 text-warning border-warning/30',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
   closed: 'bg-muted/40 text-muted-foreground border-border',
   unknown: 'bg-muted text-muted-foreground border-border',
 }
 const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   normal: 'bg-success',
-  moderate: 'bg-sky-500',
+  moderate: 'bg-info',
   busy: 'bg-warning',
-  near_full: 'bg-orange-500',
+  near_full: 'bg-warning',
   overloaded: 'bg-destructive',
   closed: 'bg-muted-foreground',
   unknown: 'bg-muted-foreground',
@@ -94,7 +95,7 @@ function ThresholdBar({ busy, near, over }: { busy: number; near: number; over: 
         />
         {/* near-full zone */}
         <div
-          className="absolute inset-y-0 bg-orange-500/70"
+          className="bg-warning/80 absolute inset-y-0"
           style={{
             left: `${(near / cap) * 100}%`,
             width: `${((over - near) / cap) * 100}%`,
@@ -244,6 +245,9 @@ export default function CapacityPage(): JSX.Element {
           <div className="relative w-64">
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input
+              id="capacity-search-input"
+              name="search"
+              aria-label="Tìm kiếm điểm tham quan..."
               placeholder="Tìm kiếm điểm tham quan..."
               value={searchInput}
               onChange={(e) => {
@@ -362,7 +366,7 @@ export default function CapacityPage(): JSX.Element {
                                   pct >= 100
                                     ? 'hsl(var(--destructive))'
                                     : pct >= 85
-                                      ? '#f97316'
+                                      ? 'hsl(var(--warning-hover, var(--warning)))'
                                       : pct >= 70
                                         ? 'hsl(var(--warning))'
                                         : 'hsl(var(--success))',
@@ -393,24 +397,18 @@ export default function CapacityPage(): JSX.Element {
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
                           {canLogCapacity && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <IconAction
+                              label="Ghi nhận lượt khách"
+                              icon={ClipboardList}
                               onClick={() => openLog(item)}
-                              title="Ghi nhận lượt khách"
-                            >
-                              <ClipboardList className="size-4" />
-                            </Button>
+                            />
                           )}
                           {canUpdateCapacity && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <IconAction
+                              label="Cài đặt sức chứa"
+                              icon={Settings}
                               onClick={() => openSettings(item)}
-                              title="Cài đặt sức chứa"
-                            >
-                              <Settings className="size-4" />
-                            </Button>
+                            />
                           )}
                         </div>
                       </TableCell>
@@ -514,14 +512,11 @@ export default function CapacityPage(): JSX.Element {
                         {formatDateTime(cfg.updated_at)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Chỉnh sửa"
+                          icon={Settings}
                           onClick={() => openEditConfig(cfg)}
-                          title="Chỉnh sửa"
-                        >
-                          <Settings className="size-4" />
-                        </Button>
+                        />
                       </TableCell>
                     </TableRow>
                   ))

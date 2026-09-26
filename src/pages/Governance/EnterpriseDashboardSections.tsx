@@ -421,13 +421,13 @@ function DashboardHero({
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(540px,0.9fr)] xl:items-start">
           <div className="min-w-0 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className={`${toneClass.accent} text-white`}>
+              <Badge className={`${toneClass.accent} text-primary-foreground`}>
                 {VARIANT_LABEL[variant] ?? variant}
               </Badge>
-              <Badge variant="outline" className="bg-white/70">
+              <Badge variant="outline" className="bg-background/80">
                 {getStatusLabel(business)}
               </Badge>
-              <Badge variant="outline" className="bg-white/70">
+              <Badge variant="outline" className="bg-background/80">
                 {getPeriodLabel(dashboard)}
               </Badge>
             </div>
@@ -443,7 +443,7 @@ function DashboardHero({
             {primaryFields.map((field) => (
               <div
                 key={field.key}
-                className={`min-h-24 rounded-lg border bg-white/85 p-3 shadow-xs ${toneClass.border}`}
+                className={`min-h-24 rounded-lg border bg-card/85 p-3 shadow-xs ${toneClass.border}`}
               >
                 <p className="typo-caption text-muted-foreground line-clamp-2">{field.label}</p>
                 <p className={`typo-section-title mt-2 truncate ${toneClass.text}`}>
@@ -476,7 +476,7 @@ function Section({
       <div className={`absolute inset-x-0 top-0 h-1 ${toneClass.accent}`} />
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
-          <div className={`rounded-lg bg-white/80 p-2 ring-1 ${toneClass.text} ${toneClass.ring}`}>
+          <div className={`rounded-lg bg-background/80 p-2 ring-1 ${toneClass.text} ${toneClass.ring}`}>
             {icon}
           </div>
           <CardTitle className="typo-section-title">{title}</CardTitle>
@@ -510,7 +510,7 @@ function FieldGrid({
       {visibleFields.map((field) => (
         <div
           key={field.key}
-          className={`rounded-md border bg-white/85 p-3 shadow-xs ${toneClass.border}`}
+          className={`rounded-md border bg-card/85 p-3 shadow-xs ${toneClass.border}`}
         >
           <p className="typo-caption text-muted-foreground line-clamp-2">{field.label}</p>
           <p className={`typo-body-sm mt-1 font-semibold break-words ${toneClass.text}`}>
@@ -537,7 +537,7 @@ function RangeCard({
   if (isBlank(range.min) && isBlank(range.max)) return null
   const toneClass = TONE_CLASS[tone]
   return (
-    <div className={`rounded-md border bg-white/85 p-3 shadow-xs ${toneClass.border}`}>
+    <div className={`rounded-md border bg-card/85 p-3 shadow-xs ${toneClass.border}`}>
       <p className="typo-caption text-muted-foreground">{title}</p>
       <p className={`typo-body-sm mt-1 font-semibold ${toneClass.text}`}>
         {formatValue(range.min, type, true)} - {formatValue(range.max, type, true)}
@@ -550,7 +550,7 @@ function BreakdownList({ items, tone = 'commerce' }: { items: unknown; tone?: Da
   if (!Array.isArray(items) || items.length === 0) return null
   const toneClass = TONE_CLASS[tone]
   return (
-    <div className={`rounded-md border bg-white/85 p-3 shadow-xs ${toneClass.border}`}>
+    <div className={`rounded-md border bg-card/85 p-3 shadow-xs ${toneClass.border}`}>
       <p className="typo-caption text-muted-foreground">Cơ cấu danh mục dịch vụ</p>
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
         {items.map((item, index) => {
@@ -585,7 +585,7 @@ function ExperienceFeatures({
   if (Object.keys(record).length === 0) return null
   const toneClass = TONE_CLASS[tone]
   return (
-    <div className={`rounded-md border bg-white/85 p-3 shadow-xs ${toneClass.border}`}>
+    <div className={`rounded-md border bg-card/85 p-3 shadow-xs ${toneClass.border}`}>
       <p className="typo-caption text-muted-foreground">Công nghệ trải nghiệm</p>
       <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
         {([
@@ -625,7 +625,7 @@ function DenseRecordList({
           return (
             <div
               key={key}
-              className={`grid grid-cols-[minmax(180px,1.2fr)_repeat(5,minmax(100px,1fr))] items-stretch gap-2 rounded-md border bg-white/85 p-2 shadow-xs ${toneClass.border}`}
+              className={`grid grid-cols-[minmax(180px,1.2fr)_repeat(5,minmax(100px,1fr))] items-stretch gap-2 rounded-md border bg-card/85 p-2 shadow-xs ${toneClass.border}`}
             >
               <div className={`rounded-md px-3 py-2 ${toneClass.chip}`}>
                 <p className="typo-caption opacity-80">{primary?.label ?? 'Mục'}</p>

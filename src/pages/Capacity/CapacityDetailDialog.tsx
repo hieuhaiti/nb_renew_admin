@@ -27,18 +27,18 @@ const CAPACITY_STATUS_LABEL: Record<CapacityStatus, string> = {
 }
 const CAPACITY_STATUS_CLASS: Record<CapacityStatus, string> = {
   normal: 'bg-success/10 text-success border-success/20',
-  moderate: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+  moderate: 'bg-info/10 text-info border-info/20',
   busy: 'bg-warning/10 text-warning border-warning/20',
-  near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  near_full: 'bg-warning/20 text-warning border-warning/30',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
   closed: 'bg-muted/40 text-muted-foreground border-border',
   unknown: 'bg-muted text-muted-foreground border-border',
 }
 const CAPACITY_STATUS_DOT: Record<CapacityStatus, string> = {
   normal: 'bg-success',
-  moderate: 'bg-sky-500',
+  moderate: 'bg-info',
   busy: 'bg-warning',
-  near_full: 'bg-orange-500',
+  near_full: 'bg-warning',
   overloaded: 'bg-destructive',
   closed: 'bg-muted-foreground',
   unknown: 'bg-muted-foreground',
@@ -82,7 +82,7 @@ function CapacityBar({ pct }: { pct: number }) {
     pct >= 100
       ? 'hsl(var(--destructive))'
       : pct >= 85
-        ? '#f97316'
+        ? 'hsl(var(--warning-hover, var(--warning)))'
         : pct >= 70
           ? 'hsl(var(--warning))'
           : 'hsl(var(--success))'

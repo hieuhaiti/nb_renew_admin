@@ -93,6 +93,43 @@ function isAuthUrl(url: string) {
   )
 }
 
+let refreshPromise: Promise<string | null> | null = null
+
+async function executeRefresh(): Promise<string | null> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) {
+    clearTokens()
+    return null
+  }
+
+  try {
+    const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken, refresh_token: refreshToken }),
+    })
+
+    if (!refreshRes.ok) {
+      clearTokens()
+      return null
+    }
+
+    const refreshBody = await refreshRes.json()
+    const newAccess = refreshBody?.data?.access_token || refreshBody?.data?.accessToken
+    const newRefresh = refreshBody?.data?.refresh_token || refreshBody?.data?.refreshToken
+    if (newAccess) {
+      setTokens({ accessToken: newAccess, refreshToken: newRefresh })
+      return newAccess
+    } else {
+      clearTokens()
+      return null
+    }
+  } catch {
+    clearTokens()
+    return null
+  }
+}
+
 async function requestWithRefresh(
   url: string,
   opts: RequestInit,
@@ -102,44 +139,35 @@ async function requestWithRefresh(
 
   if (res.status !== 401) return res
 
-  // If unauthorized and not retried yet, try refresh
-  // Bỏ qua auth endpoints (login, register, ...): 401 = sai mật khẩu, không refresh
+  // If unauthorized and already retried, or auth endpoint, return immediately
   if (isRetry || isAuthUrl(url)) return res
+
   const refreshToken = getRefreshToken()
   if (!refreshToken) return res
 
-  // Attempt refresh
-  try {
-    const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+  // Single-flight refresh mutex
+  if (!refreshPromise) {
+    refreshPromise = executeRefresh().finally(() => {
+      refreshPromise = null
     })
+  }
 
-    if (!refreshRes.ok) {
-      // clear tokens and return original 401 response
-      clearTokens()
-      return res
-    }
+  const newAccessToken = await refreshPromise
 
-    const refreshBody = await refreshRes.json()
-    const newAccess = refreshBody?.data?.access_token || refreshBody?.data?.accessToken
-    const newRefresh = refreshBody?.data?.refresh_token || refreshBody?.data?.refreshToken
-    if (newAccess) setTokens({ accessToken: newAccess, refreshToken: newRefresh })
-
-    // retry original request with updated auth header
-    const newOpts = {
-      ...opts,
-      headers: {
-        ...(opts.headers || {}),
-        Authorization: `Bearer ${newAccess}`,
-      },
-    }
-    return await requestWithRefresh(url, newOpts, true)
-  } catch (err) {
-    clearTokens()
+  if (!newAccessToken) {
     return res
   }
+
+  // Retry original request with updated auth header
+  const newOpts = {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      Authorization: `Bearer ${newAccessToken}`,
+    },
+  }
+
+  return await requestWithRefresh(url, newOpts, true)
 }
 
 export async function get<T = any>(url: string, params?: Record<string, any>): Promise<T> {

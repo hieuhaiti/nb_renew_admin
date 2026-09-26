@@ -1,4 +1,4 @@
-﻿import apiClient from './common/apiClient'
+import apiClient from './common/apiClient'
 import type { ApiResponse } from '@/types/api'
 
 export default {

@@ -9,11 +9,19 @@ import type {
 import { serviceFestivalPath } from '@/constant/serviceConstant'
 
 export default {
-  /** GET /festivals */
+  /** GET /festivals/admin */
+  getAdmin: (params?: FestivalListParams) =>
+    apiClient.get<ApiResponse<FestivalListData>>(`${serviceFestivalPath}/admin`, params),
+
+  /** GET /festivals/admin/:id */
+  getAdminById: (id: string) =>
+    apiClient.get<ApiResponse<Festival>>(`${serviceFestivalPath}/admin/${id}`),
+
+  /** GET /festivals (public) */
   getAll: (params?: FestivalListParams) =>
     apiClient.get<ApiResponse<FestivalListData>>(serviceFestivalPath, params),
 
-  /** GET /festivals/:id */
+  /** GET /festivals/:id (public) */
   getById: (id: string) =>
     apiClient.get<ApiResponse<Festival>>(`${serviceFestivalPath}/${id}`),
 

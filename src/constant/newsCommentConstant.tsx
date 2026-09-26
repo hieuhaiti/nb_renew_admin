@@ -4,10 +4,10 @@ export const APPROVED_LABEL: Record<string, string> = {
   false: 'Chờ duyệt',
 }
 export const APPROVED_CLASS: Record<string, string> = {
-  true: 'bg-green-50 text-green-700 border-green-200',
-  false: 'bg-amber-50 text-amber-700 border-amber-200',
+  true: 'bg-success/10 text-success border-success/30',
+  false: 'bg-warning/10 text-warning-foreground border-warning/30',
 }
 export const APPROVED_DOT: Record<string, string> = {
-  true: 'bg-green-500',
-  false: 'bg-amber-500',
+  true: 'bg-success',
+  false: 'bg-warning',
 }

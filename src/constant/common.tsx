@@ -17,6 +17,7 @@ import {
   // LifeBuoy,
   // Plug,
   Database,
+  Waves,
 } from 'lucide-react'
 import type { NavItem } from '@/types/common/index'
 import { combineAccess, PAGE_ACCESS } from '@/constant/permissionConstant'
@@ -178,6 +179,13 @@ export const navConfig: NavItem[] = [
   //   path: '/integrations',
   //   ...PAGE_ACCESS.integrations,
   // },
+
+  {
+    icon: <Waves />,
+    name: 'Kịch bản ngập',
+    path: '/flood-scenarios',
+    access: PAGE_ACCESS.floodScenarios,
+  },
 
   // feedbacks - trang xử lý phản ánh, cần feedbacks:update hoặc feedbacks:delete
   {

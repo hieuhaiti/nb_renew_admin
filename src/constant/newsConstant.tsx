@@ -4,12 +4,12 @@ export const PUBLISHED_LABEL: Record<string, string> = {
   false: 'Nháp',
 }
 export const PUBLISHED_CLASS: Record<string, string> = {
-  true: 'bg-green-50 text-green-700 border-green-200',
-  false: 'bg-slate-100 text-slate-500 border-slate-200',
+  true: 'bg-success/10 text-success border-success/30',
+  false: 'bg-muted text-muted-foreground border-border',
 }
 export const PUBLISHED_DOT: Record<string, string> = {
-  true: 'bg-green-500',
-  false: 'bg-slate-400',
+  true: 'bg-success',
+  false: 'bg-muted-foreground',
 }
 
 // ── Featured status ───────────────────────────────────────────────
@@ -18,10 +18,10 @@ export const FEATURED_LABEL: Record<string, string> = {
   false: 'Không',
 }
 export const FEATURED_CLASS: Record<string, string> = {
-  true: 'bg-amber-50 text-amber-700 border-amber-200',
-  false: 'bg-slate-100 text-slate-500 border-slate-200',
+  true: 'bg-warning/10 text-warning-foreground border-warning/30',
+  false: 'bg-muted text-muted-foreground border-border',
 }
 export const FEATURED_DOT: Record<string, string> = {
-  true: 'bg-amber-500',
-  false: 'bg-slate-300',
+  true: 'bg-warning',
+  false: 'bg-muted-foreground/50',
 }

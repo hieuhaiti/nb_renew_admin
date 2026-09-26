@@ -1,4 +1,4 @@
-﻿import type { User } from '@/types/api'
+import type { User } from '@/types/api'
 
 export type MapLayerApiPermissionAction = 'create' | 'update' | 'delete' | 'share'
 

@@ -25,6 +25,7 @@ import { toast } from 'react-toastify'
 import { tourService, spotService, useApiQuery } from '@/service'
 import type { ApiResponse, Tour, TourFormBody, TourStatus, TourStop } from '@/types/api'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -123,8 +124,8 @@ function SortableStopItem({ stop, isFirst, isLast, onDelete, isDeleting }: Sorta
     opacity: isDragging ? 0.4 : 1,
   }
   let cardClass = 'border-border bg-card'
-  if (isFirst) cardClass = 'border-rose-200 bg-rose-50/40'
-  else if (isLast) cardClass = 'border-emerald-200 bg-emerald-50/40'
+  if (isFirst) cardClass = 'border-destructive/30 bg-destructive-subtle'
+  else if (isLast) cardClass = 'border-success/30 bg-success-subtle'
 
   return (
     <div
@@ -137,6 +138,7 @@ function SortableStopItem({ stop, isFirst, isLast, onDelete, isDeleting }: Sorta
         {...attributes}
         {...listeners}
         className="text-muted-foreground shrink-0 cursor-grab touch-none active:cursor-grabbing"
+        aria-label="Kéo để sắp xếp thứ tự"
       >
         <GripVertical className="h-4 w-4" />
       </button>
@@ -153,15 +155,21 @@ function SortableStopItem({ stop, isFirst, isLast, onDelete, isDeleting }: Sorta
           </span>
         )}
       </div>
-      <button
-        type="button"
-        onClick={() => onDelete(stop)}
-        disabled={isDeleting}
-        className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-50"
-        title="Xóa điểm dừng"
-      >
-        <Trash2 className="text-muted-foreground hover:text-destructive h-3.5 w-3.5" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => onDelete(stop)}
+            disabled={isDeleting}
+            className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-50"
+            aria-label="Xóa điểm dừng"
+          >
+            <Trash2 className="text-muted-foreground hover:text-destructive h-3.5 w-3.5" />
+            <span className="sr-only">Xóa điểm dừng</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top">Xóa điểm dừng</TooltipContent>
+      </Tooltip>
     </div>
   )
 }
@@ -215,7 +223,7 @@ function TagInput({ items, placeholder, onAdd, onRemove }: TagInputProps) {
           placeholder={placeholder}
           className="h-8"
         />
-        <Button type="button" variant="outline" size="sm" onClick={commit} className="shrink-0">
+        <Button type="button" variant="outline" size="sm" onClick={commit} className="shrink-0" aria-label="Thêm mục">
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>

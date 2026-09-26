@@ -1,4 +1,4 @@
-﻿// Priority
+// Priority
 export const PRIORITY_LABEL: Record<string, string> = {
   low: 'Thấp',
   normal: 'Bình thường',

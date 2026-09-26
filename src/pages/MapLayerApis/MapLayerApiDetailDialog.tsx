@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { mapLayerApiService, useApiQuery } from '@/service'
 import type { ApiResponse, MapLayerApi } from '@/types/api'
 import { formatDateTime } from '@/lib/date'
@@ -41,10 +42,20 @@ export default function MapLayerApiDetailDialog({
         className="max-h-[80vh] max-w-4xl overflow-y-auto"
         actions={
           onEdit && (
-            <button onClick={onEdit} title="Chỉnh sửa" className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none">
-              <Pen className="h-5 w-5" />
-              <span className="sr-only">Chỉnh sửa</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Chỉnh sửa"
+                  className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+                >
+                  <Pen className="h-5 w-5" />
+                  <span className="sr-only">Chỉnh sửa</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Chỉnh sửa</TooltipContent>
+            </Tooltip>
           )
         }
       >
@@ -52,7 +63,7 @@ export default function MapLayerApiDetailDialog({
         <DialogDescription>Thông tin chi tiết API đã chọn</DialogDescription>
 
         {errorMessage && (
-          <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mt-4 rounded-md border border-destructive/30 bg-destructive-subtle p-3 text-sm text-destructive-subtle-foreground">
             {errorMessage}
           </div>
         )}

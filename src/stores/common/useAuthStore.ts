@@ -6,6 +6,53 @@ import { currentRole } from '@/lib/currentRole'
 import authService from '@/service/authService'
 import { getRolePermissionKeys, type AdminPermission } from '@/constant/permissionConstant'
 
+function normalizePermissionKey(permission: unknown): AdminPermission | null {
+  if (typeof permission === 'string') {
+    const value = permission.trim()
+    return value === '*:*' || value.includes(':') ? (value as AdminPermission) : null
+  }
+
+  if (!permission || typeof permission !== 'object') return null
+
+  const record = permission as Record<string, unknown>
+  const resource = typeof record.resource === 'string' ? record.resource.trim() : ''
+  const action = typeof record.action === 'string' ? record.action.trim() : ''
+
+  return resource && action ? (`${resource}:${action}` as AdminPermission) : null
+}
+
+function normalizePermissionSource(source: unknown): AdminPermission[] {
+  if (!source) return []
+
+  if (Array.isArray(source)) {
+    return source.map(normalizePermissionKey).filter((p): p is AdminPermission => p !== null)
+  }
+
+  if (typeof source === 'object') {
+    return Object.entries(source as Record<string, unknown>).flatMap(([resource, actions]) => {
+      if (!Array.isArray(actions)) return []
+      return actions
+        .filter((action): action is string => typeof action === 'string' && action.trim().length > 0)
+        .map((action) => `${resource}:${action.trim()}` as AdminPermission)
+    })
+  }
+
+  return []
+}
+
+function getProfilePermissions(user: User): AdminPermission[] {
+  const backendPermissions = [
+    ...normalizePermissionSource(user.permissions),
+    ...normalizePermissionSource(user.role?.permissions),
+  ]
+
+  if (backendPermissions.length > 0) {
+    return [...new Set(backendPermissions)]
+  }
+
+  return getRolePermissionKeys(user.role_id)
+}
+
 interface AuthState {
   user: User | null
   permissions: AdminPermission[]
@@ -62,10 +109,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false
       }
 
-      // Do not call `/governance/admin/roles/:id/permissions` here.
-      // That endpoint is admin-only and will return 403 for normal roles.
-      // The UI uses local role permissions for menu/route guards; backend still enforces each API.
-      const permissions = getRolePermissionKeys(user.role_id)
+      // Prefer permissions returned by /auth/me so role-permission changes in DB drive the admin UI.
+      // Keep the local map as a compatibility fallback for older backend responses.
+      const permissions = getProfilePermissions(user)
       const canEnterAdmin = user.is_active !== false && permissions.length > 0
 
       if (!canEnterAdmin) {

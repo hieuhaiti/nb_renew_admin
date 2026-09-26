@@ -16,10 +16,16 @@ export interface User {
   is_verified?: boolean
   is_deleted?: boolean
   deleted_at?: string | null
+  permissions?: UserPermission[] | string[] | Record<string, string[]>
   last_login?: string | null
   locked_until?: string | null
   created_at?: string
   updated_at?: string
+}
+
+export interface UserPermission {
+  resource: string
+  action: string
 }
 
 export interface UserRole {

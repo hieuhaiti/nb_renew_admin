@@ -180,14 +180,14 @@ export default function CapacityConfigFormDialog({
                 style={{
                   left: `${(near / cap) * 100}%`,
                   width: `${((over - near) / cap) * 100}%`,
-                  backgroundColor: 'rgb(249 115 22 / 0.7)',
+                  backgroundColor: 'hsl(var(--warning) / 0.7)',
                 }}
               />
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-success">Bình thường</span>
               <span className="text-warning">Đông</span>
-              <span className="text-orange-500">Gần đầy</span>
+              <span className="text-warning">Gần đầy</span>
               <span className="text-destructive">Quá tải</span>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function CapacityConfigFormDialog({
               )}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="cfg_near" className="text-orange-500 text-xs">
+              <Label htmlFor="cfg_near" className="text-warning text-xs">
                 Gần đầy (%)
               </Label>
               <Input id="cfg_near" type="number" min={1} max={99} {...form.register('threshold_near')} />

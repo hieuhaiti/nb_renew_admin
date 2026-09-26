@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Eye, EyeOff, Pen, Plus, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { formatDate } from '@/lib/date'
 import { STALE_DEFAULT } from '@/constant/queryConstant'
@@ -307,45 +308,34 @@ export default function MapLayerPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label={isLayerActive(layer) ? 'Ngừng hoạt động' : 'Kích hoạt'}
+                        icon={isLayerActive(layer) ? EyeOff : Eye}
+                        className={isLayerActive(layer) ? 'text-muted-foreground' : undefined}
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleMutation.mutate(layer.id)
                         }}
-                        title={isLayerActive(layer) ? 'Ngừng hoạt động' : 'Kích hoạt'}
-                      >
-                        {isLayerActive(layer) ? (
-                          <EyeOff className="text-muted-foreground size-4" />
-                        ) : (
-                          <Eye className="size-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedLayer(layer)
                           setFormDialogOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setLayerToDelete(layer)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

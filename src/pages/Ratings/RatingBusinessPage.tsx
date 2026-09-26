@@ -20,7 +20,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
 import {
@@ -42,6 +41,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Check, Pen, X, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import { formatDate } from '@/lib/date'
@@ -294,48 +294,43 @@ export default function RatingBusinessPage(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost" size="sm"
+                      <IconAction
+                        label="Kiểm duyệt / Phản hồi"
+                        icon={Pen}
                         onClick={(e) => { e.stopPropagation(); openForm(r) }}
-                        title="Kiểm duyệt / Phản hồi"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
+                      />
                       {r.status === 'pending' && (
                         <>
-                          <Button
-                            variant="ghost" size="sm"
+                          <IconAction
+                            label="Xuất bản"
+                            icon={Check}
+                            className="text-success hover:text-success"
                             onClick={(e) => {
                               e.stopPropagation()
                               statusMutation.mutate({ id: r.id, status: 'published' })
                             }}
-                            title="Xuất bản"
-                          >
-                            <Check className="text-success size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost" size="sm"
+                          />
+                          <IconAction
+                            label="Từ chối"
+                            icon={X}
+                            className="text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation()
                               statusMutation.mutate({ id: r.id, status: 'rejected' })
                             }}
-                            title="Từ chối"
-                          >
-                            <X className="text-destructive size-4" />
-                          </Button>
+                          />
                         </>
                       )}
-                      <Button
-                        variant="ghost" size="sm"
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setRatingToDelete(r)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

@@ -4,10 +4,10 @@ export const STATUS_LABEL: Record<string, string> = {
   draft: 'Draft',
 }
 export const STATUS_CLASS: Record<string, string> = {
-  published: 'bg-green-50 text-green-700 border-green-200',
-  draft: 'bg-slate-100 text-slate-500 border-slate-200',
+  published: 'bg-success/10 text-success border-success/30',
+  draft: 'bg-muted text-muted-foreground border-border',
 }
 export const STATUS_DOT: Record<string, string> = {
-  published: 'bg-green-500',
-  draft: 'bg-slate-400',
+  published: 'bg-success',
+  draft: 'bg-muted-foreground',
 }

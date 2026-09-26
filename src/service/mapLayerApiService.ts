@@ -81,10 +81,6 @@ export default {
   getApiKeys: (params?: ApiKeyListParams) =>
     apiClient.get<ApiResponse<ApiKeyListData | ApiKey[]>>(serviceApiKeyPath, params),
 
-  /** GET /map-admin/api-keys/:id */
-  getApiKeyById: (id: number) =>
-    apiClient.get<ApiResponse<ApiKey>>(`${serviceApiKeyPath}/${id}`),
-
   /** POST /map-admin/api-keys */
   createApiKey: (data: CreateApiKeyBody) =>
     apiClient.post<ApiResponse<CreateApiKeyResponseData>>(serviceApiKeyPath, data),
@@ -92,8 +88,4 @@ export default {
   /** PATCH /map-admin/api-keys/:id/revoke */
   revokeApiKey: (id: number) =>
     apiClient.patch<ApiResponse<ApiKey>>(`${serviceApiKeyPath}/${id}/revoke`),
-
-  /** DELETE /map-admin/api-keys/:id */
-  deleteApiKey: (id: number) =>
-    apiClient.del<ApiResponse<{}>>(`${serviceApiKeyPath}/${id}`),
 }

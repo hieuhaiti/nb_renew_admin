@@ -4,10 +4,10 @@ export const ACTIVE_LABEL: Record<string, string> = {
   false: 'Ngừng hoạt động',
 }
 export const ACTIVE_CLASS: Record<string, string> = {
-  true: 'bg-green-50 text-green-700 border-green-200',
-  false: 'bg-slate-100 text-slate-500 border-slate-200',
+  true: 'bg-success/10 text-success border-success/30',
+  false: 'bg-muted text-muted-foreground border-border',
 }
 export const ACTIVE_DOT: Record<string, string> = {
-  true: 'bg-green-500',
-  false: 'bg-slate-400',
+  true: 'bg-success',
+  false: 'bg-muted-foreground',
 }

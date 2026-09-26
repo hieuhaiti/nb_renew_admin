@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Eye, EyeOff, Pen, Plus, Star, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import NewsDetailDialog from './NewsDetailDialog'
 import NewsFormDialog from './NewsFormDialog'
@@ -312,46 +313,35 @@ export default function News(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label="Chỉnh sửa"
+                        icon={Pen}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedNewsId(n.id)
                           setFormDialogOpen(true)
                         }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pen className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label={n.is_published ? 'Hủy xuất bản' : 'Xuất bản'}
+                        icon={n.is_published ? EyeOff : Eye}
+                        className={n.is_published ? 'text-muted-foreground' : undefined}
+                        disabled={setPublishedMutation.isPending}
                         onClick={(e) => {
                           e.stopPropagation()
                           setPublishedMutation.mutate({ id: n.id, is_published: !n.is_published })
                         }}
-                        title={n.is_published ? 'Hủy xuất bản' : 'Xuất bản'}
-                        disabled={setPublishedMutation.isPending}
-                      >
-                        {n.is_published ? (
-                          <EyeOff className="text-muted-foreground size-4" />
-                        ) : (
-                          <Eye className="size-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      />
+                      <IconAction
+                        label="Xóa"
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
                           setNewsToDelete(n)
                           setDeleteDialogOpen(true)
                         }}
-                        title="Xóa"
-                      >
-                        <Trash2 className="text-destructive size-4" />
-                      </Button>
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

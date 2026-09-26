@@ -46,14 +46,14 @@ const CAPACITY_STATUS_LABEL: Record<string, string> = {
 const CAPACITY_STATUS_DOT: Record<string, string> = {
   normal: 'bg-success',
   busy: 'bg-warning',
-  near_full: 'bg-orange-500',
+  near_full: 'bg-warning',
   overloaded: 'bg-destructive',
 }
 
 const CAPACITY_STATUS_BADGE: Record<string, string> = {
   normal: 'bg-success/10 text-success border-success/20',
   busy: 'bg-warning/10 text-warning border-warning/20',
-  near_full: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  near_full: 'bg-warning/15 text-warning border-warning/30',
   overloaded: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 

@@ -16,7 +16,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
 import { SearchSelect } from '@/components/common/SearchSelect'
 import { StatusDotBadge } from '@/components/common/StatusDotBadge'
 import ToolTableCustom from '@/components/features/ToolTableCustom'
@@ -39,6 +38,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Check, MessagesSquare, Pen, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import PageLayout from '@/layout/pageLayout'
 import { UserCell } from '@/components/common/UserCell'
 import NewsCommentDetailDialog from './NewsCommentDetailDialog'
@@ -285,9 +285,10 @@ export default function NewsComments(): JSX.Element {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         {!c.is_approved && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <IconAction
+                            label="Duyệt"
+                            icon={Check}
+                            className="text-success hover:text-success"
                             disabled={setApprovalMutation.isPending}
                             onClick={(e) => {
                               e.stopPropagation()
@@ -297,45 +298,34 @@ export default function NewsComments(): JSX.Element {
                                 is_approved: true,
                               })
                             }}
-                            title="Duyệt"
-                          >
-                            <Check className="text-success size-4" />
-                          </Button>
+                          />
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <IconAction
+                          label="Chỉnh sửa"
+                          icon={Pen}
                           onClick={(e) => {
                             e.stopPropagation()
                             openEdit(c)
                           }}
-                          title="Chỉnh sửa"
-                        >
-                          <Pen className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        />
+                        <IconAction
+                          label="Trả lời"
+                          icon={MessagesSquare}
                           onClick={(e) => {
                             e.stopPropagation()
                             openReply(c)
                           }}
-                          title="Trả lời"
-                        >
-                          <MessagesSquare className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        />
+                        <IconAction
+                          label="Xóa"
+                          icon={Trash2}
+                          className="text-destructive hover:text-destructive"
                           onClick={(e) => {
                             e.stopPropagation()
                             setCommentToDelete(c)
                             setDeleteDialogOpen(true)
                           }}
-                          title="Xóa"
-                        >
-                          <Trash2 className="text-destructive size-4" />
-                        </Button>
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -374,9 +364,10 @@ export default function NewsComments(): JSX.Element {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           {!reply.is_approved && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <IconAction
+                              label="Duyệt"
+                              icon={Check}
+                              className="text-success hover:text-success"
                               disabled={setApprovalMutation.isPending}
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -386,34 +377,26 @@ export default function NewsComments(): JSX.Element {
                                   is_approved: true,
                                 })
                               }}
-                              title="Duyệt"
-                            >
-                              <Check className="text-success size-4" />
-                            </Button>
+                            />
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <IconAction
+                            label="Chỉnh sửa"
+                            icon={Pen}
                             onClick={(e) => {
                               e.stopPropagation()
                               openEdit(reply)
                             }}
-                            title="Chỉnh sửa"
-                          >
-                            <Pen className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          />
+                          <IconAction
+                            label="Xóa"
+                            icon={Trash2}
+                            className="text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation()
                               setCommentToDelete(reply)
                               setDeleteDialogOpen(true)
                             }}
-                            title="Xóa"
-                          >
-                            <Trash2 className="text-destructive size-4" />
-                          </Button>
+                          />
                         </div>
                       </TableCell>
                     </TableRow>

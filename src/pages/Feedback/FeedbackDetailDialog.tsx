@@ -78,8 +78,8 @@ export default function FeedbackDetailDialog({
                 variant="outline"
                 className={
                   feedback.is_location_verified
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 bg-slate-50 text-slate-600'
+                    ? 'border-success/20 bg-success/10 text-success'
+                    : 'border-border bg-muted/40 text-muted-foreground'
                 }
               >
                 {feedback.is_location_verified ? 'Đã xác minh thực địa' : 'Chưa xác minh'}

@@ -43,13 +43,13 @@ const FEEDBACK_STATUS_LABEL: Record<string, string> = {
 }
 const FEEDBACK_STATUS_DOT: Record<string, string> = {
   pending: 'bg-warning',
-  in_progress: 'bg-blue-500',
+  in_progress: 'bg-info',
   resolved: 'bg-success',
   rejected: 'bg-destructive',
 }
 const FEEDBACK_STATUS_BADGE: Record<string, string> = {
   pending: 'bg-warning/10 text-warning border-warning/20',
-  in_progress: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  in_progress: 'bg-info-subtle text-info-subtle-foreground border-info/30',
   resolved: 'bg-success/10 text-success border-success/20',
   rejected: 'bg-destructive/10 text-destructive border-destructive/20',
 }

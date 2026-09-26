@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Pen, ShieldCheck, Trash2 } from 'lucide-react'
+import { IconAction } from '@/components/common/IconAction'
 import { mapLayerApiService, useApiMutation, useApiQuery } from '@/service'
 import { useAuthStore } from '@/stores/common/useAuthStore'
 import type { ApiResponse, MapLayerApi, MapLayerApiListData, Pagination } from '@/types/api'
@@ -311,44 +312,35 @@ export default function MapLayerApiListPage(): JSX.Element {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           {canShare && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <IconAction
+                              label="Phân quyền API"
+                              icon={ShieldCheck}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 openPermissionDialog(api)
                               }}
-                              title="Phân quyền API"
-                            >
-                              <ShieldCheck className="size-4" />
-                            </Button>
+                            />
                           )}
                           {canUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <IconAction
+                              label="Chỉnh sửa"
+                              icon={Pen}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 openEditDialog(api)
                               }}
-                              title="Chỉnh sửa"
-                            >
-                              <Pen className="size-4" />
-                            </Button>
+                            />
                           )}
-
                           {canDelete && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <IconAction
+                              label="Xóa"
+                              icon={Trash2}
+                              className="text-destructive hover:text-destructive"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 openDeleteDialog(api)
                               }}
-                              title="Xóa"
-                            >
-                              <Trash2 className="text-destructive size-4" />
-                            </Button>
+                            />
                           )}
                         </div>
                       </TableCell>

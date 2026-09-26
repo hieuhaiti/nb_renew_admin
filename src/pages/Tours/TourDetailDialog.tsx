@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
 import { tourService, useApiQuery } from '@/service'
 import type { ApiResponse, Tour } from '@/types/api'
@@ -54,14 +55,20 @@ export default function TourDetailDialog({ open, onOpenChange, tourId, onEdit }:
         className={`max-h-[85vh] overflow-y-auto transition-all ${hasStops ? 'max-w-4xl' : 'max-w-2xl'}`}
         actions={
           onEdit && (
-            <button
-              onClick={onEdit}
-              title="Chỉnh sửa"
-              className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
-            >
-              <Pen className="h-5 w-5" />
-              <span className="sr-only">Chỉnh sửa</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Chỉnh sửa tour"
+                  className="hover:text-primary rounded-sm opacity-70 transition-opacity hover:scale-105 hover:opacity-100 focus:outline-none"
+                >
+                  <Pen className="h-5 w-5" />
+                  <span className="sr-only">Chỉnh sửa</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Chỉnh sửa</TooltipContent>
+            </Tooltip>
           )
         }
       >
@@ -238,9 +245,9 @@ export default function TourDetailDialog({ open, onOpenChange, tourId, onEdit }:
                                 key={stop.id}
                                 className={`rounded border p-2 ${
                                   isFirst
-                                    ? 'border-rose-200 bg-rose-50/50'
+                                    ? 'border-destructive/30 bg-destructive-subtle'
                                     : isLast
-                                      ? 'border-emerald-200 bg-emerald-50/50'
+                                      ? 'border-success/30 bg-success-subtle'
                                       : 'border-border bg-card'
                                 }`}
                               >

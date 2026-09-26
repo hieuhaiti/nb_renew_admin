@@ -96,7 +96,7 @@ export default function MapLayerApiFormDialog({
         </div>
 
         {isEdit && errorMessage && (
-          <div className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+          <div className="border-destructive/20 bg-destructive/10 text-destructive mt-2 flex items-start gap-2 rounded-md border p-3 text-sm">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>

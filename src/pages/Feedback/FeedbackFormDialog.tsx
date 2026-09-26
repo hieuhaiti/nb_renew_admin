@@ -139,7 +139,7 @@ export default function FeedbackFormDialog({
           <TabsContent value="status">
             <form onSubmit={statusForm.handleSubmit(onUpdateStatus)} className="mt-4 space-y-4">
               {canUpdateModeration && (
-                <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                <div className="flex items-start gap-2 rounded-md border border-info/30 bg-info-subtle px-3 py-2 text-xs text-info-subtle-foreground">
                   <Info className="mt-0.5 size-3.5 shrink-0" />
                   <span>
                     Cập nhật trạng thái sẽ tự động <strong>thông qua kiểm duyệt</strong> (approved).
