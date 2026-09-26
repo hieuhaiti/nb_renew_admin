@@ -177,8 +177,6 @@ export default function OcopPage(): JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả số sao</SelectItem>
-                <SelectItem value="1">1 sao</SelectItem>
-                <SelectItem value="2">2 sao</SelectItem>
                 <SelectItem value="3">3 sao</SelectItem>
                 <SelectItem value="4">4 sao</SelectItem>
                 <SelectItem value="5">5 sao</SelectItem>

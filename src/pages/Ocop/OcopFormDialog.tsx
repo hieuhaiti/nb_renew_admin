@@ -22,7 +22,7 @@ const ocopSchema = z.object({
   name_vi: z.string().min(1, 'Tên không được để trống').max(255),
   category: z.string().max(100).optional().or(z.literal('')),
   description: z.string().optional().or(z.literal('')),
-  star_rating: z.coerce.number().min(1).max(5).optional(),
+  star_rating: z.coerce.number().min(3).max(5).optional(),
   certification_no: z.string().max(100).optional().or(z.literal('')),
   cover_image_url: z.string().url('URL không hợp lệ').optional().or(z.literal('')),
   price_vnd: z.coerce.number().min(0).optional(),
@@ -167,8 +167,6 @@ export default function OcopFormDialog({
               >
                 <SelectTrigger className="w-full"><SelectValue placeholder="Chọn" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 sao</SelectItem>
-                  <SelectItem value="2">2 sao</SelectItem>
                   <SelectItem value="3">3 sao</SelectItem>
                   <SelectItem value="4">4 sao</SelectItem>
                   <SelectItem value="5">5 sao</SelectItem>
