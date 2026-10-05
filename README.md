@@ -1,7 +1,7 @@
-# 🔧 WebGIS An Ninh Biên Giới Đắk Lắk - Admin
+# 🔧 Nền Tảng Du Lịch Số Ninh Bình - Phân Hệ Quản Trị (Admin)
 
 <p align="center">
-  <strong>Hệ thống quản trị dữ liệu GIS và nội dung</strong>
+  <strong>Hệ thống quản trị dữ liệu du lịch, WebGIS và nội dung số</strong>
 </p>
 
 ---
@@ -114,12 +114,15 @@ VITE_MAX_FILE_SIZE=52428800
 
 ## 👥 Vai trò & Phân quyền
 
-| Vai trò              | Mô tả             | Quyền hạn                        |
-| -------------------- | ----------------- | -------------------------------- |
-| **admin**            | Quản trị hệ thống | Toàn quyền                       |
-| **border_guard**     | Bộ đội biên phòng | CRUD dữ liệu GIS, xử lý phản ánh |
-| **military_command** | BCHQS Tỉnh        | Xem báo cáo, phê duyệt           |
-| **viewer**           | Người xem         | Chỉ xem                          |
+| Vai trò | Mã vai trò (code) | Mô tả & Trách nhiệm chính |
+|---|---|---|
+| **Quản trị hệ thống** | `system_admin` | Quản trị toàn diện: người dùng, vai trò, audit log, cấu hình bản đồ |
+| **Bộ Văn hóa Thể thao và Du lịch** | `ministry_manager` | Giám sát tổng thể du lịch cấp quốc gia/ngành, xem báo cáo tổng hợp |
+| **Sở Văn hóa Thể thao và Du lịch** | `department_manager` | Quản lý nhà nước địa phương: phê duyệt hồ sơ DN, xử lý phản ánh, thống kê tỉnh |
+| **Đơn vị vận hành điểm du lịch** | `spot_operator` | Quản lý điểm du lịch, giám sát sức chứa, tiếp nhận phản ánh điểm đến |
+| **Công ty lữ hành** | `travel_company` | Quản lý tour du lịch, điều phối đoàn, theo dõi sức chứa & cảnh báo ùn tắc |
+| **Đơn vị cung cấp dịch vụ du lịch** | `service_provider` | Quản lý cơ sở kinh doanh, dịch vụ, sản phẩm OCOP, voucher ưu đãi |
+| **Khách du lịch** | `tourist` | Người dùng cuối ứng dụng client: tra cứu điểm đến, đặt dịch vụ, gửi phản ánh |
 
 ---
 
@@ -199,4 +202,4 @@ const PERMISSIONS = {
 
 ## 📝 License
 
-Copyright © 2026 UBND Tỉnh Đắk Lắk. All rights reserved.
+Copyright © 2026 Du Lịch Ninh Bình. All rights reserved.

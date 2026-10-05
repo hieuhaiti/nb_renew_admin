@@ -93,6 +93,3 @@ export const serviceSatellitePath = '/satellite'
 
 // Statistics & reports
 export const serviceStatisticsPath = '/statistics'
-
-// Flood scenarios
-export const serviceFloodScenarioPath = '/flood/scenarios'

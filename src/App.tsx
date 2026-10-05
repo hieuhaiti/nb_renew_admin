@@ -64,7 +64,6 @@ const TourPage = lazy(() => import('@/pages/Tours'))
 const AframeScenePage = lazy(() => import('@/pages/AframeScenes'))
 const CapacityPage = lazy(() => import('@/pages/Capacity'))
 const RouteCapacityPage = lazy(() => import('@/pages/Capacity/RouteCapacityPage'))
-const FloodScenariosPage = lazy(() => import('@/pages/FloodScenarios'))
 // const IntegrationPage = lazy(() => import('@/pages/Integrations'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const ChangePasswordPage = lazy(() => import('@/pages/ChangePassword'))
@@ -231,10 +230,6 @@ function App() {
                   <Route path="/ocop" element={<OcopPage />} />
                 </Route>
 
-                {/* === Kịch bản ngập: flood:read/run === */}
-                <Route element={<RoleGuard access={PAGE_ACCESS.floodScenarios} />}>
-                  <Route path="/flood-scenarios" element={<FloodScenariosPage />} />
-                </Route>
 
                 {/* === Phản ánh: cần feedbacks:update/delete === */}
                 <Route element={<RoleGuard access={PAGE_ACCESS.feedbacks} />}>
